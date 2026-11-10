@@ -1,0 +1,19 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+.pytest_cache/
+.ruff_cache/
+.idea/
+.vscode/
+*.log
+.DS_Store
+Thumbs.db
+
+# 只保留可以直接体验生成效果的微型示例权重。
+model/*
+!model/tiny_rnn.npz
+!model/README.md
