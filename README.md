@@ -31,6 +31,7 @@ scripts/example/generate.py     生成入口
 scripts/learn/          学习者亲手编写的数据检查和清洗练习
 data/corpus/            四份原始小说文本
 data/corpus_processed/  第二课生成的清洗文本
+data/chapters/          第四课保存的 JSONL 章节记录
 docs/                   使用说明、语料和学习笔记
 .github/workflows/      GitHub 自动检查
 ```

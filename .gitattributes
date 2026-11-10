@@ -3,6 +3,7 @@
 *.py text eol=lf
 *.md text eol=lf
 *.txt text eol=lf
+*.jsonl text eol=lf
 *.yml text eol=lf
 .gitignore text eol=lf
 .gitattributes text eol=lf

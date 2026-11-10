@@ -1,4 +1,5 @@
 import re  # 导入正则表达式工具，用规则查找章节开头。
+import json  # 导入 JSON 工具，将字典转成文件文字，再从文字还原字典。
 from pathlib import Path  # 导入路径工具，定位清洗后的文本。
 
 ROOT = Path(__file__).resolve().parents[2]  # 找到项目根目录。
@@ -36,3 +37,39 @@ for book_name in book_names:  # 依次检查每本书。
     print("首章字符数：", len(chapters[0]))  # 显示第一章的字符数，方便核对边界。
     print("末章字符数：", len(chapters[-1]))  # 显示最后一章的字符数。
     print("还原检查：通过")  # 只有上面的断言通过，程序才能运行到这里。
+
+records = []  # 创建列表，保存四本书的全部章节记录。
+
+for book_name, chapters in book_chapters.items():  # 同时取出每本书的文件名和章节列表。
+    for chapter_index, chapter_text in enumerate(chapters, start=1):  # 从 1 开始给每本书的章节编号。
+        record = {  # 将当前章节的内容和来源信息放进字典。
+            "id": f"{Path(book_name).stem}:{chapter_index:03d}",  # 用书名和至少三位的顺序号组成标识。
+            "book": book_name,  # 保存来源文件名。
+            "chapter_index": chapter_index,  # 保存整数形式的章节顺序号。
+            "text": chapter_text,  # 保存完整章节，不再修改文字。
+        }  # 结束当前章节记录的定义。
+        records.append(record)  # 将当前记录加入总列表。
+
+output_dir = ROOT / "data" / "chapters"  # 指定章节记录的保存目录。
+output_dir.mkdir(parents=True, exist_ok=True)  # 创建目录，已经存在时继续使用。
+output_path = output_dir / "chapters.jsonl"  # 指定输出文件名。
+
+with output_path.open("w", encoding="utf-8", newline="\n") as file:  # 用 UTF-8 和 LF 写入，覆盖同名旧结果，结束后自动关闭。
+    for record in records:  # 依次取出每条章节记录。
+        line = json.dumps(record, ensure_ascii=False)  # 将字典转成 JSON 字符串，让中文保持可读。
+        file.write(line + "\n")  # 写入一条记录，再加一个真正的换行作为记录分隔。
+
+loaded_records = []  # 创建列表，保存重新读取的记录。
+
+with output_path.open("r", encoding="utf-8") as file:  # 打开刚保存的文件进行读取。
+    for line in file:  # 每次读取一个物理行，也就是一条 JSON 记录。
+        loaded_records.append(json.loads(line))  # 将 JSON 字符串还原成字典，并加入列表。
+
+assert loaded_records == records, "保存后重新读取的内容不一致"  # 检查记录顺序、字段和完整正文是否保持一致。
+assert len({record["id"] for record in loaded_records}) == len(loaded_records), "章节标识重复"  # 检查每条记录的标识是否唯一。
+
+print("\n保存路径：", output_path)  # 显示结果文件位置。
+print("记录数：", len(loaded_records))  # 当前应为 460 条。
+print("第一条标识：", loaded_records[0]["id"])  # 当前应为三国演义:001。
+print("第一条字符数：", len(loaded_records[0]["text"]))  # 当前应为 4638。
+print("保存后重载检查：通过")  # 只有上述断言通过，才能运行到这里。

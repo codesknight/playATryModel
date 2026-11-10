@@ -12,17 +12,25 @@ https://github.com/weiyinfu/SiDaMingZhu/tree/master/src
 
 - `corpus/`：原始采集文本，不由清洗脚本覆盖。
 - `corpus_processed/`：第二课生成的 UTF-8 文本，保留每本书的独立文件。
+- `chapters/chapters.jsonl`：第四课生成的 460 条章节记录，每一物理行是一章的 JSON 表示。
 
 在项目根目录运行：
 
 ```powershell
 python scripts/learn/01_inspect_data.py # 检查原始文本的路径、开头和字符统计。
 python scripts/learn/02_clean_data.py # 删除空白行和每行首尾空白，重新生成清洗结果。
+python scripts/learn/03_split_chapters.py # 切分完整章节，保存 JSONL，并读取回来检查内容一致。
 ```
 
 清洗保留正文、标点、标题和行内空格。尚未划分训练集、验证集或测试集，也尚未将这四份语料用于模型训练。
 
-第三课 `scripts/learn/03_split_chapters.py` 已完成章节识别与内存中的切分：四本书分别得到 120、120、120、100 章，合计 460 章。各书章节顺序拼接后与清洗文本完全一致；当前尚未保存独立章节文件。
+第三课 `scripts/learn/03_split_chapters.py` 完成章节识别与内存中的切分：四本书分别得到 120、120、120、100 章，合计 460 章。各书章节顺序拼接后与清洗文本完全一致。第四课在同一脚本中增加 JSONL 保存与重载验证。
+
+## 章节记录格式
+
+每条记录包含 `id`、`book`、`chapter_index` 和 `text`。id 由书名和至少三位的切分顺序号组成，例如 `三国演义:001`；chapter_index 是切分顺序，不表示已经校验标题中的真实回数。text 保留完整章节，包含标题和正文。
+
+正文换行由 JSON 转义表示，不会把一条记录拆成多行；使用 json.loads 后还原成真正的换行。数据采用 UTF-8 和 LF 保存，无缩进。当前文件 9,258,686 字节，460 个物理行，ID 唯一，重载后记录顺序、字段和正文均与保存前一致。
 
 ## 第二课结果
 
