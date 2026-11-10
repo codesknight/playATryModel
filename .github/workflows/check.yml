@@ -19,11 +19,11 @@ jobs: # 定义需要执行的任务。
       - name: Check Python syntax # 检查所有脚本能否正确解析。
         run: python -m compileall -q scripts # 编译脚本，仅在出错时显示详细信息。
       - name: Generate from baseline # 检查仓库内的示例权重可以加载。
-        run: python scripts/template/generate.py --prompt "小猫" --length 20 # 使用移动到 template 目录中的示例模型。
+        run: python scripts/example/generate.py --prompt "小猫" --length 20 # 使用移动到 example 目录中的示例模型。
       - name: Train and reload # 检查训练保存和重新加载是否正常。
         run: | # 下面的命令依次执行，有一步失败就停止。
-          python scripts/template/train.py --steps 2 --output "$RUNNER_TEMP/smoke.npz" # 短训练只写入临时目录。
-          python scripts/template/generate.py --model "$RUNNER_TEMP/smoke.npz" --prompt "小猫" --length 10 # 重新加载新权重并生成文字。
+          python scripts/example/train.py --steps 2 --output "$RUNNER_TEMP/smoke.npz" # 短训练只写入临时目录。
+          python scripts/example/generate.py --model "$RUNNER_TEMP/smoke.npz" --prompt "小猫" --length 10 # 重新加载新权重并生成文字。
       - name: Check completed lessons # 运行已完成的数据读取和清洗练习。
         run: | # 按顺序检查数据读取、清洗和结果是否可复现。
           python scripts/learn/01_inspect_data.py # 验证四份原始文本都可以读取。

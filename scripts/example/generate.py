@@ -4,7 +4,7 @@ import argparse  # 导入命令行参数工具，用来读取生成设置。
 from pathlib import Path  # 导入路径工具，用来定位模型文件。
 from tiny_model import TinyRNN  # 导入我们自己实现的小模型。
 
-ROOT = Path(__file__).resolve().parents[2]  # 脚本移到 scripts/template 后，向上两级找到项目根目录。
+ROOT = Path(__file__).resolve().parents[2]  # 脚本移到 scripts/example 后，向上两级找到项目根目录。
 
 
 def main():  # 定义生成文字的主流程。
@@ -19,7 +19,7 @@ def main():  # 定义生成文字的主流程。
     if args.length < 0 or args.temperature <= 0 or args.top_k < 0:  # 检查字符数和候选数不能为负，温度必须大于零。
         parser.error("length、top-k 不能为负，temperature 必须大于零")  # 参数不合法时显示原因，并结束程序。
     if not args.model.is_file():  # 检查权重文件是否存在，而且确实是一个文件。
-        parser.error("找不到模型，请先运行 python scripts/template/train.py")  # 找不到权重时，提示用户先运行训练脚本。
+        parser.error("找不到模型，请先运行 python scripts/example/train.py")  # 找不到权重时，提示用户先运行训练脚本。
     try:  # 尝试读取模型并生成文字，同时准备处理词表不匹配等错误。
         print(TinyRNN.load(args.model).generate(args.prompt, args.length, args.temperature, args.top_k, args.seed))  # 加载权重，按用户设置续写，再把完整结果打印出来。
     except ValueError as error:  # 如果加载或生成时抛出 ValueError，就接收具体错误信息。

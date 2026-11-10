@@ -10,20 +10,20 @@
 
 ```powershell
 python -m pip install -r requirements.txt
-python scripts/template/generate.py --prompt "春天" --length 100
+python scripts/example/generate.py --prompt "春天" --length 100
 ```
 
 如果没有权重，先训练：
 
 ```powershell
-python scripts/template/train.py
+python scripts/example/train.py
 ```
 
 生成更多不同的文字：
 
 ```powershell
-python scripts/template/generate.py --prompt "小猫" --length 150 --temperature 0.8 --seed 7
-python scripts/template/generate.py --prompt "夜晚" --length 100 --temperature 0.5
+python scripts/example/generate.py --prompt "小猫" --length 150 --temperature 0.8 --seed 7
+python scripts/example/generate.py --prompt "夜晚" --length 100 --temperature 0.5
 ```
 
 `length` 是新增字符数。温度越低通常越保守，越高越随机；`top-k` 默认只从概率最高的 8 个字符中采样，设为 0 可取消限制。相同权重、提示词和随机种子通常会得到相同结果。
@@ -33,8 +33,8 @@ python scripts/template/generate.py --prompt "夜晚" --length 100 --temperature
 准备 UTF-8 纯文本，长度大于 32 字，推荐使用数千字以上、风格一致的文本，然后执行：
 
 ```powershell
-python scripts/template/train.py --data docs/my_corpus.txt --steps 3000 --output model/my_rnn.npz
-python scripts/template/generate.py --model model/my_rnn.npz --prompt "你的开头" --length 100
+python scripts/example/train.py --data docs/my_corpus.txt --steps 3000 --output model/my_rnn.npz
+python scripts/example/generate.py --model model/my_rnn.npz --prompt "你的开头" --length 100
 ```
 
 提示词中的每个字符都必须出现在相应的训练语料里；否则脚本会提示缺少哪些字符。重新训练会建立新词表，并从随机参数开始训练，不是继续微调。默认训练会覆盖 `model/tiny_rnn.npz`；想保留原模型请指定其他 `--output`。
@@ -45,4 +45,4 @@ python scripts/template/generate.py --model model/my_rnn.npz --prompt "你的开
 
 这是教学用的微型语言模型，不是问答助手。示例语料非常少，训练后的输出主要是学过句子的复现和组合，可能重复、不连贯或出现错字搭配。训练损失只反映对训练语料的拟合，没有独立评测集，不能代表通用语言能力。它没有预训练知识，也不能可靠回答问题。想增加表达范围，需要更丰富的语料并重新训练；增大模型本身不能替代数据。
 
-可通过 `python scripts/template/train.py --help` 和 `python scripts/template/generate.py --help` 查看参数。
+可通过 `python scripts/example/train.py --help` 和 `python scripts/example/generate.py --help` 查看参数。

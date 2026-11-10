@@ -12,7 +12,7 @@ from pathlib import Path  # 导入路径工具，用来定位语料和权重文�
 import numpy as np  # 导入 NumPy，用来处理数组和训练计算。
 from tiny_model import TinyRNN  # 导入我们自己实现的小模型。
 
-ROOT = Path(__file__).resolve().parents[2]  # 脚本移到 scripts/template 后，向上两级找到项目根目录。
+ROOT = Path(__file__).resolve().parents[2]  # 脚本移到 scripts/example 后，向上两级找到项目根目录。
 
 
 def main():  # 定义训练脚本的主流程。

@@ -12,22 +12,22 @@
 
 ```powershell
 python -m pip install -r requirements.txt # 安装 NumPy 依赖。
-python scripts/template/generate.py --prompt "小猫" --length 100 # 加载已有权重，续写 100 个字符。
+python scripts/example/generate.py --prompt "小猫" --length 100 # 加载已有权重，续写 100 个字符。
 ```
 
 重新训练示例模型：
 
 ```powershell
-python scripts/template/train.py # 使用内置语料训练，覆盖默认示例权重。
+python scripts/example/train.py # 使用内置语料训练，覆盖默认示例权重。
 ```
 
 ## 文件结构
 
 ```text
 model/                  模型权重，仓库保留微型示例权重
-scripts/template/tiny_model.py   RNN 结构、反向传播、保存、加载和生成
-scripts/template/train.py        训练入口
-scripts/template/generate.py     生成入口
+scripts/example/tiny_model.py   RNN 结构、反向传播、保存、加载和生成
+scripts/example/train.py        训练入口
+scripts/example/generate.py     生成入口
 scripts/learn/          学习者亲手编写的数据检查和清洗练习
 data/corpus/            四份原始小说文本
 data/corpus_processed/  第二课生成的清洗文本
