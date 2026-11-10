@@ -1,0 +1,27 @@
+{
+  "seed": 42,
+  "algorithm": "per_book_sorted_shuffle_v1",
+  "ratios": {
+    "train": 0.8,
+    "validation": 0.1,
+    "test": 0.1
+  },
+  "source_sha256": "f6a9d5b3e8da51bbcd669d35f02236f70d4d9184e066912dd1ac41790a46910d",
+  "files": {
+    "train": {
+      "count": 368,
+      "characters": 2456586,
+      "sha256": "0cee762b4832c3a1c37c84c245ca912c51a1c22fa8df4c37e811ec735e390a69"
+    },
+    "validation": {
+      "count": 46,
+      "characters": 317717,
+      "sha256": "6c2b342b2964d65d780f8a487285855dfaff4502bf3bb8fbf7bba1896e46e0fe"
+    },
+    "test": {
+      "count": 46,
+      "characters": 304142,
+      "sha256": "42133d3767a02aa411b8ce3735c16f8dff6104ff1c8e48ff9abd03654c2c08d2"
+    }
+  }
+}

@@ -444,3 +444,144 @@ print("保存后重载检查：通过")  # 上述断言均通过后才能显示�
 补充：章节不是技术上不能拆分；后续还会在章节内部制作训练窗口。本课选择一章一条记录，是为了保留章节身份，方便先划分数据集。实现一行存储的机制是 json.dumps 将字符串里的真正换行编码成反斜杠加 n，json.loads 再将其解码为真正换行。只有 file.write 在记录末尾添加的实际 LF 用于分隔 JSONL 记录；本课记录内的换行均被转义。
 
 当前记录为代码实操通过、转义原理已补充讲解，不能根据运行成功推断概念已独立掌握。下一课计划按整章进行可复现的数据集划分，再在各集合内制作训练窗口，避免窗口跨集合及跨章节。
+
+## 第 5 课：按完整章节划分数据集并复现
+
+状态：代码实操与复现检查通过，学习者已完成 scripts/learn/04_split_dataset.py 和四份输出文件。口述题及 shuffle 原理补充见本课末尾。
+
+### 集合用途与评估范围
+
+- train：用于计算训练误差并更新模型参数。
+- validation：用于选择学习率、模型大小、训练停止时机等；不用于梯度更新。
+- test：方案确定后的最终评估，不反复根据其结果调参。本课可以检查记录数、完整性和交集等数据结构，不将测试集用于模型选择。
+- 本课每本书分别按章节数约 80%/10%/10% 划分，保证每个集合都有四本书的章节；不是按字符数等分。
+- 这是同一批书中留出章节的评估，不表示对未见书籍或其他题材的泛化表现。
+- 按章划分能防止同一章的重叠训练窗口跨集合，但不同章节仍可能有重复片段，不能因此声称消除了所有泄漏。
+
+### 可复现规则
+
+固定输入文件、排序规则、算法、随机种子以及兼容的 Python 随机实现。先按书名排序，再按章序号和 ID 排序，使用局部 random.Random(42) 打乱每本书的新列表。保存成员列表的 JSONL 是固定划分的实际依据，不只依赖种子。
+
+原始记录列表和每条记录内容不修改。输出 data/splits/train.jsonl、validation.jsonl、test.jsonl，以及 manifest.json，记录输入文件 SHA-256、种子、算法和输出文件统计及哈希。修改语料后，即使种子不变也可能得到不同划分；进入正式对比实验后应冻结划分。
+
+### 第一块：读取与分组
+
+```python
+import hashlib  # 导入哈希工具，为输入和输出文件计算内容指纹。
+import json  # 导入 JSON 工具，读取和保存章节记录。
+import random  # 导入随机工具，按固定种子打乱章节顺序。
+from pathlib import Path  # 导入路径工具，定位数据文件。
+
+ROOT = Path(__file__).resolve().parents[2]  # 找到项目根目录。
+source_path = ROOT / "data" / "chapters" / "chapters.jsonl"  # 指定上一课生成的章节文件。
+SEED = 42  # 固定随机种子，本身没有特殊好坏之分。
+with source_path.open(encoding="utf-8") as file:  # 打开章节文件，读取后自动关闭。
+    records = [json.loads(line) for line in file]  # 将每行还原成字典，组成记录列表。
+assert len({record["id"] for record in records}) == len(records), "输入 ID 重复"  # 先检查输入记录身份唯一。
+groups = {}  # 创建字典，按书名分别保存章节。
+for record in records:  # 依次处理每条章节记录。
+    groups.setdefault(record["book"], []).append(record)  # 书名尚不存在时创建列表，再加入当前章节。
+```
+
+### 第二块：按书排序、打乱、切片
+
+```python
+rng = random.Random(SEED)  # 创建独立的随机数生成器，不依赖全局随机状态。
+splits = {"train": [], "validation": [], "test": []}  # 为三个集合分别准备列表。
+for book_name in sorted(groups):  # 固定书籍处理顺序，避免依赖输入记录的排列。
+    chapters = sorted(groups[book_name], key=lambda record: (record["chapter_index"], record["id"]))  # 按顺序号和 ID 生成新的有序列表。
+    rng.shuffle(chapters)  # 打乱当前列表；字典和章节正文不变。
+    count = len(chapters)  # 取得当前书籍的章节数。
+    train_end = int(count * 0.8)  # 计算训练集右端点，正数取整相当于向下取整。
+    validation_end = train_end + int(count * 0.1)  # 在训练集之后再取约一成章节作为验证集。
+    assert 0 < train_end < validation_end < count, "章节太少，无法分成三个非空集合"  # 防止小分组产生空集合。
+    splits["train"].extend(chapters[:train_end])  # 将前八成章节逐条加入训练集。
+    splits["validation"].extend(chapters[train_end:validation_end])  # 将中间一成章节加入验证集。
+    splits["test"].extend(chapters[validation_end:])  # 将剩余章节全部加入测试集，避免取整后遗漏。
+    print(book_name, "总章数：", count, "训练：", train_end, "验证：", validation_end - train_end, "测试：", count - validation_end)  # 显示每本书的划分结果。
+```
+
+### 第三块：检查互斥与覆盖
+
+```python
+ids = {name: {record["id"] for record in rows} for name, rows in splits.items()}  # 为每个集合提取章节 ID 集合。
+texts = {name: {record["text"] for record in rows} for name, rows in splits.items()}  # 为每个集合提取完整章节文本集合。
+for left, right in [("train", "validation"), ("train", "test"), ("validation", "test")]:  # 检查三种集合配对。
+    assert ids[left].isdisjoint(ids[right]), "同一章节进入了多个集合"  # 两个集合不能共享章节 ID。
+    assert texts[left].isdisjoint(texts[right]), "不同集合含有完全相同的整章正文"  # 检查不同 ID 下是否存在相同整章文本。
+assert ids["train"] | ids["validation"] | ids["test"] == {record["id"] for record in records}, "划分遗漏或多出章节"  # 三个集合合起来必须覆盖全部输入 ID。
+assert sum(len(rows) for rows in splits.values()) == len(records), "划分后的总记录数不一致"  # 检查总数没有增加或减少。
+print("集合交集、完整章节重复和覆盖检查：通过")  # 所有断言通过后显示。
+```
+
+### 第四块：保存划分及内容指纹
+
+```python
+output_dir = ROOT / "data" / "splits"  # 指定三个数据集和清单的保存目录。
+output_dir.mkdir(parents=True, exist_ok=True)  # 创建目录，已经存在时继续使用。
+file_info = {}  # 保存每个输出文件的记录数、字符数和内容指纹。
+for name, rows in splits.items():  # 依次保存训练集、验证集和测试集。
+    output_path = output_dir / f"{name}.jsonl"  # 用集合名称生成文件名。
+    with output_path.open("w", encoding="utf-8", newline="\n") as file:  # 以 UTF-8 和 LF 覆盖写入当前划分。
+        for record in rows:  # 按划分后的固定顺序取出章节。
+            file.write(json.dumps(record, ensure_ascii=False) + "\n")  # 每章写成一行 JSON，正文保持不变。
+    digest = hashlib.sha256(output_path.read_bytes()).hexdigest()  # 根据文件的全部字节计算 SHA-256。
+    characters = sum(len(record["text"]) for record in rows)  # 统计当前集合的正文字符总数，不是 JSON 文件字节数。
+    file_info[name] = {"count": len(rows), "characters": characters, "sha256": digest}  # 把统计和指纹加入清单。
+    print(name, "章节数：", len(rows), "字符数：", characters, "SHA-256：", digest)  # 显示结果，供重复运行时对比。
+manifest = {"seed": SEED, "algorithm": "per_book_sorted_shuffle_v1", "ratios": {"train": 0.8, "validation": 0.1, "test": 0.1}, "source_sha256": hashlib.sha256(source_path.read_bytes()).hexdigest(), "files": file_info}  # 记录划分配置、输入指纹和输出统计。
+manifest_path = output_dir / "manifest.json"  # 指定划分清单位置。
+with manifest_path.open("w", encoding="utf-8", newline="\n") as file:  # 打开清单文件并明确换行方式。
+    file.write(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")  # 普通 JSON 清单可以用缩进，不受 JSONL 一行一条的要求限制。
+print("保存位置：", output_dir)  # 显示本次划分的输出目录。
+```
+
+### 原理、参考值与验证
+
+每本书有 K 章，训练章数为 floor(0.8K)，验证为 floor(0.1K)，测试取剩余章数，保证总和仍为 K。当前各书为 96/12/12、96/12/12、96/12/12、80/10/10；总计为 368/46/46。
+
+老师预先按上述算法计算：train 正文 2,456,586 字符，validation 为 317,717，test 为 304,142。各集合字数比例未必恰为 80%/10%/10%，因为章节长度不同。以上是参考值，不代表学习者已完成。
+
+setdefault 在键不存在时保存默认列表，返回该书的列表；extend 把多个章节逐条加入目标列表，append 则会把整个列表当作一个元素。lambda 在这里给 sorted 指定按什么字段排序。sha256 是内容指纹，不衡量数据质量或模型效果。
+
+对总字符数 N、章节数 K、各书章节数 K_b，读取、检查和保存总体为 O(N + K)，排序额外约为 O(sum K_b log K_b)，额外内存约 O(N + K)，哈希需要扫描文件字节。指纹不同只能说明字节不同，可能来自内容、顺序、空格或换行变化。
+
+待学习者连续运行两次，提交代码、章数与字符数、三份输出的两次 SHA-256，并确认四份输出文件存在。老师还将检查重载、无交集、完整覆盖、重复运行以及改变输入记录排列后的稳定性。口述题：验证集和测试集的用途有什么区别？本课完成前不制作训练词表或训练窗口。
+
+### 第五课实操复查：通过
+
+学习者提交的两次运行结果完全一致。老师检查实际脚本，重新运行两次，并独立解析文件验证：
+
+- 训练集 368 章、2,456,586 字符；验证集 46 章、317,717 字符；测试集 46 章、304,142 字符。
+- 输出重载后的记录与源章节字典完全相同，四个字段及正文没有修改。
+- 460 个章节 ID 唯一，三个集合两两互斥，且合计覆盖全部输入；无相同完整章节正文跨集合。
+- manifest 的输入指纹、输出指纹、记录数和字符数均与实际文件相符。
+- 连续运行的四个文件字节完全一致。老师在临时目录打乱输入记录的排列后，三个输出数据集字节仍与原输出一致；该场景下输入指纹会变化，因此不要求 manifest 字节一致。
+- GitHub 自动检查已加入第五课运行，并比较重新生成的数据划分与提交版本一致。
+
+输出指纹：
+
+```text
+train: 0cee762b4832c3a1c37c84c245ca912c51a1c22fa8df4c37e811ec735e390a69
+validation: 6c2b342b2964d65d780f8a487285855dfaff4502bf3bb8fbf7bba1896e46e0fe
+test: 42133d3767a02aa411b8ce3735c16f8dff6104ff1c8e48ff9abd03654c2c08d2
+```
+
+### 口述题复盘：为什么验证与测试分开
+
+学习者理解二者用途不同，并认为验证集判断何时停止、测试集判断真实场景预测准确性，同时提出“不拆分好像也可以”。
+
+补充：验证集虽不参与梯度更新，但通过模型大小、学习率、训练轮次和停止时机等选择间接影响最终模型。若又用同一集合报告最终效果，反复试验可能使模型选择适应该集合的偶然特征，结果偏乐观。独立测试集用来检查方案确定后的表现。当前小说留出章节并不自动代表真实部署场景。
+
+若方案完全预先固定且不根据留出集结果调参，可以只设训练集和一个最终评估集；这与“同时用一个集合调参并作独立最终评估”不同。教学中将进行多次优化，所以保留独立测试集。尚无训练结果，不得据此声称模型效果。
+
+### 新问题：为什么 shuffle
+
+- 不打乱而直接切片，会把每本书前 80% 的章节全部用于训练、中间 10% 用于验证、最后 10% 用于测试，评估可能受故事阶段、人物或写作变化影响。
+- 本课目标是评估同批书籍留出的章节，随机分配可减少章节位置造成的系统性偏差；不保证三组主题完全均衡，也不消除章节间相关性。
+- 每本书分别 shuffle 后划分，让每个集合都有四本书的数据。随机的是章节列表的排列，不是章内文字的排列。
+- 120 章中固定选 96 章训练时，均匀随机排列下每章进入训练集的概率为 96/120 = 0.8；一次固定划分仍可能存在偶然不均衡。
+- 数据集划分时的 shuffle 只用于确定集合成员，随后冻结；训练阶段的小批次打乱是另一件事，后续另讲。
+- 若目标是根据过去预测未来，应按时间顺序留出；若目标是未见书籍或作者，应按书或作者分组留出，不能认为所有任务都应随机划分章节。
+
+当前记录为实操通过、概念已补充讲解，待学习者确认理解。下一课计划只从训练集建立字符词表，并统计验证集中未见字符；测试集不用于构建或选择词表。

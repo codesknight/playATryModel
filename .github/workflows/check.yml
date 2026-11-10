@@ -29,4 +29,5 @@ jobs: # 定义需要执行的任务。
           python scripts/learn/01_inspect_data.py # 验证四份原始文本都可以读取。
           python scripts/learn/02_clean_data.py # 重新生成清洗结果，并执行脚本内的断言。
           python scripts/learn/03_split_chapters.py # 运行章节识别、无损切分、JSONL 保存及重载检查。
-          git diff --exit-code -- data/corpus data/corpus_processed data/chapters # 检查原文未变，且清洗文本和章节记录可复现。
+          python scripts/learn/04_split_dataset.py # 重新划分整章数据并执行集合互斥及覆盖检查。
+          git diff --exit-code -- data/corpus data/corpus_processed data/chapters data/splits # 检查原文未变，且所有已完成的数据产物可复现。

@@ -13,6 +13,7 @@ https://github.com/weiyinfu/SiDaMingZhu/tree/master/src
 - `corpus/`：原始采集文本，不由清洗脚本覆盖。
 - `corpus_processed/`：第二课生成的 UTF-8 文本，保留每本书的独立文件。
 - `chapters/chapters.jsonl`：第四课生成的 460 条章节记录，每一物理行是一章的 JSON 表示。
+- `splits/`：第五课按整章划分的训练、验证、测试集，以及 manifest.json 复现清单。
 
 在项目根目录运行：
 
@@ -20,9 +21,10 @@ https://github.com/weiyinfu/SiDaMingZhu/tree/master/src
 python scripts/learn/01_inspect_data.py # 检查原始文本的路径、开头和字符统计。
 python scripts/learn/02_clean_data.py # 删除空白行和每行首尾空白，重新生成清洗结果。
 python scripts/learn/03_split_chapters.py # 切分完整章节，保存 JSONL，并读取回来检查内容一致。
+python scripts/learn/04_split_dataset.py # 按书随机划分完整章节，保存三个集合及其指纹清单。
 ```
 
-清洗保留正文、标点、标题和行内空格。尚未划分训练集、验证集或测试集，也尚未将这四份语料用于模型训练。
+清洗保留正文、标点、标题和行内空格。第五课已划分训练集、验证集和测试集，尚未将这四份语料用于模型训练。
 
 第三课 `scripts/learn/03_split_chapters.py` 完成章节识别与内存中的切分：四本书分别得到 120、120、120、100 章，合计 460 章。各书章节顺序拼接后与清洗文本完全一致。第四课在同一脚本中增加 JSONL 保存与重载验证。
 
@@ -45,3 +47,17 @@ python scripts/learn/03_split_chapters.py # 切分完整章节，保存 JSONL，
 | 合计 | 3,086,017 | 3,078,445 | 7,572 |
 
 Git 将文本换行统一为 LF。本地 Windows 上 write_text 默认可能写为 CRLF，因此文件字节数与清洗后的字符数变化不必一致。
+
+## 第五课：固定的章节划分
+
+每本书内先按章节顺序号和 ID 排序，书籍按文件名排序，使用局部 random.Random(42) 打乱章节列表，再按章节数约 80%/10%/10% 划分，测试集取剩余部分。正文及章节内部字序不变。
+
+| 集合 | 章节数 | 正文字符数 |
+| --- | ---: | ---: |
+| train | 368 | 2,456,586 |
+| validation | 46 | 317,717 |
+| test | 46 | 304,142 |
+
+三份文件的章节 ID 两两互斥，覆盖全部输入章节，没有完全相同的整章正文跨集合；这不排除重复段落或相似句子。所有重载记录与原始章节记录一致。重复运行和打乱输入记录排列后，输出划分保持一致。
+
+manifest.json 记录种子、算法标识、比例、源文件 SHA-256、各集合的计数和文件指纹。正式对比模型时冻结这三个文件，不依据测试集结果调整划分。当前测试目标为同四本书的留出章节，不代表真实部署中其他题材的泛化能力。
