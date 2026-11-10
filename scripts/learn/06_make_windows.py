@@ -1,3 +1,4 @@
+import numpy as np  # 导入 NumPy，把多个窗口转换成规则的整数数组。
 import hashlib  # 导入哈希工具，检查训练文件与建立词表时是否一致。
 import json  # 导入 JSON 工具，加载词表和训练章节。
 from pathlib import Path  # 导入路径工具，定位数据文件。
@@ -51,3 +52,56 @@ assert total_windows == expected_windows, "窗口数量与公式不一致"  # �
 print("训练窗口数：", total_windows)  # 当前应为 76584。
 print("预测位置数：", total_windows * SEQ_LENGTH)  # 当前应为 2450688。
 print("窗口长度、错位和数量检查：通过")  # 所有断言通过后显示。
+
+
+def pack_batch(windows):  # 把已经收集好的非空窗口列表转换成一个批次。
+    x = np.asarray([window["x"] for window in windows], dtype=np.int64)  # 每条输入作为一行，组成二维整数数组。
+    y = np.asarray([window["y"] for window in windows], dtype=np.int64)  # 按同样行序组成目标数组。
+    chapter_ids = [window["chapter_id"] for window in windows]  # 保留每行对应的章节标识。
+    starts = [window["start"] for window in windows]  # 保留每行在章节中的起点。
+    return {"x": x, "y": y, "chapter_ids": chapter_ids, "starts": starts}  # 返回数组及其来源信息。
+
+def iter_batches(windows, batch_size):  # 将窗口生成器按指定数量分组，逐批提供数据。
+    assert batch_size > 0, "批大小必须大于零"  # 防止出现无效批大小。
+    buffer = []  # 暂存尚未凑满一批的窗口。
+    for window in windows:  # 逐个请求上一课的窗口。
+        buffer.append(window)  # 把当前窗口加入临时列表。
+        if len(buffer) == batch_size:  # 窗口数达到一批时就打包。
+            yield pack_batch(buffer)  # 提供一批数据并暂停，等待下一次请求。
+            buffer = []  # 恢复执行后清空缓冲，准备下一批。
+    if buffer:  # 遍历结束后，检查是否还有不足一批的窗口。
+        yield pack_batch(buffer)  # 保留最后的小批次，不丢弃剩余样本。
+
+preview_batch = next(iter_batches(iter_windows(train_records, 8, 8), 4))  # 先取 4 条长度为 8 的窗口，便于观察。
+
+print("预览 X 形状：", preview_batch["x"].shape)  # 应为 (4, 8)，分别代表窗口数和每条长度。
+print("预览 Y 形状：", preview_batch["y"].shape)  # 目标形状同样为 (4, 8)。
+print("预览数据类型：", preview_batch["x"].dtype)  # 应为 int64。
+print("预览 X 第一行：", preview_batch["x"][0])  # 取第一条输入窗口。
+print("预览 Y 第一行：", preview_batch["y"][0])  # 取与它对应的目标窗口。
+
+BATCH_SIZE = 16  # 正式统计时每批最多取 16 条窗口。
+batch_count = 0  # 累计批次数。
+sample_count = 0  # 累计真正处理的窗口数。
+last_batch_size = 0  # 记录最后一批的实际窗口数。
+
+for batch in iter_batches(iter_windows(train_records, SEQ_LENGTH, STRIDE), BATCH_SIZE):  # 顺序遍历所有训练批次。
+    x, y = batch["x"], batch["y"]  # 取出输入与目标数组。
+    assert x.ndim == 2 and x.shape == y.shape, "数组形状不正确"  # 两者必须是形状一致的二维数组。
+    assert 0 < x.shape[0] <= BATCH_SIZE and x.shape[1] == SEQ_LENGTH, "批次尺寸不正确"  # 最后一批可以不足 16 条。
+    assert x.dtype == y.dtype == np.int64, "编号必须使用 int64"  # 检查编号没有误用浮点数。
+    assert np.array_equal(x[:, 1:], y[:, :-1]), "批次中的目标错位不正确"  # 逐行检查错位关系。
+    assert len(batch["chapter_ids"]) == len(batch["starts"]) == x.shape[0], "来源信息与行数不一致"  # 每行都要有对应来源。
+    if batch_count == 0:  # 用第一个完整批次展示数组占用。
+        print("首批 X 和 Y 字节数：", x.nbytes + y.nbytes)  # 应为 8192，只计算两个数组的数据区。
+    batch_count += 1  # 当前批检查通过后计数。
+    sample_count += x.shape[0]  # 按实际行数计数，不假设每批都满。
+    last_batch_size = x.shape[0]  # 更新最后一批大小。
+
+assert sample_count == total_windows, "批处理遗漏或重复样本"  # 核对处理的总窗口数。
+assert batch_count == (total_windows + BATCH_SIZE - 1) // BATCH_SIZE, "批次数不正确"  # 用向上取整公式核对批数。
+
+print("批次数：", batch_count)  # 应为 4787。
+print("处理窗口数：", sample_count)  # 应为 76584。
+print("最后一批窗口数：", last_batch_size)  # 应为 8。
+print("批次形状、错位和覆盖数量检查：通过")  # 所有断言通过后显示。

@@ -31,5 +31,5 @@ jobs: # 定义需要执行的任务。
           python scripts/learn/03_split_chapters.py # 运行章节识别、无损切分、JSONL 保存及重载检查。
           python scripts/learn/04_split_dataset.py # 重新划分整章数据并执行集合互斥及覆盖检查。
           python scripts/learn/05_build_vocab.py # 只从训练集重建词表，检查编码解码及验证集未知率。
-          python scripts/learn/06_make_windows.py # 检查下一字符预测窗口的长度、错位关系和数量。
+          python scripts/learn/06_make_windows.py # 检查预测窗口和 NumPy 批次的形状、错位关系、数量及尾批。
           git diff --exit-code -- data/corpus data/corpus_processed data/chapters data/splits data/vocab # 检查原文未变，且所有已完成的数据产物可复现。

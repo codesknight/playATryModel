@@ -827,7 +827,7 @@ L=S=32 时，第一条训练记录有 132 个窗口；整个训练集预计 76,5
 
 ## 第 8 课：把窗口组成 NumPy 小批次
 
-状态：已布置，等待学习者在 06_make_windows.py 增加批处理函数和检查。不代写练习实现，本课完成后再提交其代码。沿用上一课的窗口生成器，暂时顺序遍历，不改变已经冻结的数据划分。
+状态：实操复查通过，学习者已在 06_make_windows.py 完成批处理函数与全部批次检查。暂时顺序遍历，不改变已经冻结的数据划分。
 
 ### 目标和形状
 
@@ -904,3 +904,87 @@ print("批次形状、错位和覆盖数量检查：通过")  # 所有断言均�
 int64 每元素 8 字节，一个满批 X 加 Y 的数据区为 2×16×32×8=8192 字节。它不包含数组对象、元数据、生成器缓冲、原始文本、模型参数或训练中间结果，也不是训练峰值内存。批次行之间可以并行计算，但单向 RNN 的时间位置仍需顺序递推，批处理不等于时间维也并行。
 
 待提交：修改后的完整脚本、预览和批次统计，以及“最后一批为什么是 8 行，训练代码为什么不能始终假设有 16 行”的解释。没有训练或生成模型权重，也没有使用验证或测试集。
+
+### 第八课实操复查：通过
+
+学习者提交的统计与参考值一致。老师重新运行实际脚本，并将批次中的每一行与独立窗口迭代器逐项比较，全部 x、y、chapter_id、start 保持一致，76,584 个窗口无丢失、重复或错配。另行验证了空输入、1 个窗口、刚好 16 个窗口、17 个窗口的批次划分和来源顺序。
+
+结果：预览 X/Y 均为 (4,8)、dtype=int64；首个正式批次 X/Y 数据区合计 8192 字节；正式批次 4787 个，总窗口 76584，最后一批 8 行。
+
+### 口述题补充：为什么实际批大小不能固定为 16
+
+学习者表示不知道，以下为补充讲解，不记为独立掌握：76584=4786×16+8，前 4786 批各 16 条，剩余 8 条组成最后一批。batch_size=16 是本课设置的最大窗口数，不保证每批实际都有 16 条。
+
+模型处理最后一批时，输入为 (8,32)，为每个窗口准备的隐藏状态应为 (8,H)。若写死为 (16,H)，将无法与 8 行输入正确对应，可能形状报错或造成错误对齐。损失归一化也应使用实际参与的样本/位置数，而非始终除以 16×32。以后读取 batch_size = x.shape[0]；本课采用保留尾批，不丢弃、不补假样本。
+
+## 第 9 课：模型第一块——字符向量查表
+
+状态：已布置，等待学习者创建 scripts/learn/07_tiny_rnn.py。此时 TinyRNN 类只实现字符表示表和查表，不是完整 RNN，不训练、不生成文字、不保存权重。
+
+### 模型架构与数学
+
+整体路线：整数编号 → 字符向量 → 循环隐藏状态 → 下一个字符分数 → 概率与训练误差。本课只实现第一步映射。
+
+字符编号只充当索引，不能把编号大小理解为语义大小。设置可学习矩阵 E∈R^(V×H)，编号 i 的表示为第 i 行 E[i]。当前 V=5547、H=64，表共有 VH=355008 个参数，float32 原始数据区占 1420032 字节（约 1.42 MB）。本课尚无梯度更新，随机向量没有训练所得的语义。
+
+若输入 X 的形状为 (B,L)，则 Z=E[X] 的形状为 (B,L,H)。同一字符在这个查表层始终得到同一行向量；后续循环层才结合前文构造上下文相关状态。H 是每个字符使用多少个浮点数表示，不是词表大小、窗口长度或批大小。
+
+用 one-hot 行向量乘 E 也能取得同一行，但直接查表不必构造 V 维 one-hot 数组。本层查询和拷贝约 O(BLH)，不能直接套用完整输出层 O(BLHV) 的矩阵乘法开销。
+
+### 第一块：模型类与查表方法
+
+```python
+import json  # 导入 JSON 工具，读取固定词表。
+from pathlib import Path  # 导入路径工具，找到词表文件。
+import numpy as np  # 导入 NumPy，创建参数矩阵并执行查表。
+
+class TinyRNN:  # 先搭建模型类，本课只实现字符向量部分。
+    def __init__(self, vocab_size, hidden_size=64, seed=42):  # 接收词表大小、向量维度和初始化种子。
+        assert vocab_size > 0 and hidden_size > 0, "模型维度必须为正"  # 防止创建无效参数矩阵。
+        self.vocab_size = vocab_size  # 保存词表项数，检查合法编号时会用到。
+        self.hidden_size = hidden_size  # 保存向量维度，后续也作为隐藏状态维度。
+        rng = np.random.default_rng(seed)  # 创建局部随机数生成器，固定初始参数。
+        self.params = {  # 用字典集中保存之后需要训练的参数。
+            "embedding": rng.normal(0, 0.1, (vocab_size, hidden_size)).astype(np.float32),  # 生成均值为 0、标准差为 0.1 的随机字符向量表。
+        }  # 当前只有这一组参数，后续再加入循环层和输出层。
+
+    def embed(self, token_ids):  # 将二维字符编号转换成三维字符向量。
+        token_ids = np.asarray(token_ids)  # 接受列表或数组，但不偷偷把浮点编号转换成整数。
+        assert token_ids.ndim == 2, "输入应为二维编号数组"  # 本课规定输入形状为 (B,L)。
+        assert np.issubdtype(token_ids.dtype, np.integer), "字符编号必须是整数"  # 防止用浮点数作为索引。
+        assert ((token_ids >= 0) & (token_ids < self.vocab_size)).all(), "编号超出词表范围"  # 拒绝负数和越界编号。
+        return self.params["embedding"][token_ids]  # 按每个位置的编号取行，得到 (B,L,H)。
+```
+
+### 第二块：入口和最小验证
+
+```python
+def main():  # 定义演示入口，被其他文件导入时不自动执行。
+    root = Path(__file__).resolve().parents[2]  # 找到项目根目录。
+    with (root / "data" / "vocab" / "vocab.json").open(encoding="utf-8") as file:  # 打开固定词表。
+        vocab = json.load(file)  # 读取词表配置。
+    tokens = vocab["tokens"]  # 保留字符编号顺序。
+    char_to_id = {char: index for index, char in enumerate(tokens)}  # 根据列表位置重建编号映射。
+    model = TinyRNN(len(tokens), hidden_size=64, seed=42)  # 创建带有随机表示表的模型雏形。
+    sample_texts = ["春天", "春风"]  # 准备两条等长文本，首字相同，方便验证查表结果。
+    x = np.asarray([[char_to_id[char] for char in text] for text in sample_texts], dtype=np.int64)  # 得到形状为 (2,2) 的编号数组。
+    vectors = model.embed(x)  # 将编号转换成形状为 (2,2,64) 的浮点数组。
+    assert vectors.shape == (x.shape[0], x.shape[1], model.hidden_size), "向量形状不正确"  # 从实际输入形状推导输出，不写死批大小。
+    assert vectors.dtype == np.float32, "向量应为 float32"  # 编号用整数，查出的参数用浮点数。
+    assert np.array_equal(vectors[0, 0], vectors[1, 0]), "同一字符查表结果不一致"  # 两条样例的首字都是春，应取到完全相同的一行。
+    assert model.embed(x[:1]).shape == (1, 2, model.hidden_size), "较小批次不能处理"  # 验证减少批次行数后仍能正确查表。
+    print("输入编号：", x)  # 显示两条文本对应的整数数组。
+    print("参数矩阵形状：", model.params["embedding"].shape)  # 应为 (5547,64)。
+    print("字符向量形状：", vectors.shape)  # 应为 (2,2,64)。
+    print("字符向量类型：", vectors.dtype)  # 应为 float32。
+    print("表示表参数数：", model.params["embedding"].size)  # 应为 355008。
+    print("表示表字节数：", model.params["embedding"].nbytes)  # 应为 1420032，仅统计矩阵数据区。
+    print("查表、重复字符和动态批大小检查：通过")  # 上述断言均通过后显示。
+
+if __name__ == "__main__":  # 只有直接运行本文件时才启动演示。
+    main()  # 调用入口；其他模块导入 TinyRNN 时不会运行演示。
+```
+
+main 入口把演示流程与可导入类区分开，为后续复用模型准备。__init__ 在创建实例时运行，self 指当前实例，self.params 是该实例的参数字典；model.embed(x) 内部的 self 对应 model。
+
+待提交：完整脚本、输出，以及“输入 (8,32)，每个字符用 64 个浮点数表示，输出是什么形状；把批大小从 16 改成 8，会改变表示表参数数吗”的解释。通过后再实现循环层，当前没有训练结果。
