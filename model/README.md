@@ -7,7 +7,7 @@
 训练实验时指定另一个输出路径，可以保留基线：
 
 ```powershell
-python scripts/train.py --output model/experiment_01.npz # 将实验权重写入另一个文件。
+python scripts/template/train.py --output model/experiment_01.npz # 将实验权重写入另一个文件。
 ```
 
 如需分享较大的模型，后续单独选择 GitHub Release、Git LFS 或模型托管服务，并在文档中记录配置、数据版本和测评结果。

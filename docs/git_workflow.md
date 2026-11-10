@@ -9,6 +9,7 @@
 - 提交时把相关代码和对应学习笔记一起保存；尚未完成的任务在笔记中明确标注。
 - 小型学习步骤可以直接提交到 `main`。较大实验使用 `experiment/主题` 分支，通过比较结果后再决定是否合入。
 - 不自动创建未完成的练习代码，也不把“已布置”记作“已掌握”。
+- 每课检查通过后，提交本课完整代码、相关数据和学习笔记，推送 GitHub，检查自动检查结果，并向学习者报告提交号与同步状态。
 
 提交说明使用简短的类型和描述：
 
@@ -26,7 +27,7 @@ chore: 更新依赖和仓库配置
 ```powershell
 git status # 查看当前分支和修改的文件。
 git diff # 查看尚未暂存的文本修改。
-git add scripts/learn/01_inspect_data.py docs/data/raw.txt docs/learning_notes.md # 暂存这一课的代码、语料和笔记。
+git add scripts/learn/01_inspect_data.py data/corpus docs/learning_notes.md # 暂存第一课的代码、实际采集语料和笔记。
 git diff --cached # 检查本次准备提交的具体内容。
 git commit -m "feat: 完成第一课数据检查" # 在本地保存这一课的完整进度。
 git push origin main # 把已提交的进度同步到 GitHub。
@@ -56,5 +57,8 @@ git pull --ff-only # 只允许直接前进，有分叉时停下来检查。
 2. 编译检查 Python 文件的语法。
 3. 加载示例权重并生成短文本。
 4. 用两步训练检查训练入口，再加载新权重生成文字。
+5. 运行已完成的第一课数据检查和第二课清洗，比较清洗输出与仓库版本是否一致。
+
+现有模型示例位于 scripts/template/，练习位于 scripts/learn/，移动目录后需要同步更新运行命令和根目录计算。
 
 这些检查只判断基本流程能否运行，不衡量生成质量。以后实现正式测评后，再加入相应检查。
