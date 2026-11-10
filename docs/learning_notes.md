@@ -720,3 +720,187 @@ print("训练文本往返及词表重载检查：通过")  # 所有断言均通�
 编码粒度决定词表大小 V 和序列长度 T，两者共同影响模型开销；token 少不代表一定更快。对本课将实现的简单 RNN，单步主要矩阵计算约为 O(H²+HV)，总步骤工作量约为 O(T(H²+HV))，未计批大小和反向传播等常数。字符级词表较小，但同一文本通常需要更多步骤。
 
 后续仍使用当前字符词表，先完整实现训练窗口、模型和训练测评，再把不同 tokenization 作为独立实验比较。下一课计划按章节制作预测下一个字符的输入与目标，窗口不跨章节或数据集。
+
+## 第 7 课：制作下一个字符预测样本
+
+状态：实操复查通过，学习者已完成 scripts/learn/06_make_windows.py。只从训练集生成窗口，不修改已有数据或生成测试样本。
+
+### 核心原理
+
+对“我爱学习。”，输入 x 为“我爱学习”，目标 y 为“爱学习。”。每个位置的答案是输入当前位置的下一个字符，y 不是模型生成的结果，而是从现有语料制作的标准答案。
+
+编号序列为 a，起点 s，长度 L：x=a[s:s+L]，y=a[s+1:s+L+1]，所以必须取得 L+1 个原始编号。两者都是长度 L，且 x[1:]==y[:-1]。
+
+先读取固定词表，不重新编号；校验训练源文件指纹。每次仅在一章内部取样，不先拼接所有章节；当前每个窗口独立处理上下文，后续搭建模型时明确初始隐藏状态。
+
+### 第一块：加载固定词表和训练集
+
+```python
+import hashlib  # 导入哈希工具，检查训练文件与建立词表时是否一致。
+import json  # 导入 JSON 工具，加载词表和训练章节。
+from pathlib import Path  # 导入路径工具，定位数据文件。
+
+ROOT = Path(__file__).resolve().parents[2]  # 找到项目根目录。
+train_path = ROOT / "data" / "splits" / "train.jsonl"  # 本课只读取训练集。
+vocab_path = ROOT / "data" / "vocab" / "vocab.json"  # 读取上一课保存的固定词表。
+with vocab_path.open(encoding="utf-8") as file:  # 打开词表文件，结束后自动关闭。
+    vocab = json.load(file)  # 读取整个词表字典。
+tokens = vocab["tokens"]  # 保留已确定的编号顺序，不重新排序。
+char_to_id = {char: index for index, char in enumerate(tokens)}  # 由固定列表重建字符到编号的映射。
+unk_id = vocab["unk_id"]  # 读取未知字符编号，不在这里重新指定。
+assert vocab["train_sha256"] == hashlib.sha256(train_path.read_bytes()).hexdigest(), "训练文件与词表来源不一致"  # 检查数据版本是否匹配。
+with train_path.open(encoding="utf-8") as file:  # 打开训练集文件。
+    train_records = [json.loads(line) for line in file]  # 逐行还原章节记录。
+```
+
+### 第二块：逐章生成窗口
+
+```python
+def iter_windows(records, seq_length, stride):  # 定义生成器，按需提供一个个输入与目标窗口。
+    assert seq_length > 0 and stride > 0, "窗口长度和步长必须大于零"  # 防止零长度窗口或无效步长。
+    for record in records:  # 每次处理一章，章节之间不拼接。
+        token_ids = [char_to_id.get(char, unk_id) for char in record["text"]]  # 将当前章转换成编号列表。
+        for start in range(0, len(token_ids) - seq_length, stride):  # 只选择后面还有 L+1 个编号的位置。
+            block = token_ids[start:start + seq_length + 1]  # 多取一个编号，用来制作最后一个位置的答案。
+            x = block[:-1]  # 去掉最后一个编号，得到 L 个输入。
+            y = block[1:]  # 去掉第一个编号，得到向后错开一位的 L 个答案。
+            yield {"chapter_id": record["id"], "start": start, "x": x, "y": y}  # 返回当前窗口并暂停，下次请求时继续生成。
+```
+
+yield 与 return 不同：yield 提供一个结果并保留执行位置，下一次请求时继续；不会一次把所有窗口存进列表。窗口内容是列表，后续批处理课再转换为 NumPy 数组。
+
+seq_length 是每个窗口预测多少个位置；stride 是相邻窗口起点移动多少个编号。stride=1 会让相邻窗口大量重叠，stride=L 时 x 通常不重叠，但相邻 block 会共享一个用于连接预测的字符。步长大于 L 还可能跳过中间位置，本课用 L=S=32。
+
+### 第三块：短预览和完整计数
+
+```python
+preview = next(iter_windows(train_records[:1], seq_length=8, stride=8))  # 先从第一章取一个短窗口，方便逐字检查。
+print("样例章节：", preview["chapter_id"], "起点：", preview["start"])  # 记录窗口来自哪一章，起点从 0 开始。
+print("输入编号：", preview["x"])  # 显示长度为 8 的输入编号。
+print("目标编号：", preview["y"])  # 显示向后错开一位的答案编号。
+print("输入文字：", repr("".join(tokens[index] for index in preview["x"])))  # 查表显示输入文字，不删除空格。
+print("目标文字：", repr("".join(tokens[index] for index in preview["y"])))  # 查表显示答案文字。
+
+SEQ_LENGTH = 32  # 正式统计时每个窗口预测 32 个位置。
+STRIDE = 32  # 相邻窗口起点向后移动 32 个编号。
+total_windows = 0  # 从零开始累计窗口数，不把所有窗口保存到列表。
+for window in iter_windows(train_records, SEQ_LENGTH, STRIDE):  # 逐个生成训练窗口。
+    assert len(window["x"]) == len(window["y"]) == SEQ_LENGTH, "窗口长度不一致"  # 检查输入和答案都足够长。
+    assert window["x"][1:] == window["y"][:-1], "输入与答案没有正确错开"  # 检查重叠部分是否符合下一个字符预测。
+    total_windows += 1  # 当前窗口检查通过后计数。
+expected_windows = sum(max(0, (len(record["text"]) - SEQ_LENGTH - 1) // STRIDE + 1) for record in train_records)  # 用窗口数量公式独立核对。
+assert total_windows == expected_windows, "窗口数量与公式不一致"  # 检查循环起点和终点是否正确。
+print("训练窗口数：", total_windows)  # 当前应为 76584。
+print("预测位置数：", total_windows * SEQ_LENGTH)  # 当前应为 2450688，不等于实际独立字符种类数。
+print("窗口长度、错位和数量检查：通过")  # 上述断言均通过后显示。
+```
+
+### 边界数学与参考值
+
+一章 N 个编号，最后一个合法起点满足 s+L<N。步长 S 时，若 N>=L+1，则 M=floor((N-L-1)/S)+1，否则 M=0。Python 的 range 右端不包含，因此用 range(0,N-L,S)。N=L 时没有答案所需的第 L+1 个编号，不能生成完整样本。
+
+当前第一条训练记录为 三国演义:010，长度 4227。8 位预览的输入是“第十回　勤王室马”，目标是“十回　勤王室马腾”。输入编号为 [3461,519,857,13,492,2961,1188,5321]，目标为 [519,857,13,492,2961,1188,5321,3871]。注意窗口中全角空格也是一个字符。
+
+L=S=32 时，第一条训练记录有 132 个窗口；整个训练集预计 76,584 个窗口、2,450,688 个预测位置。暂时舍弃每章末尾不足完整窗口的部分，不做补齐。这是长度固定的教学实现，不等于用到了所有训练字符的全部转移；今后可引入变长和掩码。
+
+所有章的编号转换约 O(N)，制作窗口的工作量约 O(ML)，M 为总窗口数；本课 S=L，所以总体随训练字符数大致线性增长。生成器不同时保存所有窗口，但 train_records 已载入内存，当前章的编号列表也占内存，不能把整个程序称为常量内存。
+
+本课没有保存窗口数组，后续按需组成小批次，避免大量重复存储重叠窗口。待提交：完整脚本、8 位预览、窗口总数，以及“输入长为 32，为什么必须取 33 个原始编号”的解释。实现通过后再更新实际结果并上传 GitHub。
+
+### 第七课实操复查：通过
+
+学习者提交输出与参考值一致。老师检查实际脚本并重新运行，独立核对全部 76,584 个窗口，确认 x/y 均为对应 chapter_id、start 下原始编号片段的前 32 位与后 32 位；不存在跨章取样。
+
+另行检查 N=0、31、32、33、64、65 时的窗口数分别为 0、0、0、1、1、2；两章各只有 32 个字符时不能跨章拼出窗口。
+
+学习者回答“如果只取 32 个就无法进行错位”，方向正确但不够精确：32 个编号可以组成 31 对下一字符预测，无法组成长度为 32 的完整输入和答案；第 32 个输入需要第 33 个编号作为目标。
+
+### 新问题：与 Transformer teacher forcing 的关系
+
+错位是输入和监督目标的对齐方式；teacher forcing 是训练时以真实历史 token 作为后续输入，而非使用模型自己预测的 token。当前只是准备数据，后续 RNN 训练直接使用完整真实输入序列时，采用的就是这种训练方式，并非 Transformer 独有。
+
+例如真值为“我爱学习”，模型在“我”后面误预测成“想”，teacher forcing 下下一步仍喂真实的“爱”；自由生成时则可能把采样出的“想”接入前文。
+
+自回归 Transformer 解码器训练也可使用真实序列错位。区别在于它能并行计算多个位置，必须使用因果遮罩阻止位置关注未来 token；仅错位而没有正确遮罩，会泄漏目标。原始 Transformer 编码器和解码器用途不同，不能把所有 Transformer 训练都等同于 teacher forcing。普通单向 RNN 顺序递推，自然限制使用的历史，但也应避免把目标或未来状态另行作为输入。
+
+参考：[PyTorch 官方 seq2seq 教程](https://docs.pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial.html)、[Attention Is All You Need，第 3.1 节](https://arxiv.org/pdf/1706.03762)。
+
+## 第 8 课：把窗口组成 NumPy 小批次
+
+状态：已布置，等待学习者在 06_make_windows.py 增加批处理函数和检查。不代写练习实现，本课完成后再提交其代码。沿用上一课的窗口生成器，暂时顺序遍历，不改变已经冻结的数据划分。
+
+### 目标和形状
+
+B 为一个批次的窗口数量，L 为每个窗口长度。输入 X 和目标 Y 均为 (B,L) 的 int64 数组，每行是一条独立窗口，每列为该窗口内的位置。编号不是向量，不要先把编号转换成 float32。批次中可以混合不同章的窗口，但每一行仍保留 chapter_id 与 start，模型之后为各窗口独立初始化隐藏状态。
+
+### 第一块：导入与批次打包函数
+
+在文件顶部增加：
+
+```python
+import numpy as np  # 导入 NumPy，把多个窗口转换成规则的整数数组。
+```
+
+在现有文件末尾顶格添加：
+
+```python
+def pack_batch(windows):  # 把已经收集好的非空窗口列表转换成一个批次。
+    x = np.asarray([window["x"] for window in windows], dtype=np.int64)  # 每个输入列表作为一行，组成二维整数数组。
+    y = np.asarray([window["y"] for window in windows], dtype=np.int64)  # 按同样行序组成目标数组。
+    chapter_ids = [window["chapter_id"] for window in windows]  # 保留每行对应的章节标识。
+    starts = [window["start"] for window in windows]  # 保留每行在章节中的起点。
+    return {"x": x, "y": y, "chapter_ids": chapter_ids, "starts": starts}  # 返回数组及其来源信息。
+
+def iter_batches(windows, batch_size):  # 将窗口生成器按指定数量分组，逐批提供数据。
+    assert batch_size > 0, "批大小必须大于零"  # 防止出现无效批大小。
+    buffer = []  # 暂存尚未凑满一批的窗口。
+    for window in windows:  # 逐个请求上一课的窗口。
+        buffer.append(window)  # 把当前窗口加入临时列表。
+        if len(buffer) == batch_size:  # 窗口数达到一批时就打包。
+            yield pack_batch(buffer)  # 提供一批数据并暂停，等待下一次请求。
+            buffer = []  # 恢复执行后清空缓冲，准备下一批。
+    if buffer:  # 遍历结束后，检查是否还有不足一批的窗口。
+        yield pack_batch(buffer)  # 保留最后的小批次，不丢弃剩余样本。
+```
+
+### 第二块：预览与遍历检查
+
+```python
+preview_batch = next(iter_batches(iter_windows(train_records, 8, 8), 4))  # 先取 4 条长度为 8 的窗口，便于观察。
+print("预览 X 形状：", preview_batch["x"].shape)  # 应为 (4, 8)，分别代表窗口数和每条长度。
+print("预览 Y 形状：", preview_batch["y"].shape)  # 目标形状同样为 (4, 8)。
+print("预览数据类型：", preview_batch["x"].dtype)  # 应为 int64，保存整数编号。
+print("预览 X 第一行：", preview_batch["x"][0])  # 取第一条输入窗口，不是第一个时间位置的整列。
+print("预览 Y 第一行：", preview_batch["y"][0])  # 取与它对应的目标窗口。
+
+BATCH_SIZE = 16  # 正式统计时每批最多取 16 条窗口。
+batch_count = 0  # 累计批次数。
+sample_count = 0  # 累计真正处理的窗口数。
+last_batch_size = 0  # 记录最后一批的实际窗口数。
+for batch in iter_batches(iter_windows(train_records, SEQ_LENGTH, STRIDE), BATCH_SIZE):  # 顺序遍历所有训练批次。
+    x, y = batch["x"], batch["y"]  # 取出输入与目标数组。
+    assert x.ndim == 2 and x.shape == y.shape, "数组形状不正确"  # 两个数组都必须是形状一致的二维数组。
+    assert 0 < x.shape[0] <= BATCH_SIZE and x.shape[1] == SEQ_LENGTH, "批次尺寸不正确"  # 最后一批可以不足 16 条，长度仍为 32。
+    assert x.dtype == y.dtype == np.int64, "编号必须使用 int64"  # 检查编号没有误用浮点数。
+    assert np.array_equal(x[:, 1:], y[:, :-1]), "批次中的目标错位不正确"  # 逐行检查所有时间位置的错位关系。
+    assert len(batch["chapter_ids"]) == len(batch["starts"]) == x.shape[0], "来源信息与行数不一致"  # 检查每行都有对应元数据。
+    if batch_count == 0:  # 第一个完整批次用于展示编号数组的大小。
+        print("首批 X 和 Y 字节数：", x.nbytes + y.nbytes)  # 应为 8192，只计算两个数组的数据区。
+    batch_count += 1  # 当前批检查通过后计数。
+    sample_count += x.shape[0]  # 按实际行数计数，不假设每批都满。
+    last_batch_size = x.shape[0]  # 更新最后一批大小。
+assert sample_count == total_windows, "批处理遗漏或重复样本"  # 核对批次处理的总窗口数量。
+assert batch_count == (total_windows + BATCH_SIZE - 1) // BATCH_SIZE, "批次数不正确"  # 用整数形式的向上取整公式核对。
+print("批次数：", batch_count)  # 应为 4787。
+print("处理窗口数：", sample_count)  # 应为 76584。
+print("最后一批窗口数：", last_batch_size)  # 应为 8，不是 16。
+print("批次形状、错位和覆盖数量检查：通过")  # 所有断言均通过后显示。
+```
+
+### 数学与注意事项
+
+76584=4786×16+8，所以保留尾批后共有 ceil(76584/16)=4787 批，最后一批形状为 (8,32)。不能丢弃它后还宣称用到了全部窗口。
+
+int64 每元素 8 字节，一个满批 X 加 Y 的数据区为 2×16×32×8=8192 字节。它不包含数组对象、元数据、生成器缓冲、原始文本、模型参数或训练中间结果，也不是训练峰值内存。批次行之间可以并行计算，但单向 RNN 的时间位置仍需顺序递推，批处理不等于时间维也并行。
+
+待提交：修改后的完整脚本、预览和批次统计，以及“最后一批为什么是 8 行，训练代码为什么不能始终假设有 16 行”的解释。没有训练或生成模型权重，也没有使用验证或测试集。
