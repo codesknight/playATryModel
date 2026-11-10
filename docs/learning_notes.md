@@ -584,4 +584,139 @@ test: 42133d3767a02aa411b8ce3735c16f8dff6104ff1c8e48ff9abd03654c2c08d2
 - 数据集划分时的 shuffle 只用于确定集合成员，随后冻结；训练阶段的小批次打乱是另一件事，后续另讲。
 - 若目标是根据过去预测未来，应按时间顺序留出；若目标是未见书籍或作者，应按书或作者分组留出，不能认为所有任务都应随机划分章节。
 
-当前记录为实操通过、概念已补充讲解，待学习者确认理解。下一课计划只从训练集建立字符词表，并统计验证集中未见字符；测试集不用于构建或选择词表。
+学习者已表示明白验证/测试划分及 shuffle 的补充说明，并要求进入下一课。记录为已确认理解，尚未通过新情境题独立检验。
+
+## 第 6 课：仅从训练集建立字符词表
+
+状态：代码实操与复查通过。学习者已完成 scripts/learn/05_build_vocab.py 及 data/vocab/vocab.json，未知字符不可逆的口述题回答正确。
+
+### 目标与边界
+
+- 为训练集出现的每个字符分配固定整数编号，保留标点、空格和换行。
+- 编号只充当索引，不表示大小、语义或相似程度。
+- 将 0 保留为特殊编号 <UNK>，代表未见字符。特殊符号是一个词表项，并非将五个字符分别编码。
+- 只从训练集收集字符。验证集只用于统计未见字符，不往词表补字；本课不读取测试集。
+- 实现 encode、decode，验证训练文字可往返还原。未知字被映射后会丢失具体身份，不能保证任意输入都能还原。
+- 输出 data/vocab/vocab.json，固定词表顺序并记录训练文件 SHA-256。
+
+### 第一块：读取训练集并建表
+
+```python
+import hashlib  # 导入哈希工具，记录建立词表所用训练文件的指纹。
+import json  # 导入 JSON 工具，读取章节并保存词表。
+from collections import Counter  # 导入计数器，统计验证集未见字符的出现次数。
+from pathlib import Path  # 导入路径工具，定位数据文件。
+
+ROOT = Path(__file__).resolve().parents[2]  # 找到项目根目录。
+train_path = ROOT / "data" / "splits" / "train.jsonl"  # 指定唯一用于建词表的数据。
+validation_path = ROOT / "data" / "splits" / "validation.jsonl"  # 验证集只用于统计未知字符。
+UNK_TOKEN = "<UNK>"  # 定义表示未知字符的特殊词表项。
+UNK_ID = 0  # 将编号 0 固定保留给未知字符。
+with train_path.open(encoding="utf-8") as file:  # 读取训练章节，结束后关闭文件。
+    train_records = [json.loads(line) for line in file]  # 将每行 JSON 还原为章节字典。
+characters = set()  # 创建集合，收集训练集出现的不同字符。
+for record in train_records:  # 逐章查看训练正文。
+    characters.update(record["text"])  # 把每个字符加入集合，重复字符只保留一次。
+tokens = [UNK_TOKEN] + sorted(characters)  # 未知符号放在首位，其余字符排序后固定编号。
+char_to_id = {char: index for index, char in enumerate(tokens)}  # 建立字符或特殊符号到编号的映射。
+print("训练集不同字符数：", len(characters))  # 当前应为 5546。
+print("含未知符号的词表大小：", len(tokens))  # 当前应为 5547。
+```
+
+### 第二块：编码与解码
+
+```python
+def encode(text):  # 定义编码函数，把文字转换成编号列表。
+    return [char_to_id.get(char, UNK_ID) for char in text]  # 已知字符使用固定编号，未见字符使用 0。
+
+def decode(token_ids):  # 定义解码函数，把编号列表转换成文字表示。
+    return "".join(tokens[token_id] for token_id in token_ids)  # 逐个查表连接，0 会显示为 <UNK>。
+
+sample = train_records[0]["text"][:20]  # 从第一条训练记录取前 20 个字符。
+encoded = encode(sample)  # 把样例转换成整数列表。
+assert decode(encoded) == sample, "训练样例不能还原"  # 已知字符往返转换后应保持不变。
+assert all(decode(encode(record["text"])) == record["text"] for record in train_records), "训练文本不能完整还原"  # 逐章检查所有训练文字。
+print("样例原文：", repr(sample))  # 显示原始字符及其中的换行。
+print("样例编号：", encoded)  # 显示每个字符对应的整数。
+print("解码结果：", repr(decode(encoded)))  # 显示查表还原后的文字。
+print("未知字符示例：", encode("🧪"), decode(encode("🧪")))  # 当前训练集未收录这个字符，应显示 [0] 和 <UNK>。
+```
+
+### 第三块：统计验证集未见字符
+
+```python
+unknown_counts = Counter()  # 记录每种未见字符出现了多少次。
+validation_characters = 0  # 累计验证集的全部字符数。
+with validation_path.open(encoding="utf-8") as file:  # 只读取验证集，不修改词表。
+    for line in file:  # 一次读取一条章节记录。
+        text = json.loads(line)["text"]  # 从记录中取出完整章节文字。
+        validation_characters += len(text)  # 将当前章节长度加入验证集总长度。
+        unknown_counts.update(char for char in text if char not in char_to_id)  # 累计所有未收录字符的出现次数。
+assert validation_characters > 0, "验证集为空"  # 防止计算未知率时除以零。
+unknown_total = sum(unknown_counts.values())  # 计算未见字符出现的总次数，重复出现也计数。
+unknown_rate = unknown_total / validation_characters  # 未知率按出现次数计算，不是按种类数计算。
+print("验证集字符总数：", validation_characters)  # 当前应为 317717。
+print("未见字符种类数：", len(unknown_counts))  # 当前应为 68。
+print("未见字符出现次数：", unknown_total)  # 当前应为 102。
+print("未知率：", f"{unknown_rate:.4%}")  # 当前约为 0.0321%，注意百分比与小数的区别。
+print("最常见的未见字符：", unknown_counts.most_common(10))  # 展示高频未见字符，帮助理解统计结果。
+```
+
+### 第四块：保存与重载词表
+
+```python
+output_dir = ROOT / "data" / "vocab"  # 指定词表文件目录。
+output_dir.mkdir(parents=True, exist_ok=True)  # 创建目录，已存在时继续使用。
+output_path = output_dir / "vocab.json"  # 指定词表文件名。
+vocab = {"type": "character", "unk_token": UNK_TOKEN, "unk_id": UNK_ID, "tokens": tokens, "train_sha256": hashlib.sha256(train_path.read_bytes()).hexdigest()}  # 保存有序词表、特殊编号和训练来源指纹。
+with output_path.open("w", encoding="utf-8", newline="\n") as file:  # 以 UTF-8 和 LF 覆盖写入当前词表。
+    file.write(json.dumps(vocab, ensure_ascii=False, indent=2) + "\n")  # 保存为可阅读的 JSON，并保留 tokens 列表顺序。
+with output_path.open(encoding="utf-8") as file:  # 重新打开词表文件。
+    loaded_vocab = json.load(file)  # 将整个 JSON 文件还原成字典。
+assert loaded_vocab == vocab, "词表保存后发生变化"  # 检查词表顺序、编号配置和来源都未改变。
+print("词表路径：", output_path)  # 显示生成位置。
+print("训练文本往返及词表重载检查：通过")  # 所有断言均通过后显示。
+```
+
+### 原理与参考值
+
+本课仅实现按 Python 字符串元素切分的字符级编码，不做分词或子词训练；组合字形在 Unicode 中可能由多个字符组成，本课不做额外规范化。
+
+训练集中不同字符数为 C，预留一个未知符号后词表大小 V=C+1。当前 C=5546，V=5547，合法编号范围为 0～5546。完整语料此前出现 5675 种字符，训练集没有覆盖所有字符，这是划分后的正常情况，不应拿验证或测试字符补表。
+
+验证未知率 = 未见字符出现次数 / 验证字符总数 = 102/317717，约为 0.0321%；68 是种类数，不能作为该指标的分子。未知率只衡量字符覆盖，不能证明模型生成质量。
+
+对于之后的 RNN，词表大小 V、隐藏层 H，参数量为 VH（字符表示）+H²（循环权重）+H（隐藏偏移）+HV（输出权重）+V（输出偏移），合计 P=2VH+H²+H+V。若 V=5547、H=64，则 P=719723，float32 参数原始字节数为 2878892（约 2.88 MB），不包含训练梯度、优化器状态、激活、词表、Python 对象和文件格式开销，也不是训练峰值内存。
+
+待提交：完整代码、上述统计和示例、词表重载结果，以及“猫、狗两个训练集都没见过的字符如果都变成 0，解码时还能知道原来是哪一个吗”的解释。本课代码与数据尚待实操，不提前记录完成。
+
+### 第六课实操复查：通过
+
+学习者提交完整输出，老师检查并重新运行实际脚本，独立读取词表确认：
+
+- tokens 严格等于 [<UNK>] 加上训练字符集合的排序结果，没有使用验证集或测试集补字。
+- 训练字符 5,546 种，词表 5,547 项，token 无重复，未知编号为 0，训练源文件 SHA-256 与实际文件一致。
+- 每章训练正文编码解码均可还原，词表重载完全一致，重复运行文件字节一致。
+- 验证集总字符 317,717，未见字符 68 种、102 次，未知率约 0.0321%，与参考值一致。
+- 老师另外验证两个不同的未见字符 🧪、🧬 均编码成 0，解码只能得到 <UNK><UNK>。
+- GitHub 自动检查新增词表重建、编码解码检查和 data/vocab 产物复现检查。
+
+学习者回答“应该不能，因为都被统一编码成了 <UNK>”，正确。多个不同字符映射到同一个编号后，具体身份信息丢失，不能靠查表逆转。
+
+### 新问题：字符编码是否需要先分词
+
+本课已在做字符级 tokenization：每个普通字符作为一个 token，再查表编码；不需要另外先做词级分词。token 不一定是自然语言中的完整词，也可以是字符、子词或其他单位。
+
+例如“我喜欢机器学习。”：
+
+- 字符级示意：我 / 喜 / 欢 / 机 / 器 / 学 / 习 / 。
+- 词级示意：我 / 喜欢 / 机器学习 / 。；不同规则可能给出不同切法。
+- 子词级则根据具体算法和词表，把文本切成可复用片段，不预设其边界一定与中文词相同。
+
+选择字符级的教学理由：实现容易检查、词表较小、无需引入词级分词器；模型通过上下文学习字符组合，不要求先给完整词分配一个编号。代价是序列通常较长，需要通过多个时间步学习词和短语关系；没收录的字符仍会变为未知符号。
+
+词级会让常见多字词占一个位置，但词表可能更大，新词也可能成为未知项。子词在词表大小与序列长度之间提供另一种取舍，未知输入的覆盖取决于算法及是否有字节回退等机制，不能声称一定没有未知字符。
+
+编码粒度决定词表大小 V 和序列长度 T，两者共同影响模型开销；token 少不代表一定更快。对本课将实现的简单 RNN，单步主要矩阵计算约为 O(H²+HV)，总步骤工作量约为 O(T(H²+HV))，未计批大小和反向传播等常数。字符级词表较小，但同一文本通常需要更多步骤。
+
+后续仍使用当前字符词表，先完整实现训练窗口、模型和训练测评，再把不同 tokenization 作为独立实验比较。下一课计划按章节制作预测下一个字符的输入与目标，窗口不跨章节或数据集。

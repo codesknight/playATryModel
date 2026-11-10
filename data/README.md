@@ -14,6 +14,7 @@ https://github.com/weiyinfu/SiDaMingZhu/tree/master/src
 - `corpus_processed/`：第二课生成的 UTF-8 文本，保留每本书的独立文件。
 - `chapters/chapters.jsonl`：第四课生成的 460 条章节记录，每一物理行是一章的 JSON 表示。
 - `splits/`：第五课按整章划分的训练、验证、测试集，以及 manifest.json 复现清单。
+- `vocab/vocab.json`：第六课仅由训练集建立的有序字符词表及训练来源指纹。
 
 在项目根目录运行：
 
@@ -22,6 +23,7 @@ python scripts/learn/01_inspect_data.py # 检查原始文本的路径、开头�
 python scripts/learn/02_clean_data.py # 删除空白行和每行首尾空白，重新生成清洗结果。
 python scripts/learn/03_split_chapters.py # 切分完整章节，保存 JSONL，并读取回来检查内容一致。
 python scripts/learn/04_split_dataset.py # 按书随机划分完整章节，保存三个集合及其指纹清单。
+python scripts/learn/05_build_vocab.py # 建立训练字符词表，验证编码解码，并统计验证集未知字符。
 ```
 
 清洗保留正文、标点、标题和行内空格。第五课已划分训练集、验证集和测试集，尚未将这四份语料用于模型训练。
@@ -61,3 +63,11 @@ Git 将文本换行统一为 LF。本地 Windows 上 write_text 默认可能写�
 三份文件的章节 ID 两两互斥，覆盖全部输入章节，没有完全相同的整章正文跨集合；这不排除重复段落或相似句子。所有重载记录与原始章节记录一致。重复运行和打乱输入记录排列后，输出划分保持一致。
 
 manifest.json 记录种子、算法标识、比例、源文件 SHA-256、各集合的计数和文件指纹。正式对比模型时冻结这三个文件，不依据测试集结果调整划分。当前测试目标为同四本书的留出章节，不代表真实部署中其他题材的泛化能力。
+
+## 第六课：字符词表
+
+训练集共有 5,546 种字符，预留编号 0 对应特殊符号 <UNK>，词表共 5,547 项。普通字符排序后确定编号，词表顺序不能在模型训练后随意更改。vocab.json 保存 type、unk_token、unk_id、tokens 和 train_sha256。
+
+词表未从验证集或测试集收集字符。验证集有 68 种未见字符，共出现 102 次，占 317,717 个字符约 0.0321%。该指标只反映字符覆盖，不衡量模型生成能力。
+
+全部训练正文编码后可逐字解码还原；未见字符统一映射到 0，只能解码为 <UNK>，无法恢复原字。词表保存重载与重复运行的字节一致性均通过检查。当前是字符级 tokenization，不依赖中文词级分词。
