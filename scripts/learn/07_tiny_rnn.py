@@ -11,6 +11,29 @@ def softmax(logits):  # 将最后一维的候选分数转换为概率，保留�
     exp_scores = np.exp(shifted)  # 对平移后的分数求指数。
     return exp_scores / exp_scores.sum(axis=-1, keepdims=True)  # 除以同一位置全部候选的指数和。
 
+def log_softmax(logits):  # 直接计算稳定的对数概率，不先保存可能下溢的概率。
+    logits = np.asarray(logits)  # 接受浮点列表或数组，保留已有浮点精度。
+    assert logits.ndim >= 1 and logits.shape[-1] > 0, "候选维度不能为空"  # 至少要有一项候选。
+    assert np.issubdtype(logits.dtype, np.floating), "分数应为浮点数"  # 不把整数编号当成分数。
+    assert np.isfinite(logits).all(), "分数包含无穷或无效数"  # 本课要求输入为有限数值。
+    shifted = logits - logits.max(axis=-1, keepdims=True)  # 每个位置单独减去最大分数。
+    log_denominator = np.log(np.exp(shifted).sum(axis=-1, keepdims=True))  # 计算平移后指数和的自然对数。
+    return shifted - log_denominator  # 利用 log(a/b)=log(a)-log(b)，得到同形状对数概率。
+
+def cross_entropy(logits, targets):  # 输入候选分数和正确编号，返回平均损失与逐位置损失。
+    log_probs = log_softmax(logits)  # 得到 (B,L,V) 的对数概率。
+    targets = np.asarray(targets)  # 保留标签整数类型，不静默转换浮点标签。
+    assert log_probs.ndim == 3 and targets.shape == log_probs.shape[:2], "分数与标签形状不匹配"  # 每个位置只有一个正确编号。
+    assert targets.size > 0, "没有可计算损失的位置"  # 防止对空数组取平均。
+    assert np.issubdtype(targets.dtype, np.integer), "目标编号必须是整数"  # 标签用于索引候选。
+    assert ((targets >= 0) & (targets < log_probs.shape[-1])).all(), "目标编号越界"  # 标签必须在词表范围内。
+    flat_log_probs = log_probs.reshape(-1, log_probs.shape[-1])  # 合并批次和时间轴，得到 (B×L,V)。
+    flat_targets = targets.reshape(-1)  # 按相同顺序展平标签，得到 (B×L,)。
+    rows = np.arange(flat_targets.size)  # 为每个预测位置生成行号。
+    correct_log_probs = flat_log_probs[rows, flat_targets]  # 每行只取正确标签那一列。
+    position_losses = -correct_log_probs.reshape(targets.shape)  # 取负号，恢复为 (B,L) 的逐位置损失。
+    return float(position_losses.mean()), position_losses  # 按实际位置数求平均，同时返回逐位置结果。
+
 class TinyRNN:  # 模型包含字符表示、循环隐藏状态和候选字符分数输出层。
     def __init__(self, vocab_size, hidden_size=64, seed=42):  # 接收词表大小、向量维度和初始化种子。
         assert vocab_size > 0 and hidden_size > 0, "模型维度必须为正"  # 防止创建无效参数矩阵。
@@ -130,6 +153,35 @@ def main():  # 定义演示入口，被其他文件导入时不自动执行。
 
     print("大分数转换后的概率：", large_probabilities)  # 约为 [0.24472847,0.66524096,0.09003057]。
     print("大分数与统一平移检查：通过")  # 所有断言通过后显示。
+
+    toy_texts = ["春天来", "春风吹"]  # 指定完整短句，保证最后一个输入也有下一字答案。
+    toy_x = np.asarray([[char_to_id[char] for char in text[:-1]] for text in toy_texts], dtype=np.int64)  # 输入为“春天”“春风”。
+    toy_y = np.asarray([[char_to_id[char] for char in text[1:]] for text in toy_texts], dtype=np.int64)  # 目标为“天来”“风吹”。
+    toy_logits = model.forward(toy_x)  # 用当前随机模型计算候选分数。
+    loss, position_losses = cross_entropy(toy_logits, toy_y)  # 计算每个位置及平均损失。
+
+    assert position_losses.shape == toy_y.shape, "逐位置损失形状错误"  # 本例应为 (2,2)。
+    assert np.isfinite(position_losses).all() and (position_losses >= 0).all(), "损失数值异常"  # 检查损失有限且非负。
+    assert np.isclose(loss, position_losses.sum() / toy_y.size), "损失平均方式错误"  # 本例按四个位置求平均。
+
+    print("目标编号形状：", toy_y.shape)  # 应为 (2,2)。
+    print("逐位置损失：", position_losses)  # 每个位置对应一个损失。
+    print("平均交叉熵：", loss)  # 这是随机模型在手写例子上的误差，不是训练后效果。
+
+    known_logits = np.log(np.array([[[0.2, 0.5, 0.3]]], dtype=np.float64))  # 构造 softmax 后恰为指定概率的分数。
+    known_targets = np.array([[1]], dtype=np.int64)  # 正确答案是编号 1，其概率为 0.5。
+    known_loss, _ = cross_entropy(known_logits, known_targets)  # 计算这个位置的损失。
+    assert np.isclose(known_loss, -np.log(0.5)), "手算损失不一致"  # 应约为 0.693147。
+
+    extreme_logits = np.array([[[1000.0, 0.0]]], dtype=np.float64)  # 第二项概率极小，直接保存概率可能下溢。
+    extreme_targets = np.array([[1]], dtype=np.int64)  # 指定第二项为正确答案。
+    extreme_loss, _ = cross_entropy(extreme_logits, extreme_targets)  # 从稳定对数概率直接计算损失。
+    assert np.isfinite(extreme_loss) and np.isclose(extreme_loss, 1000.0), "极端分数损失不稳定"  # 应得到有限损失 1000。
+
+    print("概率为 0.5 的正确答案损失：", known_loss)  # 应约为 0.693147。
+    print("极端低概率目标的损失：", extreme_loss)  # 应为 1000。
+    print("目标索引、平均方式和稳定损失检查：通过")  # 所有断言通过后显示。
+
 
 if __name__ == "__main__":  # 只有直接运行本文件时才启动演示。
     main()  # 调用入口，其他文件导入模型类时不会运行演示。

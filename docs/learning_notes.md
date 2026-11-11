@@ -1316,3 +1316,132 @@ softmax 计算约 O(BLV)，额外数组也约 O(BLV)，不新增任何可训练�
 数值例子：[1000,1001,999] 减去最大值 1001 得 [-1,0,-2]；数学上不改变概率，同时避免直接对大正数求指数。某个候选独自减不同数则一般会改变概率。选择最大值使所有平移分数不大于 0，且至少一个为 0，分母因此至少含一项 exp(0)=1。
 
 当前记录为代码实操通过、归一化轴回答正确、形状与不变性原因已补充讲解，不提前记为全部独立掌握。下一课计划用真实目标字符的负对数概率衡量预测误差，使用稳定 log-softmax，保持当前 softmax 不被误用于先取 log 的不稳定计算。
+
+## 第 13 课：稳定的对数概率与交叉熵损失
+
+状态：代码实操复查通过，学习者已实现稳定 log_softmax 与 cross_entropy；交叉熵含义、平均方式和输出形状需补充讲解。本课没有反向传播、参数更新或模型效果评估。
+
+### 从正确答案概率到损失
+
+某一位置的正确标签为 y，损失为 -ln(p_y)，ln 为自然对数，NumPy 用 np.log。若正确概率为 0.8、0.5、0.1，损失约为 0.223144、0.693147、2.302585，正确答案分配的概率越低，损失越大。
+
+单一确定标签时，交叉熵等于该标签的负对数概率，也称负对数似然。不是对全部候选分别取负对数再平均。先在 V 个候选中取正确答案的那一项，再对 B×L 个有效预测位置取平均。本课没有 padding，所以全部位置都有效；以后引入 padding 需要按掩码排除。
+
+模型分数形状 (B,L,V)，目标编号形状 (B,L)，逐位置损失形状 (B,L)，最终平均损失为一个标量。归一化使用实际 B×L，因此尾批也能正确计算。
+
+### 为什么不直接 log(softmax)
+
+对于分数 [1000,0]，真实目标为第二项，其概率极小，浮点数可能将其存成 0，之后 log(0) 得到负无穷。采用 log_softmax：先 shifted=z-max(z)，再计算 log_probs=shifted-log(sum(exp(shifted)))。该例第二项对数概率约 -1000，损失为 1000，仍可表示；不靠加 epsilon 截断真实大损失。
+
+### 第一块：在类外增加稳定对数概率
+
+在 softmax 函数之后、class TinyRNN 之前顶格添加，保持原函数及 forward 返回 logits 的约定：
+
+```python
+def log_softmax(logits):  # 直接计算稳定的对数概率，不先保存可能下溢的概率。
+    logits = np.asarray(logits)  # 接受浮点列表或数组，保留已有浮点精度。
+    assert logits.ndim >= 1 and logits.shape[-1] > 0, "候选维度不能为空"  # 至少要有一项候选。
+    assert np.issubdtype(logits.dtype, np.floating), "分数应为浮点数"  # 不把整数编号当成分数。
+    assert np.isfinite(logits).all(), "分数包含无穷或无效数"  # 本课要求输入为有限数值。
+    shifted = logits - logits.max(axis=-1, keepdims=True)  # 每个位置单独减去最大分数。
+    log_denominator = np.log(np.exp(shifted).sum(axis=-1, keepdims=True))  # 计算平移后指数和的自然对数。
+    return shifted - log_denominator  # 利用 log(a/b)=log(a)-log(b)，得到同形状对数概率。
+```
+
+### 第二块：按真实标签取值并求平均
+
+紧接在 log_softmax 后面顶格添加：
+
+```python
+def cross_entropy(logits, targets):  # 输入候选分数和正确编号，返回平均损失与逐位置损失。
+    log_probs = log_softmax(logits)  # 得到 (B,L,V) 的对数概率。
+    targets = np.asarray(targets)  # 保留标签整数类型，不静默转换浮点标签。
+    assert log_probs.ndim == 3 and targets.shape == log_probs.shape[:2], "分数与标签形状不匹配"  # 标签每个位置只有一个编号。
+    assert targets.size > 0, "没有可计算损失的位置"  # 防止对空数组取平均。
+    assert np.issubdtype(targets.dtype, np.integer), "目标编号必须是整数"  # 标签用于索引候选，不能使用浮点数。
+    assert ((targets >= 0) & (targets < log_probs.shape[-1])).all(), "目标编号越界"  # 每个标签必须在词表编号范围内。
+    flat_log_probs = log_probs.reshape(-1, log_probs.shape[-1])  # 合并批次和时间轴，得到 (B×L,V)。
+    flat_targets = targets.reshape(-1)  # 按相同顺序展平标签，得到 (B×L,)。
+    rows = np.arange(flat_targets.size)  # 为每个预测位置生成一个行号。
+    correct_log_probs = flat_log_probs[rows, flat_targets]  # 每行只取正确标签那一列，不取整个候选向量。
+    position_losses = -correct_log_probs.reshape(targets.shape)  # 取负号并恢复为 (B,L) 的逐位置损失。
+    return float(position_losses.mean()), position_losses  # 按实际位置数求平均，并保留逐位置结果供检查。
+```
+
+reshape(-1,V) 的 -1 表示根据元素总数推算这一维长度，不表示复制、打乱或丢掉数据。形状 (2,2,V) 变为 (4,V)，标签 (2,2) 对应变为 (4,)。rows=[0,1,2,3] 与 flat_targets 配对，选出四个正确候选的数值。没有构造整份 one-hot 标签数组。
+
+### 第三块：main 内用完整短句制作答案
+
+继续在 main 原末尾添加，整体缩进 4 个空格。以下是专门手写的演示文本，不声称来自语料，不用于测评质量：
+
+```python
+    toy_texts = ["春天来", "春风吹"]  # 指定完整短句，确保最后一个输入也有真实下一字作为答案。
+    toy_x = np.asarray([[char_to_id[char] for char in text[:-1]] for text in toy_texts], dtype=np.int64)  # 得到“春天”“春风”两个输入。
+    toy_y = np.asarray([[char_to_id[char] for char in text[1:]] for text in toy_texts], dtype=np.int64)  # 得到错位后的“天来”“风吹”两个目标。
+    toy_logits = model.forward(toy_x)  # 用当前随机模型计算每个位置的候选分数。
+    loss, position_losses = cross_entropy(toy_logits, toy_y)  # 选取正确目标的对数概率，计算逐位置和平均损失。
+    assert position_losses.shape == toy_y.shape, "逐位置损失形状错误"  # 本例应为 (2,2)。
+    assert np.isfinite(position_losses).all() and (position_losses >= 0).all(), "损失数值异常"  # 交叉熵应有限且非负。
+    assert np.isclose(loss, position_losses.sum() / toy_y.size), "损失平均方式错误"  # 核对按实际四个位置求平均。
+    print("目标编号形状：", toy_y.shape)  # 应为 (2,2)，不是 (2,2,5547)。
+    print("逐位置损失：", position_losses)  # 每个位置一个数，越小表示正确目标的概率越高。
+    print("平均交叉熵：", loss)  # 随机模型在这个演示上的误差，不是训练后效果。
+```
+
+### 第四块：两个可手算验证例
+
+继续在 main 内添加，保持 4 个空格缩进：
+
+```python
+    known_logits = np.log(np.array([[[0.2, 0.5, 0.3]]], dtype=np.float64))  # 构造 softmax 后恰为指定概率的分数，形状为 (1,1,3)。
+    known_targets = np.array([[1]], dtype=np.int64)  # 正确答案为编号 1，其概率是 0.5。
+    known_loss, _ = cross_entropy(known_logits, known_targets)  # 对一个位置计算交叉熵。
+    assert np.isclose(known_loss, -np.log(0.5)), "手算损失不一致"  # 应约为 0.693147。
+    extreme_logits = np.array([[[1000.0, 0.0]]], dtype=np.float64)  # 第二项分数远低于第一项，普通概率可能下溢。
+    extreme_targets = np.array([[1]], dtype=np.int64)  # 指定低概率的第二项为正确答案。
+    extreme_loss, _ = cross_entropy(extreme_logits, extreme_targets)  # 直接由稳定对数概率计算大损失。
+    assert np.isfinite(extreme_loss) and np.isclose(extreme_loss, 1000.0), "极端分数损失不稳定"  # 不应得到无穷，也不应被 epsilon 截断成较小值。
+    print("概率为 0.5 的正确答案损失：", known_loss)  # 应约为 0.693147。
+    print("极端低概率目标的损失：", extreme_loss)  # 应为 1000。
+    print("目标索引、平均方式和稳定损失检查：通过")  # 所有断言通过后显示。
+```
+
+### 基线、效率与待提交
+
+若 V 项分数完全相同，则每项概率为 1/V，每个正确目标的损失为 ln(V)。V=5547 时约为 8.621012；这是严格均匀分布的数学基线，不要求任意随机模型的样例损失恰好等于该值。不得把当前少量手写例子当成完整训练或验证损失。
+
+稳定 log_softmax 扫描所有候选，时间和主要中间数组约 O(BLV)，目标索引额外约 O(BL)，不增加模型参数。计算一个误差值不等于模型已经学习；后续还需要梯度和更新。
+
+待提交：完整代码、逐位置损失和两组验证输出。口述题：正确答案概率 0.8 和 0.2，哪个损失更大，为什么？当 logits=(8,32,5547)、targets=(8,32) 时，逐位置损失与平均损失分别是什么形状？实操通过后再更新结果、CI 和 GitHub。
+
+### 第十三课实操复查：通过
+
+学习者提交结果与参考值一致：逐位置损失约 [[8.769016,8.818549],[8.527371,8.654839]]，平均约 8.69244385；已知正确概率 0.5 的损失约 0.693147；极端低概率目标的稳定损失为 1000。
+
+老师重新运行实际脚本，另行手工按每个位置的目标编号计算对照，确认逐位置损失、标量平均均正确；另外验证统一分数平移、重复整批数据时平均损失不变、(8,32) 逐位置结果、均匀概率基线和非法标签拒绝。老师仅清理空白格式，不改学习者计算实现。
+
+学习者正确比较 -ln(0.8)<-ln(0.2)，并提出为什么平均、为什么交叉熵、交叉熵是什么，以及不理解损失形状。以下记录补充讲解，不提前视作独立掌握。
+
+### 交叉熵的含义
+
+一个位置的标签分布记为 q，预测分布记为 p，交叉熵 H(q,p)=-sum_j q_j ln p_j。它用目标分布作为权重，计算模型预测概率的平均负对数代价，不是严格的几何距离。
+
+本任务一个训练位置只有一个观察到的正确编号。例如候选为天/风/雨，目标为天，标签写成 q=[1,0,0]，模型 p=[0.8,0.1,0.1]，交叉熵为 -(1×ln0.8+0×ln0.1+0×ln0.1)=-ln0.8。本实现直接用整数标签取正确项，无需构造 one-hot。one-hot 表达当前样本标签，不表示语言里其他续写永远不合法。
+
+准确率只判断最高概率项是否正确；正确答案概率为 0.51 和 0.99 时可能都算预测正确，但交叉熵能区分其概率分配，并为后续梯度训练提供连续的数值目标。交叉熵并非唯一可选损失；此处适合预测离散下一字符概率，也等价于最小化负对数似然、最大化语料中已观察续写的概率。对序列，是给定真实前文条件下各位置概率的乘积，取负对数后变成可相加的各位置损失。
+
+### 为什么求平均，是否必须
+
+求和与求平均都可用。固定预测位置数 N 时，平均只是总损失除以常数 N，不改变最优参数的位置，但会改变梯度的数值尺度。使用平均可减少损失数值和梯度尺度随批内位置数增加而增加的影响，便于比较不同大小批次，也能处理尾批。
+
+例如损失列表 [2,2] 总和为 4，[2,2,2,2] 总和为 8；后者不表示每个位置预测更差，二者平均都为 2。本课定义 loss=sum(position_losses)/(实际 B×L)，并非除以 V，也不是始终除以预设最大批大小乘长度。
+
+以后报告整个数据集的平均损失，应累计所有有效位置的损失总和，再除以总位置数。不能将 16 行满批与 8 行尾批的批平均不加权再平均。当前单批平均是损失定义，训练采样和优化效果仍需通过实验判断。
+
+### 损失形状逐步解释
+
+logits=(8,32,5547) 表示 8 条窗口、各 32 个位置、每位置 5547 个候选分数。targets=(8,32) 为每位置指定一个正确候选。选取正确候选的对数概率后，只剩 8×32=256 个数，恢复形状为 (8,32)，取负后仍为 (8,32)。然后对这 256 个数求平均，得到一个数。
+
+因此 position_losses.shape=(8,32)，loss 是一个 Python float，不是还带有 (8,32) 形状的数组；虽然数学上标量常记为空形状 ()，本函数返回的 Python float 本身没有 .shape 属性。代码中 reshape(-1,V) 和标签展平仅把位置排列成行，不改变各位置对应关系。
+
+本课暂停增加代码，先让学习者理解目标概率→逐位置损失→标量平均的路径。待复答：若两条窗口每条有三个预测位置，一共有几个逐位置损失、它们排成什么形状，平均后有几个数？
