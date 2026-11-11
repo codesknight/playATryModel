@@ -3,15 +3,17 @@ from pathlib import Path  # 导入路径工具，找到词表文件。
 import numpy as np  # 导入 NumPy，创建参数矩阵并执行查表。
 
 
-class TinyRNN:  # 先搭建模型类，本课只实现字符向量部分。
+class TinyRNN:  # 模型目前包含字符表示和循环隐藏状态，尚未加入输出层。
     def __init__(self, vocab_size, hidden_size=64, seed=42):  # 接收词表大小、向量维度和初始化种子。
         assert vocab_size > 0 and hidden_size > 0, "模型维度必须为正"  # 防止创建无效参数矩阵。
         self.vocab_size = vocab_size  # 保存词表项数，检查合法编号时会用到。
         self.hidden_size = hidden_size  # 保存向量维度，后续也作为隐藏状态维度。
         rng = np.random.default_rng(seed)  # 创建局部随机数生成器，固定初始参数。
-        self.params = {  # 用字典集中保存之后需要训练的参数。
-            "embedding": rng.normal(0, 0.1, (vocab_size, hidden_size)).astype(np.float32),  # 随机生成字符向量表，均值为 0，标准差为 0.1。
-        }  # 当前只有这一组参数，后续再加入循环层和输出层。
+        self.params = {  # 集中保存字符表示、循环权重和偏移参数。
+            "embedding": rng.normal(0, 0.1, (vocab_size, hidden_size)).astype(np.float32),  # 保留原来的字符向量初始化。
+            "recurrent": rng.normal(0, 1 / np.sqrt(hidden_size), (hidden_size, hidden_size)).astype(np.float32),  # 创建共享循环权重，并按维度缩小初始标准差。
+            "bias": np.zeros(hidden_size, dtype=np.float32),  # 隐藏层偏移从零开始，后续训练会调整。
+        }  # 每次创建模型只初始化一次，所有时间位置共用这些参数。
 
     def embed(self, token_ids):  # 将二维字符编号转换成三维字符向量。
         token_ids = np.asarray(token_ids)  # 接受列表或数组，但不偷偷把浮点编号转换成整数。
@@ -19,6 +21,18 @@ class TinyRNN:  # 先搭建模型类，本课只实现字符向量部分。
         assert np.issubdtype(token_ids.dtype, np.integer), "字符编号必须是整数"  # 防止用浮点数作为索引。
         assert ((token_ids >= 0) & (token_ids < self.vocab_size)).all(), "编号超出词表范围"  # 拒绝负数和越界编号。
         return self.params["embedding"][token_ids]  # 按每个位置的编号取行，得到 (B,L,H)。
+
+    def forward_hidden(self, token_ids):  # 按文字顺序计算并保存每个位置的隐藏状态。
+        vectors = self.embed(token_ids)  # 将 (B,L) 编号转换成 (B,L,H) 字符向量。
+        batch_size, seq_length, _ = vectors.shape  # 从实际输入读取批大小和长度。
+        assert batch_size > 0 and seq_length > 0, "输入批次和序列不能为空"  # 本课不处理空批次或空序列。
+        hidden = np.zeros((batch_size, self.hidden_size), dtype=np.float32)  # 为每条窗口准备独立的全零初始状态。
+        states = np.zeros((batch_size, seq_length, self.hidden_size), dtype=np.float32)  # 保存全部位置的隐藏状态。
+        for t in range(seq_length):  # 按位置顺序递推，先算前面的字，再算后面的字。
+            current = vectors[:, t, :]  # 同时取出各条窗口在当前位置的字符向量。
+            hidden = np.tanh(current + hidden @ self.params["recurrent"] + self.params["bias"])  # 结合当前字符和之前状态。
+            states[:, t, :] = hidden  # 将当前状态复制到对应位置保存。
+        return states  # 返回 (B,L,H)，此时还没有下一字符分数。
 
 def main():  # 定义演示入口，被其他文件导入时不自动执行。
     root = Path(__file__).resolve().parents[2]  # 找到项目根目录。
@@ -42,6 +56,25 @@ def main():  # 定义演示入口，被其他文件导入时不自动执行。
     print("表示表字节数：", model.params["embedding"].nbytes)  # 应为 1420032，只统计矩阵数据区。
     print("查表、重复字符和动态批大小检查：通过")  # 所有断言通过后显示。
 
+    states = model.forward_hidden(x)  # 对原样例“春天”和“春风”计算状态。
+    assert states.shape == (x.shape[0], x.shape[1], model.hidden_size), "隐藏状态形状错误"  # 每条输入的每个位置都应有状态。
+    assert states.dtype == np.float32 and np.isfinite(states).all(), "隐藏状态数值异常"  # 检查类型以及是否出现无穷或无效数。
+    assert np.allclose(states[0, 0], states[1, 0]), "后面的字影响了前面的状态"  # 首字都是春，从零状态开始应得到相同结果。
+    assert np.allclose(model.forward_hidden(x[:1]), states[:1]), "不同批次行发生干扰"  # 单独计算第一行，应与批量计算一致。
+
+    context_texts = ["春天", "秋天"]  # 前字不同，后一个字都是天。
+    context_x = np.asarray([[char_to_id[char] for char in text] for text in context_texts], dtype=np.int64)  # 使用固定词表编码。
+    context_vectors = model.embed(context_x)  # 先获取不包含前文的字符向量。
+    assert np.array_equal(context_vectors[0, 1], context_vectors[1, 1]), "相同字符查表不一致"  # 两个天应取到同一行向量。
+    context_states = model.forward_hidden(context_x)  # 使用循环层加入前文状态。
+    assert not np.allclose(context_states[0, 1], context_states[1, 1]), "本例前文变化未影响状态"  # 当前固定随机参数下，两个天的状态应不同。
+
+    print("循环权重形状：", model.params["recurrent"].shape)  # 应为 (64,64)。
+    print("隐藏偏移形状：", model.params["bias"].shape)  # 应为 (64,)。
+    print("全部隐藏状态形状：", states.shape)  # 应为 (2,2,64)。
+    print("同字不同前文的状态不同：", not np.allclose(context_states[0, 1], context_states[1, 1]))  # 当前示例应为 True。
+    print("当前总参数数：", sum(param.size for param in model.params.values()))  # 应为 359168，尚不包含输出层。
+    print("递推、前文依赖和批次独立性检查：通过")  # 所有断言通过后显示。
 
 if __name__ == "__main__":  # 只有直接运行本文件时才启动演示。
     main()  # 调用入口，其他文件导入模型类时不会运行演示。
