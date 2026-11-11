@@ -2,6 +2,14 @@ import json  # 导入 JSON 工具，读取固定词表。
 from pathlib import Path  # 导入路径工具，找到词表文件。
 import numpy as np  # 导入 NumPy，创建参数矩阵并执行查表。
 
+def softmax(logits):  # 将最后一维的候选分数转换为概率，保留其余维度。
+    logits = np.asarray(logits)  # 接受浮点列表或数组，不强制改变已有浮点精度。
+    assert logits.ndim >= 1 and logits.shape[-1] > 0, "候选维度不能为空"  # 至少需要一个可归一化的维度。
+    assert np.issubdtype(logits.dtype, np.floating), "分数应为浮点数"  # 检查输入不是整数编号。
+    assert np.isfinite(logits).all(), "分数包含无穷或无效数"  # 本课只处理有限分数。
+    shifted = logits - logits.max(axis=-1, keepdims=True)  # 每个位置减去自己的最大分数。
+    exp_scores = np.exp(shifted)  # 对平移后的分数求指数。
+    return exp_scores / exp_scores.sum(axis=-1, keepdims=True)  # 除以同一位置全部候选的指数和。
 
 class TinyRNN:  # 模型包含字符表示、循环隐藏状态和候选字符分数输出层。
     def __init__(self, vocab_size, hidden_size=64, seed=42):  # 接收词表大小、向量维度和初始化种子。
@@ -96,6 +104,32 @@ def main():  # 定义演示入口，被其他文件导入时不自动执行。
     print("首条末位置的前五项分数：", logits[0, -1, :5])  # 展示词表前五项的分数，不是前五名或概率。
     print("含输出层的总参数数：", sum(param.size for param in model.params.values()))  # 应为 719723。
     print("输出层形状、公式和批次独立性检查：通过")  # 所有断言通过后显示。
+
+    logits_before = logits.copy()  # 保存副本，确认转换概率没有改写原始分数。
+    probabilities = softmax(logits)  # 将 (B,L,V) 分数转换成同形状概率。
+    probability_sums = probabilities.sum(axis=-1)  # 对全部候选求和，得到 (B,L)。
+
+    assert probabilities.shape == logits.shape, "概率形状改变了"  # softmax 不增加或删除数据维度。
+    assert probabilities.dtype == logits.dtype and np.isfinite(probabilities).all(), "概率类型或数值异常"  # 检查类型和数值。
+    assert ((probabilities >= 0) & (probabilities <= 1)).all(), "概率超出范围"  # 极小概率可能因浮点下溢变成零。
+    assert np.allclose(probability_sums, 1.0, rtol=1e-5, atol=1e-6), "每个位置的概率和不为一"  # 检查每组全部候选的概率和。
+    assert np.array_equal(logits, logits_before), "softmax 修改了输入分数"  # 后续还要使用原始 logits 计算稳定损失。
+
+    print("概率形状：", probabilities.shape)  # 当前应为 (2,2,5547)。
+    print("各位置概率和：", probability_sums)  # 当前为 (2,2)，每项应接近 1。
+    print("首条末位置的前五项概率：", probabilities[0, -1, :5])  # 只显示词表前五项，这五项不必加起来等于 1。
+    print("概率范围、归一化和输入保留检查：通过")  # 所有断言通过后显示。
+
+    large_scores = np.array([1000.0, 1001.0, 999.0], dtype=np.float64)  # 构造直接求指数可能溢出的分数。
+    large_probabilities = softmax(large_scores)  # 稳定实现实际上对 [-1,0,-2] 求指数。
+    shifted_probabilities = softmax(large_scores - 1000.0)  # 全部候选减去相同常数，概率应不变。
+
+    assert np.isfinite(large_probabilities).all(), "大分数转换后出现异常"  # 检查结果仍为有限数。
+    assert np.allclose(large_probabilities, shifted_probabilities, rtol=1e-8, atol=1e-10), "统一平移改变了概率"  # 验证数学上的平移不变性。
+    assert np.allclose(large_probabilities.sum(), 1.0), "样例概率和错误"  # 检查一维样例也正确归一化。
+
+    print("大分数转换后的概率：", large_probabilities)  # 约为 [0.24472847,0.66524096,0.09003057]。
+    print("大分数与统一平移检查：通过")  # 所有断言通过后显示。
 
 if __name__ == "__main__":  # 只有直接运行本文件时才启动演示。
     main()  # 调用入口，其他文件导入模型类时不会运行演示。
