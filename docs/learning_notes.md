@@ -1543,3 +1543,104 @@ if __name__ == "__main__":  # 直接运行文件时才执行演示。
 真实模型有许多参数，每个元素有自己的偏导数，可同时出现正负号。普通梯度下降对每个元素分别做 theta_i←theta_i-eta×g_i，不是让所有参数统一增大或统一减小；后续优化器会再加入各自的更新规则。
 
 当前记录为实操通过、更新算术正确、epsilon 定义已纠正、方向原理已补充讲解。下一课计划推导 softmax 与单标签交叉熵组合的解析梯度 p-q，并与少量数值差分对照，再逐层传播到输出权重和循环层。
+
+### 第十四课后续讨论：方向、迭代与参数搜索
+
+1. 学习者正确算出正梯度 0.4、学习率 0.1、参数 1 时更新为 0.96，但称“往 g>0 移动”。纠正：g>0 是梯度符号，实际位移为 -0.04，参数沿负梯度方向减小；梯度方向与普通梯度下降的更新方向相反。
+2. 学习者问是否为同一参数计算很多次梯度后比较，选损失最小的值。解释：普通训练是在每个当前参数位置、当前批次上计算梯度，更新一步后再在新位置计算，不把历次梯度拿来挑选“最好梯度”。中心差分的两次前向仅用于估计一个当前偏导数。
+3. 学习者追问“搜索候选参数”是什么。解释：尝试多个参数候选并比较损失属于参数搜索；有限候选中的最好值不保证全局最优，也可能漏掉候选范围之外或间隔之间的更好值。
+4. 若 719723 个权重每个试 3 个值，穷举组合为 3^719723，不可行。固定其他参数、逐个搜索是坐标搜索的一类做法，虽然避免全部组合穷举，仍需要大量损失计算，且参数相互作用会使先前选出的值需要再调整。
+5. 反向传播通过链式法则有效计算当前批次对全部参数的梯度，适合这里大量连续权重的训练；网格/随机搜索仍可用于少量学习率、隐藏维度等配置，并根据验证集选择，测试集不参与挑选。线搜索则可在已定方向上选择步长，无梯度方法也有适用目标，不能说搜索一概不能使用。
+
+学习者表示了解并要求完整记录后进入下一课；记录为已讲解并确认理解，未据此推断其已能独立设计搜索算法或实现反向传播。
+
+## 第 15 课：softmax 加交叉熵的解析梯度
+
+状态：已布置，等待学习者创建 scripts/learn/09_softmax_gradient.py。本课使用三候选单位置示例，推导分数梯度并和中心差分核对，不修改 RNN 权重、不训练语料、不保存模型。
+
+### 推导
+
+正确类别为 y，候选分数为 z，S=sum_k exp(z_k)，损失 L=-ln p_y=-z_y+ln S。
+
+对某个候选分数 z_j 求偏导，其他分数暂时固定：
+
+- -z_y 的偏导为 -1（j=y），否则为 0。
+- ln S 的偏导为 (1/S)×exp(z_j)=p_j；这里用到了链式法则。
+- 因而 dL/dz_j=p_j-1（j=y），否则为 p_j。用 one-hot 标签分布 q 合并写成 grad=p-q。
+
+这是损失对原始分数 z 的梯度，不是对概率 p 的梯度，也不是直接对循环权重的梯度。错误候选也有梯度，因为它们通过 softmax 分母影响正确答案的概率。无需构造 V×V 的 softmax 雅可比矩阵。
+
+候选为天/风/雨，目标为天：q=[1,0,0]。对分数 [0.15,-0.1,-0.3]，p≈[0.41383381,0.32229410,0.26387209]，梯度约 [-0.58616619,0.32229410,0.26387209]。普通负梯度更新会提高正确候选分数、降低另外两个分数。
+
+### 第一块：计算单位置损失、概率和解析梯度
+
+```python
+import numpy as np  # 导入 NumPy，用 float64 检查微小梯度差异。
+
+def loss_and_grad(logits, target):  # 计算一个位置的损失、概率以及损失对各原始分数的梯度。
+    logits = np.asarray(logits, dtype=np.float64)  # 本演示统一使用双精度，不改已有 RNN 的参数类型。
+    assert logits.ndim == 1 and logits.size > 0 and np.isfinite(logits).all(), "需要有限的一维分数"  # 本课每次只检查一个预测位置。
+    assert isinstance(target, (int, np.integer)) and 0 <= target < logits.size, "正确标签越界或类型错误"  # 标签是一个候选编号。
+    shifted = logits - logits.max()  # 先平移分数，保持数值稳定。
+    log_probs = shifted - np.log(np.exp(shifted).sum())  # 直接计算所有候选的对数概率。
+    probabilities = np.exp(log_probs)  # 根据对数概率恢复概率，供梯度公式使用。
+    gradient = probabilities.copy()  # 梯度从 p 开始，复制以免改写概率数组。
+    gradient[target] -= 1.0  # 正确类别减去 1，其他类别相当于减去 0，即 p-q。
+    return float(-log_probs[target]), probabilities, gradient  # 返回标量损失、概率向量和同形状分数梯度。
+```
+
+### 第二块：每次只扰动一个分数，计算数值梯度
+
+```python
+def numerical_gradient(logits, target, epsilon=1e-5):  # 用中心差分独立核对每个分数的偏导。
+    assert epsilon > 0, "试探距离必须大于零"  # 不允许分母为零。
+    logits = np.asarray(logits, dtype=np.float64)  # 使用双精度进行差分。
+    numerical = np.zeros_like(logits)  # 准备与分数向量同形状的数值梯度。
+    for index in range(logits.size):  # 依次计算各个候选分数的偏导。
+        plus = logits.copy()  # 正向试探始终从同一组原分数开始。
+        minus = logits.copy()  # 反向试探也从同一组原分数开始。
+        plus[index] += epsilon  # 只增加当前分数，其他分数固定。
+        minus[index] -= epsilon  # 只减少当前分数，其他分数固定。
+        plus_loss, _, _ = loss_and_grad(plus, target)  # 数值差分仅使用损失，忽略函数额外返回的结果。
+        minus_loss, _, _ = loss_and_grad(minus, target)  # 计算反向试探的损失。
+        numerical[index] = (plus_loss - minus_loss) / (2 * epsilon)  # 两个损失之差除以试探位置距离。
+    return numerical  # 返回全部候选的数值偏导，不在试探过程中更新原分数。
+```
+
+若同时移动所有分数，得到的不是某一个坐标的偏导；所有候选同加一个数时损失不变，甚至可能错误得到全零“梯度”。所以每次只修改一个元素。
+
+### 第三块：检查梯度并演示一次分数更新
+
+```python
+def main():  # 定义检查入口，独立验证本课公式。
+    logits = np.array([0.15, -0.1, -0.3], dtype=np.float64)  # 设置天、风、雨三个候选的原始分数。
+    target = 0  # 本次正确答案是第 0 项天。
+    before, probabilities, gradient = loss_and_grad(logits, target)  # 根据 p-q 计算解析梯度。
+    numerical = numerical_gradient(logits, target)  # 根据两侧损失计算独立的数值近似。
+    max_error = np.max(np.abs(gradient - numerical))  # 显示两种方法的最大绝对差。
+    assert np.allclose(gradient, numerical, rtol=1e-6, atol=1e-8), "解析与数值梯度不一致"  # 在双精度容差内核对梯度。
+    assert np.isclose(gradient.sum(), 0.0, atol=1e-12), "梯度和不为零"  # 同时平移所有分数不改损失，因此这些偏导之和应为零。
+    updated_logits = logits - 0.5 * gradient  # 只为观察方向，直接对三个分数走一个负梯度小步。
+    after, updated_probabilities, _ = loss_and_grad(updated_logits, target)  # 重新计算演示更新后的损失和概率。
+    assert after < before and updated_probabilities[target] > probabilities[target], "本例下降方向不正确"  # 核对当前例子的更新效果。
+    print("模型概率：", probabilities)  # 当前约为 [0.41383381,0.32229410,0.26387209]。
+    print("解析梯度：", gradient)  # 正确项为负，错误项为正。
+    print("数值梯度：", numerical)  # 应与解析结果接近。
+    print("最大绝对误差：", max_error)  # 应很小，具体尾数可能随平台变化。
+    print("更新前损失：", before)  # 显示当前分数对应的损失。
+    print("更新后损失：", after)  # 本例应小于更新前。
+    print("解析梯度与数值差分检查：通过")  # 所有断言通过后显示。
+
+if __name__ == "__main__":  # 直接运行本文件时启动演示。
+    main()  # 调用入口，不改变现有 RNN 模型。
+```
+
+### 与平均损失、参数梯度的关系
+
+本课只有一个位置，因此梯度是 p-q；若损失对 N=B×L 个有效位置取平均，则各位置分数梯度为 (p-q)/N，形状为 (B,L,V)。这个除数只应在对应计算链中应用一次，不能每层反向又重复除以 N。
+
+真实 RNN 的 logits 是参数前向计算的结果，不是本课直接更新后保存的一组权重。本课直接更新 logits 只为验证方向。下一步需用链式法则，把分数梯度传给输出权重、输出偏移和隐藏状态，随后继续传回循环层。
+
+计算 p-q 本身为 O(V)，中心差分核对全部 V 个分数约需 2V 次损失计算；本课 V=3，仅核对一个小例子，不能因此用数值差分训练完整 RNN。没有真实语料训练结果。
+
+待提交：完整脚本、概率/两组梯度/误差输出，并回答：若 p=[0.2,0.7,0.1]，正确标签为第 0 项，单位置分数梯度是多少？普通梯度下降会让三个分数分别增大还是减小？实操通过后再更新结果、CI 并上传 GitHub。
