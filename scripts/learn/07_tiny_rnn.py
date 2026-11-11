@@ -3,7 +3,7 @@ from pathlib import Path  # 导入路径工具，找到词表文件。
 import numpy as np  # 导入 NumPy，创建参数矩阵并执行查表。
 
 
-class TinyRNN:  # 模型目前包含字符表示和循环隐藏状态，尚未加入输出层。
+class TinyRNN:  # 模型包含字符表示、循环隐藏状态和候选字符分数输出层。
     def __init__(self, vocab_size, hidden_size=64, seed=42):  # 接收词表大小、向量维度和初始化种子。
         assert vocab_size > 0 and hidden_size > 0, "模型维度必须为正"  # 防止创建无效参数矩阵。
         self.vocab_size = vocab_size  # 保存词表项数，检查合法编号时会用到。
@@ -13,6 +13,8 @@ class TinyRNN:  # 模型目前包含字符表示和循环隐藏状态，尚未�
             "embedding": rng.normal(0, 0.1, (vocab_size, hidden_size)).astype(np.float32),  # 保留原来的字符向量初始化。
             "recurrent": rng.normal(0, 1 / np.sqrt(hidden_size), (hidden_size, hidden_size)).astype(np.float32),  # 创建共享循环权重，并按维度缩小初始标准差。
             "bias": np.zeros(hidden_size, dtype=np.float32),  # 隐藏层偏移从零开始，后续训练会调整。
+            "output": rng.normal(0, 1 / np.sqrt(hidden_size), (hidden_size, vocab_size)).astype(np.float32),  # 为每个候选字符准备一列输出权重。
+            "output_bias": np.zeros(vocab_size, dtype=np.float32),  # 为每个候选字符准备一个偏移，初始为零。
         }  # 每次创建模型只初始化一次，所有时间位置共用这些参数。
 
     def embed(self, token_ids):  # 将二维字符编号转换成三维字符向量。
@@ -33,6 +35,11 @@ class TinyRNN:  # 模型目前包含字符表示和循环隐藏状态，尚未�
             hidden = np.tanh(current + hidden @ self.params["recurrent"] + self.params["bias"])  # 结合当前字符和之前状态。
             states[:, t, :] = hidden  # 将当前状态复制到对应位置保存。
         return states  # 返回 (B,L,H)，此时还没有下一字符分数。
+
+    def forward(self, token_ids):  # 从字符编号计算每个位置的候选字符原始分数。
+        states = self.forward_hidden(token_ids)  # 先得到 (B,L,H) 的上下文状态。
+        logits = states @ self.params["output"] + self.params["output_bias"]  # 通过共享输出层得到 (B,L,V) 分数。
+        return logits  # 返回原始分数，暂不计算概率和损失。
 
 def main():  # 定义演示入口，被其他文件导入时不自动执行。
     root = Path(__file__).resolve().parents[2]  # 找到项目根目录。
@@ -73,8 +80,22 @@ def main():  # 定义演示入口，被其他文件导入时不自动执行。
     print("隐藏偏移形状：", model.params["bias"].shape)  # 应为 (64,)。
     print("全部隐藏状态形状：", states.shape)  # 应为 (2,2,64)。
     print("同字不同前文的状态不同：", not np.allclose(context_states[0, 1], context_states[1, 1]))  # 当前示例应为 True。
-    print("当前总参数数：", sum(param.size for param in model.params.values()))  # 应为 359168，尚不包含输出层。
+    print("当前总参数数：", sum(param.size for param in model.params.values()))  # 加入输出层后应为 719723。
     print("递推、前文依赖和批次独立性检查：通过")  # 所有断言通过后显示。
+
+    logits = model.forward(x)  # 对原样例计算所有位置的下一字符分数。
+    assert logits.shape == (x.shape[0], x.shape[1], len(tokens)), "输出分数形状错误"  # 每条窗口每个位置都要对整个词表评分。
+    assert logits.dtype == np.float32 and np.isfinite(logits).all(), "输出分数数值异常"  # 检查类型和数值是否有限。
+    expected_scores = states[0, 1] @ model.params["output"] + model.params["output_bias"]  # 单独计算第一条窗口第二个位置的分数。
+    assert np.allclose(logits[0, 1], expected_scores, rtol=1e-5, atol=1e-6), "输出层计算不符合公式"  # 允许 float32 累加顺序造成的微小误差。
+    assert np.allclose(logits[0, 0], logits[1, 0], rtol=1e-5, atol=1e-6), "相同前文的分数不一致"  # 两条原样例首字都是春，应给出接近的分数。
+    assert np.allclose(model.forward(x[:1]), logits[:1], rtol=1e-5, atol=1e-6), "单条与批量前向不一致"  # 检查不同实际批大小。
+    print("输出权重形状：", model.params["output"].shape)  # 应为 (64,5547)。
+    print("输出偏移形状：", model.params["output_bias"].shape)  # 应为 (5547,)。
+    print("全部分数形状：", logits.shape)  # 应为 (2,2,5547)。
+    print("首条末位置的前五项分数：", logits[0, -1, :5])  # 展示词表前五项的分数，不是前五名或概率。
+    print("含输出层的总参数数：", sum(param.size for param in model.params.values()))  # 应为 719723。
+    print("输出层形状、公式和批次独立性检查：通过")  # 所有断言通过后显示。
 
 if __name__ == "__main__":  # 只有直接运行本文件时才启动演示。
     main()  # 调用入口，其他文件导入模型类时不会运行演示。
