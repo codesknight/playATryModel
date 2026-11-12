@@ -2705,3 +2705,114 @@ if __name__ == "__main__":  # 只有直接运行新脚本时才开始本次演�
 第一题学习者回答“512个”，正确：平均交叉熵覆盖 16*32=512 个预测位置。第二题回答“不一定”，正确：训练批次与验证集是不同数据，同批损失下降不保证验证集损失下降，不能据此宣称泛化表现或生成质量提高。
 
 当前进度：已用真实语料完成一次前向、完整反向、全局裁剪判断与参数更新。权重只存在于本次进程内，尚未保存；每次重新运行脚本都会从固定随机种子的全新模型开始。下一课可学习让同一个模型连续处理多个批次，并区分 step 与 epoch，再逐步加入验证、日志与权重保存；这些后续功能尚未实现。
+
+## 第二十四课：同一个模型连续训练多个批次，区分 step 与 epoch
+
+状态：老师已在内存中预检以下代码，待学习者新建 scripts/learn/11_train_steps.py 并手敲、运行与回答。未创建学习者脚本或保存模型。本课只连续训练前五个批次，尚未完成一整轮、多轮训练、验证或权重持久化。
+
+### step、batch 与 epoch
+
+batch 是一次送入模型的一组窗口；本课一个训练 step 是对一个 batch 完成前向、反向、裁剪和一次统一参数更新。五组参数各更新一遍合起来算一步，不算五步。epoch 是完整遍历当前训练窗口集一遍。
+
+当前窗口数 76584，批大小 16，保留尾批，所以 steps_per_epoch=ceil(76584/16)=4787，其中 4786 个完整批次和一个八行尾批。五步只处理 80 个窗口、2560 个预测位置，不能称为五轮，也没有完成一整轮。这里按当前无梯度累积的普通训练循环定义更新步数；以后若引入梯度累积需再区分微批次与优化器步数。
+
+连续训练参数递推：g_k=∇L_(batch_k)(θ_(k-1))，裁剪后 θ_k=θ_(k-1)-η*clip(g_k)。第二批使用第一批更新后的参数，以此类推。模型只在循环外创建一次，批次生成器也只创建一次。不要在循环里重新初始化模型，否则丢弃前面的学习；不要每步重建批次生成器再 next，否则反复取首批。
+
+模型参数跨批保留，与隐藏状态跨批保留是两件事。当前 forward_hidden 每条窗口都从零状态开始，不把上一批隐藏状态带给下一批；窗口可能来自不同位置或章节，本课保持既定训练定义。
+
+### 第一块：新建文件，准备模型与连续批次流
+
+```python
+from importlib import import_module  # 按字符串导入已有数据与模型模块。
+from itertools import islice  # 从批次生成器中只取指定数量的批次。
+import numpy as np  # 检查批次数组与训练损失。
+
+
+def main():  # 定义连续训练少量批次的演示入口。
+    data = import_module("06_make_windows")  # 复用真实训练章节和批次函数，首次导入会执行旧数据检查。
+    network = import_module("07_tiny_rnn")  # 复用模型、完整反向和梯度裁剪。
+    batch_size = 16  # 每个批次最多包含 16 个窗口。
+    seq_length = 32  # 每个窗口预测 32 个位置，窗口步长也取 32。
+    max_steps = 5  # 本课只更新五个批次，不训练完整一轮。
+    learning_rate = 0.1  # 每一步使用相同的普通梯度下降学习率。
+    max_norm = 1.0  # 每一步都对完整梯度使用相同的全局范数上限。
+    model = network.TinyRNN(len(data.tokens), hidden_size=64, seed=42)  # 只在循环外创建一次模型，之后持续更新同一份参数。
+    windows = data.iter_windows(data.train_records, seq_length, seq_length)  # 只创建一次窗口生成器，使窗口位置持续向后移动。
+    batches = data.iter_batches(windows, batch_size)  # 把这一个窗口流打包为连续批次。
+    completed_steps = 0  # 累计真正完成的参数更新次数。
+    seen_windows = 0  # 累计真正用于更新的窗口数。
+    seen_positions = 0  # 累计真正参与损失计算的预测位置数。
+    loss_sum = 0.0  # 累计各批平均损失乘其位置数，准备计算加权平均。
+```
+
+islice(batches,max_steps) 从现有批次流最多取五批，不会把全部批次转换成列表。首次导入第六课模块仍会先输出旧检查，那些数据统计不算模型训练 step。
+
+### 第二块：接在 main 内，连续更新五步
+
+```python
+    for batch in islice(batches, max_steps):  # 顺着同一个批次生成器取前五批，每批更新一次。
+        x, y = batch["x"], batch["y"]  # 取本批输入和正确的下一字编号。
+        assert x.shape == y.shape and 0 < x.shape[0] <= batch_size and x.shape[1] == seq_length, "批次尺寸错误"  # 按实际行数检查，也允许未来遇到不足一批的尾批。
+        assert x.dtype == y.dtype == np.int64 and np.array_equal(x[:, 1:], y[:, :-1]), "批次类型或错位错误"  # 保证训练格式仍然正确。
+        loss, raw_grads = model.loss_and_grad(x, y)  # 用当前参数计算本批更新前的平均损失与完整梯度。
+        assert np.isfinite(loss), "训练损失不是有限数"  # 发现异常数值就停止，不继续污染参数。
+        grads, raw_norm, scale = network.clip_gradients(raw_grads, max_norm)  # 每步完整反向结束后再做一次全局裁剪。
+        for name in model.params:  # 使用同一批次算出的五组梯度统一更新参数。
+            model.params[name] -= learning_rate * grads[name]  # 本步新参数会被下一批直接使用。
+        assert all(np.isfinite(param).all() for param in model.params.values()), "更新后参数异常"  # 确认连续更新没有产生无效参数。
+        completed_steps += 1  # 五组参数更新完成，记作一个 step。
+        seen_windows += x.shape[0]  # 统计实际行数，不假定永远是完整批次。
+        seen_positions += y.size  # 统计本批实际预测位置数。
+        loss_sum += loss * y.size  # 将平均损失还原为本批损失总和，再跨批累计。
+        print(f"step={completed_steps} loss={loss:.6f} grad_norm={raw_norm:.6f} scale={scale:.6f} 来源={batch['chapter_ids'][0]} 起点={batch['starts'][0]}")  # 显示每步更新前的损失和首行窗口来源。
+```
+
+每行日志 loss 都是这一批更新前、当前参数下的平均交叉熵。不同步的数据不同，不能要求日志逐行严格下降；本课没有这样的断言。初始几步都来自首条训练章节，是顺序取数据的演示，不宣称这五批代表所有书籍的平均表现；后面再设计训练顺序打乱和验证。
+
+raw_norm 是裁剪前长度，scale 是当前裁剪系数。参数在每步全部反向完成后才更新，下一步再次完整计算梯度。loss_sum += loss*y.size 按实际预测位置数加权，兼容未来可能遇到的小尾批。权重应按预测位置数而非固定批数求平均。
+
+### 第三块：接在 main 内总结，再添加入口
+
+```python
+    assert completed_steps == max_steps and seen_positions > 0, "当前训练数据不足以完成本课五步"  # 本例训练集应能提供足够批次。
+    windows_per_epoch = sum(max(0, (len(record["text"]) - seq_length - 1) // seq_length + 1) for record in data.train_records)  # 根据当前窗口长度与步长，独立计算完整一轮的窗口数。
+    steps_per_epoch = (windows_per_epoch + batch_size - 1) // batch_size  # 尾批也更新一次，用向上取整计算一轮步数。
+    print("已完成更新步数：", completed_steps)  # 应为 5，而不是五组参数乘五步。
+    print("已训练窗口数：", seen_windows)  # 当前五个完整批次共 80 个窗口。
+    print("已训练预测位置数：", seen_positions)  # 当前共 2560 个预测位置。
+    print("训练过程按位置加权的平均损失：", loss_sum / seen_positions)  # 汇总各步更新前的损失，模型参数在这些步骤间持续变化。
+    print("完整一轮需要的更新步数：", steps_per_epoch)  # 当前配置为 4787 步，包含最后八行的尾批。
+    print("本次是否遍历完整训练集：", seen_windows == windows_per_epoch)  # 本课只取五批，因此应为 False。
+    print("同一模型连续多批更新检查：通过")  # 所有本课断言通过后显示。
+
+
+if __name__ == "__main__":  # 只有直接运行文件时才开始训练演示。
+    main()  # 创建一次模型并连续执行五步更新。
+```
+
+训练过程平均损失等于 Σ_k(n_k*L_k)/Σ_k n_k，其中 n_k 为实际位置数。注意 θ 在步骤间持续变化，该均值只是这段训练过程的记录，不是最后模型固定参数下的训练集评估，更不是验证损失。最后模型的评估需要另做一次固定参数的前向统计。
+
+### 复现、效率与老师预检
+
+仍不保存权重，重新启动脚本会重新初始化固定种子模型；同一次运行内则确实连续保留并更新参数。当前数据、顺序和环境相同时可重复得到同样结果，跨平台允许浮点尾数差异。
+
+模型参数仍为 719723，每步的数据大小仍为 B=16、T=32。五步顺序运行不会同时保存五批全部中间状态；每步主计算约 O(B*T*(H²+HV))，五步约为五倍单步主要训练计算，不包含导入时数据统计等固定开销。本课每步不额外重算同批更新后损失，因此与上一课含额外前向的用时不能直接当作同等操作比较；未进行实际性能基准测试。
+
+老师在内存中运行上述源码两次，全部断言通过，五步顺序来源与数值一致。未替学习者写入脚本、未保存模型权重。新结果在旧检查之后：
+
+```text
+step=1 loss=8.648513 grad_norm=0.320138 scale=1.000000 来源=三国演义:010 起点=0
+step=2 loss=8.656752 grad_norm=0.666002 scale=1.000000 来源=三国演义:010 起点=512
+step=3 loss=8.613806 grad_norm=0.392007 scale=1.000000 来源=三国演义:010 起点=1024
+step=4 loss=8.647432 grad_norm=0.416489 scale=1.000000 来源=三国演义:010 起点=1536
+step=5 loss=8.615304 grad_norm=0.471498 scale=1.000000 来源=三国演义:010 起点=2048
+已完成更新步数： 5
+已训练窗口数： 80
+已训练预测位置数： 2560
+训练过程按位置加权的平均损失： 8.63636131286621
+完整一轮需要的更新步数： 4787
+本次是否遍历完整训练集： False
+同一模型连续多批更新检查：通过
+```
+
+运行 python scripts/learn/11_train_steps.py，提交五行 step 日志与末尾统计。回答：一、同一模型连续完成五个批次更新，算 5 个 step 还是 5 个 epoch？二、为什么 model = TinyRNN(...) 必须放在本课训练循环外面？完成后复查实际脚本、补充笔记、加入 CI 并完整同步 GitHub。
