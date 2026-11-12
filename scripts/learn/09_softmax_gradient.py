@@ -112,6 +112,18 @@ def sequence_loss(vectors, initial, recurrent_weight, hidden_bias, output_weight
     losses = [output_loss(states[:, time, :], output_weight, output_bias, int(targets[time])) for time in range(states.shape[1])]  # 计算各位置的损失。
     return float(np.mean(losses))  # 对全部时间位置取平均。
 
+def embedding_backward(token_ids, embedding, grad_vectors):  # 把各位置的向量梯度汇总到表示表对应行。
+    assert token_ids.ndim == 2 and embedding.ndim == 2, "需要二维编号和二维表示表"  # 编号是 (B,T)，表示表是 (V,H)。
+    assert np.issubdtype(token_ids.dtype, np.integer), "字符编号必须为整数"  # 编号用于查找表示表的行。
+    assert ((token_ids >= 0) & (token_ids < embedding.shape[0])).all(), "字符编号越界"  # 拒绝负数或超过词表范围的编号。
+    assert grad_vectors.shape == token_ids.shape + (embedding.shape[1],), "向量梯度形状不对"  # 每个输入位置必须有 H 维梯度。
+    grad_embedding = np.zeros_like(embedding)  # 为每个表示表参数准备一个梯度，初始为零。
+    for batch in range(token_ids.shape[0]):  # 逐条处理批次中的序列。
+        for time in range(token_ids.shape[1]):  # 逐个处理当前序列的位置。
+            token = token_ids[batch, time]  # 找到当前位置使用的是表示表哪一行。
+            grad_embedding[token] += grad_vectors[batch, time]  # 将本位置贡献加到对应行，重复编号也会正确累加。
+    return grad_embedding  # 返回形状 (V,H) 的表示表总梯度，不修改原参数。
+
 def main():  # 定义检查入口。
     logits = np.array([0.15, -0.1, -0.3], dtype=np.float64)  # 设置天、风、雨的分数。
     target = 0  # 正确答案是第 0 项天。
@@ -238,6 +250,40 @@ def main():  # 定义检查入口。
     print("序列输入最大绝对误差：", np.max(np.abs(grad_vectors - numeric_vectors)))  # 显示输入梯度核对误差。
     print("序列权重最大绝对误差：", np.max(np.abs(grad_recurrent - numeric_recurrent)))  # 显示循环权重核对误差。
     print("反向时间循环与数值检查：通过")  # 两项断言通过后显示。
+
+    small_embedding = np.array([[0.1, 0.2], [-0.2, 0.3], [0.05, -0.1], [0.2, -0.2]], dtype=np.float64)  # 建立四行两列的小表示表。
+    token_ids = np.array([[0, 1, 0]], dtype=np.int64)  # 编号 0 使用两次，编号 1 使用一次。
+    toy_vector_grad = np.array([[[0.2, -0.1], [0.4, 0.3], [-0.5, 0.6]]], dtype=np.float64)  # 手动给定三个位置的梯度，先单独检查汇总规则。
+    toy_table_grad = embedding_backward(token_ids, small_embedding, toy_vector_grad)  # 将位置梯度汇总成表示表梯度。
+    expected_table_grad = np.array([[-0.3, 0.5], [0.4, 0.3], [0.0, 0.0], [0.0, 0.0]], dtype=np.float64)  # 第零行收到两次贡献，未使用行保持零。
+    assert np.allclose(toy_table_grad, expected_table_grad), "重复编号汇总不正确"  # 确认没有覆盖同一字符较早的贡献。
+    print("手算表示表梯度：", toy_table_grad)  # 显示每个编号对应行的梯度。
+
+    table_vectors = small_embedding[token_ids]  # 按编号查表，得到形状 (1,3,2) 的三个位置向量。
+    table_states = sequence_hidden(table_vectors, previous_hidden, recurrent_weight, hidden_bias)  # 将查表结果送入整段循环计算。
+    table_direct = np.zeros_like(table_states)  # 准备各位置输出层直接传回的状态梯度。
+    for time in range(table_states.shape[1]):  # 逐位置计算输出层反向传播。
+        table_scores = table_states[:, time, :] @ weight + bias  # 使用原来的输出权重和偏移计算分数。
+        _, _, table_score_grad = loss_and_grad(table_scores[0], int(targets[time]))  # 沿用上一课的三个标签 0、1、2。
+        _, _, table_hidden_grad = output_backward(table_states[:, time, :], weight, table_score_grad.reshape(1, -1) / table_states.shape[1])  # 平均损失的缩放只处理一次。
+        table_direct[:, time, :] = table_hidden_grad  # 保存输出层传给本状态的直接贡献。
+    table_vector_grad, _, _, _ = sequence_backward(table_states, previous_hidden, recurrent_weight, table_direct)  # 经过完整反向循环，得到各输入位置的梯度。
+    table_grad = embedding_backward(token_ids, small_embedding, table_vector_grad)  # 最后通过查表，把梯度送回共享表示表。
+    numeric_table = numerical_array_gradient(small_embedding, lambda candidate: sequence_loss(candidate[token_ids], previous_hidden, recurrent_weight, hidden_bias, weight, bias, targets))  # 每次改变一个表元素后重新查表并重算完整损失。
+    assert np.allclose(table_grad, numeric_table, rtol=1e-6, atol=1e-8), "表示表梯度不正确"  # 逐元素核对整张表，包括未使用的行。
+    assert np.allclose(table_grad[0], table_vector_grad[0, 0] + table_vector_grad[0, 2]), "重复字符贡献没有合并"  # 第零行要收到两个使用位置的梯度。
+    assert np.array_equal(table_grad[2:], np.zeros_like(table_grad[2:])), "未使用行的梯度应为零"  # 本例表示表只通过输入查表参与计算。
+    table_before = sequence_loss(small_embedding[token_ids], previous_hidden, recurrent_weight, hidden_bias, weight, bias, targets)  # 记录更新表示表之前的损失。
+    updated_embedding = small_embedding - 0.1 * table_grad  # 仅更新演示表示表，其他参数保持固定。
+    table_after = sequence_loss(updated_embedding[token_ids], previous_hidden, recurrent_weight, hidden_bias, weight, bias, targets)  # 重新查更新后的表并计算损失。
+    assert table_after < table_before, "本例表示表更新没有降低损失"  # 核对这个具体学习率下的单步结果。
+    print("真实表示表梯度：", table_grad)  # 显示通过损失反传得到的梯度。
+    print("表示表梯度最大绝对误差：", np.max(np.abs(table_grad - numeric_table)))  # 显示解析梯度与数值差分的误差。
+    print("仅更新表示表前后损失：", table_before, table_after)  # 观察向量参数更新如何影响预测损失。
+    print("表示表反向、重复编号与单步更新检查：通过")  # 所有断言通过后显示。
+
+
+
 
 
 if __name__ == "__main__":  # 直接运行文件时启动演示。
