@@ -80,8 +80,37 @@ def two_step_loss(first, second, initial, recurrent_weight, hidden_bias, output_
     second_loss = output_loss(second_hidden, output_weight, output_bias, 1)  # 第二位置的正确编号固定为 1。
     return (first_loss + second_loss) / 2.0  # 两个预测位置的损失取平均。
 
+def sequence_hidden(vectors, initial, weight, bias):  # 按时间正向计算并保存全部状态。
+    assert vectors.ndim == 3 and vectors.shape[1] > 0, "输入需要非空时间维"  # 输入形状为 (B,T,H)。
+    assert initial.shape == (vectors.shape[0], vectors.shape[2]), "初始状态形状不对"  # 每条序列各有一个初始状态。
+    states = np.zeros_like(vectors)  # 每个输入位置对应一个同维度状态。
+    hidden = initial.copy()  # 从给定初始状态开始，不修改原数组。
+    for time in range(vectors.shape[1]):  # 按 0、1、2 等顺序向前计算。
+        hidden = recurrent_step(vectors[:, time, :], hidden, weight, bias)  # 复用已经验证的单步计算。
+        states[:, time, :] = hidden  # 保存本步状态，反向传播时还要用到。
+    return states  # 返回 (B,T,H) 的状态数组。
 
+def sequence_backward(states, initial, weight, direct):  # 将各位置输出层的梯度沿时间反向传播。
+    assert states.ndim == 3 and states.shape == direct.shape and states.shape[1] > 0, "状态与直接梯度形状不对"  # 每个状态必须有对应的直接梯度。
+    assert initial.shape == (states.shape[0], states.shape[2]), "初始状态形状不对"  # 初始状态形状为 (B,H)。
+    grad_vectors = np.zeros_like(states)  # 保存对每个输入向量的梯度。
+    grad_weight = np.zeros_like(weight)  # 共享循环权重的总梯度从零开始。
+    grad_bias = np.zeros(states.shape[2], dtype=states.dtype)  # 共享隐藏偏移的总梯度从零开始。
+    future = np.zeros_like(initial)  # 最后位置没有更晚的步骤，未来贡献从零开始。
+    for time in reversed(range(states.shape[1])):  # 按 T-1、T-2 到 0 的顺序反传。
+        previous = initial if time == 0 else states[:, time - 1, :]  # 第零步的前态必须取 initial，不能取下标 -1。
+        total = direct[:, time, :] + future  # 合并当前输出路径与后续步骤传回的梯度。
+        grad_current, future, step_weight, step_bias = recurrent_backward(previous, weight, states[:, time, :], total)  # 反传本步，并取得传向更早一步的梯度。
+        grad_vectors[:, time, :] = grad_current  # 不同位置的输入梯度分别保存。
+        grad_weight += step_weight  # 同一个循环权重的各次使用贡献要累加。
+        grad_bias += step_bias  # 同一个隐藏偏移的各次使用贡献也要累加。
+    return grad_vectors, future, grad_weight, grad_bias  # 循环结束时 future 就是初始状态的梯度。
 
+def sequence_loss(vectors, initial, recurrent_weight, hidden_bias, output_weight, output_bias, targets):  # 重算整段序列的平均损失，供数值核对。
+    assert vectors.shape[0] == 1 and targets.shape == (vectors.shape[1],), "本例损失只演示一条序列"  # 单位置损失函数暂时逐步调用。
+    states = sequence_hidden(vectors, initial, recurrent_weight, hidden_bias)  # 每次试探都重新计算整段状态。
+    losses = [output_loss(states[:, time, :], output_weight, output_bias, int(targets[time])) for time in range(states.shape[1])]  # 计算各位置的损失。
+    return float(np.mean(losses))  # 对全部时间位置取平均。
 
 def main():  # 定义检查入口。
     logits = np.array([0.15, -0.1, -0.3], dtype=np.float64)  # 设置天、风、雨的分数。
@@ -187,6 +216,28 @@ def main():  # 定义检查入口。
     print("共享权重最大绝对误差：", np.max(np.abs(total_recurrent_grad - numeric_recurrent)))  # 核对共享权重的梯度。
     print("两步反向传播与梯度累加检查：通过")  # 两项断言通过后显示。
 
+    vectors = np.array([[[0.1, 0.2], [-0.2, 0.3], [0.05, -0.1]]], dtype=np.float64)  # 一条序列、三个位置、每个向量两维。
+    targets = np.array([0, 1, 2], dtype=np.int64)  # 三个位置各自的正确候选编号。
+    states = sequence_hidden(vectors, previous_hidden, recurrent_weight, hidden_bias)  # 得到形状 (1,3,2) 的全部状态。
+    direct = np.zeros_like(states)  # 保存各输出层直接传给对应状态的梯度。
+    for time in range(states.shape[1]):  # 分别处理三个位置的输出层。
+        scores = states[:, time, :] @ weight + bias  # 将本步状态转换为候选分数。
+        _, _, score_grad = loss_and_grad(scores[0], int(targets[time]))  # 计算当前位置的分数梯度。
+        _, _, hidden_grad = output_backward(states[:, time, :], weight, score_grad.reshape(1, -1) / states.shape[1])  # 平均损失的缩放只在这里处理一次。
+        direct[:, time, :] = hidden_grad  # 这里只保存直接路径，未来路径由反向循环合并。
+    grad_vectors, grad_initial, grad_recurrent, grad_hidden_bias = sequence_backward(states, previous_hidden, recurrent_weight, direct)  # 一次反向循环处理全部位置。
+    numeric_vectors = numerical_array_gradient(vectors, lambda candidate: sequence_loss(candidate, previous_hidden, recurrent_weight, hidden_bias, weight, bias, targets))  # 核对全部输入位置的梯度。
+    numeric_recurrent = numerical_array_gradient(recurrent_weight, lambda candidate: sequence_loss(vectors, previous_hidden, candidate, hidden_bias, weight, bias, targets))  # 核对所有时间步累计的循环权重梯度。
+    assert np.allclose(grad_vectors, numeric_vectors, rtol=1e-6, atol=1e-8), "序列输入梯度不正确"  # 检查所有输入分量。
+    assert np.allclose(grad_recurrent, numeric_recurrent, rtol=1e-6, atol=1e-8), "序列循环权重梯度不正确"  # 检查共享权重的全部分量。
+    print("序列状态形状：", states.shape)  # 应为 (1,3,2)。
+    print("序列平均损失：", sequence_loss(vectors, previous_hidden, recurrent_weight, hidden_bias, weight, bias, targets))  # 显示三处预测的平均损失。
+    print("序列输入梯度：", grad_vectors)  # 每个位置都有自己的输入向量梯度。
+    print("初始状态梯度：", grad_initial)  # 显示整段序列传回初始状态的梯度。
+    print("序列循环权重梯度：", grad_recurrent)  # 显示三个时间步累计的参数梯度。
+    print("序列输入最大绝对误差：", np.max(np.abs(grad_vectors - numeric_vectors)))  # 显示输入梯度核对误差。
+    print("序列权重最大绝对误差：", np.max(np.abs(grad_recurrent - numeric_recurrent)))  # 显示循环权重核对误差。
+    print("反向时间循环与数值检查：通过")  # 两项断言通过后显示。
 
 
 if __name__ == "__main__":  # 直接运行文件时启动演示。
