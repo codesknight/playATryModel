@@ -2188,3 +2188,104 @@ def sequence_loss(vectors, initial, recurrent_weight, hidden_bias, output_weight
 学习者回答“是的，理解了”，确认旧 future=0.5 已包含在 total_h2=1.5 中。正确结论是继续通过本步求导得到传给 h1 的新 future=0.75，并替换旧值，不再额外加旧 0.5。共享权重梯度则对同一个参数汇总各步贡献，仍使用 +=。
 
 当前进度：第十九课代码与数值检查通过，反向循环起始下标回答正确，future 重复累加误解经讲解后已获学习者确认；后续实践中继续巩固，不据此声称已经独立掌握全部 BPTT 推导。本次不新增练习代码。
+
+## 第二十课：字符表示表反向传播与重复编号累加
+
+状态：老师已在内存中预检以下代码；待学习者在 scripts/learn/09_softmax_gradient.py 手敲、运行和回答。未替学习者修改脚本，不代表本课已经完成。
+
+### 从位置梯度回到参数梯度
+
+查表前向 vectors[b,t,:]=E[token_ids[b,t],:]。E 是形状 (V,H) 的可训练参数表，token_ids 是 (B,T) 整数编号，vectors 和 grad_vectors 是 (B,T,H)。编号只用于选行，本课不对离散整数编号求导；需要更新的是选中行的浮点参数。
+
+固定编号 i、向量分量 j，∂L/∂E[i,j]=Σ_{b,t:token_ids[b,t]=i} ∂L/∂vectors[b,t,j]。选中行对当前位置向量是直接复制，局部导数为 1；其他行的局部导数为 0。同一编号可以在同一序列或不同序列出现多次，这些位置共用同一行参数，所以贡献相加。grad_vectors 已经包含跨时间反传及平均损失缩放，表示表汇总时不再除以出现次数或批次位置数。
+
+例如输入编号 [[0,1,0]]，三个位置的向量梯度依次为 [0.2,-0.1]、[0.4,0.3]、[-0.5,0.6]，那么第零行梯度为 [-0.3,0.5]，第一行为 [0.4,0.3]，未使用行全零。同一字符的向量相同，但各使用位置的向量梯度可以因上下文、标签及后续路径不同而不同。
+
+### 第一块：main 前添加表示表反向函数
+
+```python
+def embedding_backward(token_ids, embedding, grad_vectors):  # 把各位置的向量梯度汇总到表示表对应行。
+    assert token_ids.ndim == 2 and embedding.ndim == 2, "需要二维编号和二维表示表"  # 编号是 (B,T)，表示表是 (V,H)。
+    assert np.issubdtype(token_ids.dtype, np.integer), "字符编号必须为整数"  # 编号用于查找表示表的行。
+    assert ((token_ids >= 0) & (token_ids < embedding.shape[0])).all(), "字符编号越界"  # 拒绝负数或超过词表范围的编号。
+    assert grad_vectors.shape == token_ids.shape + (embedding.shape[1],), "向量梯度形状不对"  # 每个输入位置必须有 H 维梯度。
+    grad_embedding = np.zeros_like(embedding)  # 为每个表示表参数准备一个梯度，初始为零。
+    for batch in range(token_ids.shape[0]):  # 逐条处理批次中的序列。
+        for time in range(token_ids.shape[1]):  # 逐个处理当前序列的位置。
+            token = token_ids[batch, time]  # 找到当前位置使用的是表示表哪一行。
+            grad_embedding[token] += grad_vectors[batch, time]  # 将本位置贡献加到对应行，重复编号也会正确累加。
+    return grad_embedding  # 返回形状 (V,H) 的表示表总梯度，不修改原参数。
+```
+
+这里用两层循环逐位置写 +=，方便看清重复编号的每份贡献。不要把循环体改成直接赋值，否则重复字符前面的贡献会被覆盖。也不要直接用批量高级索引 grad_embedding[token_ids] += grad_vectors 来替代循环，重复索引时不保证按每次出现正确累加。后面优化时再讨论专门的索引累加操作。这里的浮点表示表沿用模型参数的浮点类型。
+
+### 第二块：在原 main 末尾添加手算检查
+
+```python
+    small_embedding = np.array([[0.1, 0.2], [-0.2, 0.3], [0.05, -0.1], [0.2, -0.2]], dtype=np.float64)  # 建立四行两列的小表示表。
+    token_ids = np.array([[0, 1, 0]], dtype=np.int64)  # 编号 0 使用两次，编号 1 使用一次。
+    toy_vector_grad = np.array([[[0.2, -0.1], [0.4, 0.3], [-0.5, 0.6]]], dtype=np.float64)  # 手动给定三个位置的梯度，先单独检查汇总规则。
+    toy_table_grad = embedding_backward(token_ids, small_embedding, toy_vector_grad)  # 将位置梯度汇总成表示表梯度。
+    expected_table_grad = np.array([[-0.3, 0.5], [0.4, 0.3], [0.0, 0.0], [0.0, 0.0]], dtype=np.float64)  # 第零行收到两次贡献，未使用行保持零。
+    assert np.allclose(toy_table_grad, expected_table_grad), "重复编号汇总不正确"  # 确认没有覆盖同一字符较早的贡献。
+    print("手算表示表梯度：", toy_table_grad)  # 显示每个编号对应行的梯度。
+```
+
+这段梯度是人为给定，只用于验证按编号汇总，没有经过 RNN，不能当作真实训练梯度。下一块再接真实损失。
+
+### 第三块：紧接着添加完整链路检查
+
+保留旧变量 previous_hidden、recurrent_weight、hidden_bias、weight、bias 和上一课 targets=[0,1,2]；以下仍在 main 内，整体缩进四格。表大小 V=4，输出候选数为 3，这是只为复用旧玩具输出层的梯度实验，输入输出维数允许不同；最终真实语言模型输入输出都用同一个词表大小 5547。
+
+```python
+    table_vectors = small_embedding[token_ids]  # 按编号查表，得到形状 (1,3,2) 的三个位置向量。
+    table_states = sequence_hidden(table_vectors, previous_hidden, recurrent_weight, hidden_bias)  # 将查表结果送入整段循环计算。
+    table_direct = np.zeros_like(table_states)  # 准备各位置输出层直接传回的状态梯度。
+    for time in range(table_states.shape[1]):  # 逐位置计算输出层反向传播。
+        table_scores = table_states[:, time, :] @ weight + bias  # 使用原来的输出权重和偏移计算分数。
+        _, _, table_score_grad = loss_and_grad(table_scores[0], int(targets[time]))  # 沿用上一课的三个标签 0、1、2。
+        _, _, table_hidden_grad = output_backward(table_states[:, time, :], weight, table_score_grad.reshape(1, -1) / table_states.shape[1])  # 平均损失的缩放只处理一次。
+        table_direct[:, time, :] = table_hidden_grad  # 保存输出层传给本状态的直接贡献。
+    table_vector_grad, _, _, _ = sequence_backward(table_states, previous_hidden, recurrent_weight, table_direct)  # 经过完整反向循环，得到各输入位置的梯度。
+    table_grad = embedding_backward(token_ids, small_embedding, table_vector_grad)  # 最后通过查表，把梯度送回共享表示表。
+    numeric_table = numerical_array_gradient(small_embedding, lambda candidate: sequence_loss(candidate[token_ids], previous_hidden, recurrent_weight, hidden_bias, weight, bias, targets))  # 每次改变一个表元素后重新查表并重算完整损失。
+    assert np.allclose(table_grad, numeric_table, rtol=1e-6, atol=1e-8), "表示表梯度不正确"  # 逐元素核对整张表，包括未使用的行。
+    assert np.allclose(table_grad[0], table_vector_grad[0, 0] + table_vector_grad[0, 2]), "重复字符贡献没有合并"  # 第零行要收到两个使用位置的梯度。
+    assert np.array_equal(table_grad[2:], np.zeros_like(table_grad[2:])), "未使用行的梯度应为零"  # 本例输出层权重独立，表示表只通过输入查表参与计算。
+    table_before = sequence_loss(small_embedding[token_ids], previous_hidden, recurrent_weight, hidden_bias, weight, bias, targets)  # 记录更新表示表之前的损失。
+    updated_embedding = small_embedding - 0.1 * table_grad  # 仅更新演示表示表，其他参数保持固定。
+    table_after = sequence_loss(updated_embedding[token_ids], previous_hidden, recurrent_weight, hidden_bias, weight, bias, targets)  # 重新查更新后的表并计算损失。
+    assert table_after < table_before, "本例表示表更新没有降低损失"  # 核对这个具体学习率下的单步结果。
+    print("真实表示表梯度：", table_grad)  # 显示通过损失反传得到的梯度。
+    print("表示表梯度最大绝对误差：", np.max(np.abs(table_grad - numeric_table)))  # 显示解析梯度与数值差分的误差。
+    print("仅更新表示表前后损失：", table_before, table_after)  # 观察向量参数更新如何影响预测损失。
+    print("表示表反向、重复编号与单步更新检查：通过")  # 所有断言通过后显示。
+```
+
+这次第一个和第三个输入都取表示表第零行。它们的输入向量相同，状态和梯度可能不同。不要复用上一课原 vectors 的梯度，因为旧第三向量与新查表结果不同；本块重新前向与反向。数值差分必须使用 candidate[token_ids] 重新查表，同一候选行的变动会同时影响它的所有使用位置。
+
+本模型输入表示表 E 与输出权重 W_o 是独立参数，没有权重绑定。未作为输入出现的表示表行梯度为零；即使该编号作为输出候选出现，也不改变此结论。这里检查的是原始损失梯度，尚未加权重衰减等其他更新规则。正确性检查后仅对演示表示表更新一次，以观察损失变化，不保证任意学习率都下降，也尚未整合完整模型训练。
+
+### 参数、效率与老师预检
+
+这一步不增加参数，只补齐已有表示表的梯度。真实词表 V=5547、H=64，共 V*H=355008 个表示表参数；float32 下参数表占 1420032 字节，稠密梯度表另占相同大小。完整模型参数仍为 719723。初始化稠密梯度表需要 O(VH) 时间与空间，按位置累加需要 O(BTH) 时间；不需要构造形状 (B,T,V) 的独热数组。此处未比较运行耗时，Python 循环实现后续可以优化。
+
+老师在内存中将本课代码与现有脚本组合运行，全部旧检查和新断言通过；另用两条序列、跨序列重复编号的固定线性目标检查整张表示表梯度，核对输入编号、参数表和上游梯度未被改写。这些为老师预检，学习者结果待提交。
+
+老师参考输出：
+
+```text
+手算表示表梯度： [[-0.3  0.5]
+ [ 0.4  0.3]
+ [ 0.   0. ]
+ [ 0.   0. ]]
+真实表示表梯度： [[ 0.03322404  0.21615905]
+ [ 0.12444289 -0.21856423]
+ [ 0.          0.        ]
+ [ 0.          0.        ]]
+表示表梯度最大绝对误差： 1.2712025876382427e-11
+仅更新表示表前后损失： 0.9821935073921791 0.9711489072847838
+表示表反向、重复编号与单步更新检查：通过
+```
+
+运行 python scripts/learn/09_softmax_gradient.py，提交新增输出。口述题：一、同一编号两次出现的梯度分别为 [0.2,-0.1] 和 [-0.5,0.6]，对应表示表行的总梯度是多少？二、如果写 grad_embedding[token] = grad_vectors[batch,time] 而不是 +=，重复编号时会发生什么？完成后复查实际脚本、补充笔记并上传 GitHub。
