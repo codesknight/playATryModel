@@ -59,8 +59,10 @@ class TinyRNN:  # 模型包含字符表示、循环隐藏状态和候选字符�
         vectors = self.embed(token_ids)  # 将 (B,L) 编号转换成 (B,L,H) 字符向量。
         batch_size, seq_length, _ = vectors.shape  # 从实际输入读取批大小和长度。
         assert batch_size > 0 and seq_length > 0, "输入批次和序列不能为空"  # 本课不处理空批次或空序列。
-        hidden = np.zeros((batch_size, self.hidden_size), dtype=np.float32)  # 为每条窗口准备独立的全零初始状态。
-        states = np.zeros((batch_size, seq_length, self.hidden_size), dtype=np.float32)  # 保存全部位置的隐藏状态。
+        # hidden = np.zeros((batch_size, self.hidden_size), dtype=np.float32)  # 为每条窗口准备独立的全零初始状态。
+        # states = np.zeros((batch_size, seq_length, self.hidden_size), dtype=np.float32)  # 保存全部位置的隐藏状态。
+        hidden = np.zeros((batch_size, self.hidden_size), dtype=vectors.dtype)  # 初始状态类型跟随查表向量，支持双精度检查。
+        states = np.zeros((batch_size, seq_length, self.hidden_size), dtype=vectors.dtype)  # 保存状态时保留相同精度，避免检查模型被截回单精度。
         for t in range(seq_length):  # 按位置顺序递推，先算前面的字，再算后面的字。
             current = vectors[:, t, :]  # 同时取出各条窗口在当前位置的字符向量。
             hidden = np.tanh(current + hidden @ self.params["recurrent"] + self.params["bias"])  # 结合当前字符和之前状态。
@@ -71,6 +73,35 @@ class TinyRNN:  # 模型包含字符表示、循环隐藏状态和候选字符�
         states = self.forward_hidden(token_ids)  # 先得到 (B,L,H) 的上下文状态。
         logits = states @ self.params["output"] + self.params["output_bias"]  # 通过共享输出层得到 (B,L,V) 分数。
         return logits  # 返回原始分数，暂不计算概率和损失。
+
+    def loss_and_grad(self, token_ids, targets):  # 计算平均损失和五组参数梯度，暂时不更新参数。
+        token_ids = np.asarray(token_ids)  # 将输入整理成数组，合法性由已有前向检查。
+        targets = np.asarray(targets)  # 保留标签原来的整数类型，交叉熵会检查范围与形状。
+        states = self.forward_hidden(token_ids)  # 保存全部时间位置的状态，供输出层和循环反向使用。
+        logits = states @ self.params["output"] + self.params["output_bias"]  # 使用同一次前向状态计算分数。
+        loss, _ = cross_entropy(logits, targets)  # 使用已有稳定交叉熵，得到所有位置的平均损失。
+        batch_size, seq_length, _ = states.shape  # 读取实际批大小和窗口长度。
+        grad_logits = softmax(logits)  # 分数梯度先从每个位置的预测概率开始。
+        flat_grad = grad_logits.reshape(-1, self.vocab_size)  # 合并批次和时间轴，方便按正确编号减一。
+        flat_grad[np.arange(targets.size), targets.reshape(-1)] -= 1.0  # 每个位置的正确类别减一，实现 p-q。
+        grad_logits /= targets.size  # 平均损失除以实际位置总数 B*T，只在这里缩放一次。
+        grads = {name: np.zeros_like(param) for name, param in self.params.items()}  # 为五组参数准备同形状同类型的梯度。
+        flat_states = states.reshape(-1, self.hidden_size)  # 将全部位置的状态整理成 (B*T,H)。
+        grads["output"] = flat_states.T @ flat_grad  # 汇总所有位置对共享输出权重的贡献。
+        grads["output_bias"] = flat_grad.sum(axis=0)  # 汇总所有位置对输出偏移的贡献。
+        direct = grad_logits @ self.params["output"].T  # 输出层直接传回各状态的梯度，形状为 (B,T,H)。
+        initial = np.zeros((batch_size, self.hidden_size), dtype=states.dtype)  # 本模型每个窗口都从全零状态开始。
+        future = np.zeros_like(initial)  # 最后一个位置之后没有更多时间步，后续贡献从零开始。
+        for time in reversed(range(seq_length)):  # 从最后一个位置向第零个位置反传。
+            previous = initial if time == 0 else states[:, time - 1, :]  # 取本步前态，第零步取初始状态。
+            total = direct[:, time, :] + future  # 合并当前输出与后续步骤传来的梯度。
+            activation_grad = total * (1.0 - states[:, time, :] ** 2)  # 通过本步 tanh，得到激活前梯度。
+            grads["recurrent"] += previous.T @ activation_grad  # 累加本步对共享循环权重的贡献。
+            grads["bias"] += activation_grad.sum(axis=0)  # 累加本步对隐藏偏移的贡献。
+            for batch in range(batch_size):  # 遍历本时间步各条序列的字符编号。
+                grads["embedding"][token_ids[batch, time]] += activation_grad[batch]  # 将输入向量梯度累加到对应字符行。
+            future = activation_grad @ self.params["recurrent"].T  # 用本步算出的梯度替换 future，继续传给前态。
+        return loss, grads  # 返回损失和五组完整梯度，调用者之后再统一更新参数。
 
 def main():  # 定义演示入口，被其他文件导入时不自动执行。
     root = Path(__file__).resolve().parents[2]  # 找到项目根目录。
@@ -181,6 +212,41 @@ def main():  # 定义演示入口，被其他文件导入时不自动执行。
     print("概率为 0.5 的正确答案损失：", known_loss)  # 应约为 0.693147。
     print("极端低概率目标的损失：", extreme_loss)  # 应为 1000。
     print("目标索引、平均方式和稳定损失检查：通过")  # 所有断言通过后显示。
+
+    full_loss, full_grads = model.loss_and_grad(toy_x, toy_y)  # 在真实词表大小的模型上计算完整梯度。
+    assert np.isclose(full_loss, loss), "整合后的损失与原前向不一致"  # 对同一输入和标签，损失定义应保持一致。
+    for name, param in model.params.items():  # 检查真实模型五组梯度的形状、类型和数值。
+        assert full_grads[name].shape == param.shape and full_grads[name].dtype == param.dtype and np.isfinite(full_grads[name]).all(), name + "梯度异常"  # 每个参数都应有同形状的有限梯度。
+    print("完整模型梯度形状：", {name: grad.shape for name, grad in full_grads.items()})  # 显示实际五组梯度的形状。
+
+    check_model = TinyRNN(vocab_size=4, hidden_size=2, seed=42)  # 创建只有 26 个参数的小模型，避免逐个差分检查大模型。
+    check_model.params = {name: param.astype(np.float64) for name, param in check_model.params.items()}  # 只把检查模型改为双精度，正式模型仍用 float32。
+    check_x = np.array([[0, 1, 0], [1, 2, 1]], dtype=np.int64)  # 两条序列含重复字符，也包含跨序列重复编号。
+    check_y = np.array([[1, 0, 2], [2, 1, 0]], dtype=np.int64)  # 每个输入位置指定一个下一字目标编号。
+    saved_params = {name: param.copy() for name, param in check_model.params.items()}  # 保存参数，检查计算梯度不会偷偷更新模型。
+    before, check_grads = check_model.loss_and_grad(check_x, check_y)  # 一次解析反向得到全部参数梯度。
+    assert all(np.array_equal(param, saved_params[name]) for name, param in check_model.params.items()), "求梯度时修改了参数"  # 更新必须发生在完整反向结束之后。
+    epsilon = 1e-5  # 双精度中心差分使用的小试探距离。
+    for name, param in check_model.params.items():  # 逐组核对五种参数的梯度。
+        numeric = np.zeros_like(param)  # 为当前参数组准备数值梯度。
+        for index in np.ndindex(param.shape):  # 逐个检查当前参数组中的标量。
+            original = float(param[index])  # 记住本元素原值，试探完必须恢复。
+            param[index] = original + epsilon  # 向正方向试探当前元素。
+            plus, _ = cross_entropy(check_model.forward(check_x), check_y)  # 重新前向，得到正向试探损失。
+            param[index] = original - epsilon  # 从原值向负方向试探同一元素。
+            minus, _ = cross_entropy(check_model.forward(check_x), check_y)  # 重新前向，得到负向试探损失。
+            param[index] = original  # 恢复原参数，避免影响其他元素的检查。
+            numeric[index] = (plus - minus) / (2.0 * epsilon)  # 用中心差分估计该元素的偏导数。
+        assert np.allclose(check_grads[name], numeric, rtol=1e-5, atol=1e-8), name + "整体梯度检查失败"  # 对比当前组的所有解析与数值梯度。
+        print(name + "整体梯度最大误差：", np.max(np.abs(check_grads[name] - numeric)))  # 输出当前参数组的最大绝对误差。
+    assert np.array_equal(check_grads["embedding"][3], np.zeros(2)), "未使用的输入表示行梯度应为零"  # 输出权重与表示表独立，未作为输入出现的行不受损失影响。
+
+    for name in check_model.params:  # 使用同一次完整反向得到的梯度，统一更新全部参数组。
+        check_model.params[name] -= 0.1 * check_grads[name]  # 每个参数沿负梯度方向走一个小步。
+    after, _ = cross_entropy(check_model.forward(check_x), check_y)  # 所有参数更新完后再重新计算损失。
+    assert after < before, "本例完整参数更新没有降低损失"  # 只验证本例与本学习率下的结果。
+    print("完整模型单步更新前后损失：", before, after)  # 显示完整模型一次更新带来的变化。
+    print("完整梯度与统一单步更新检查：通过")  # 五组差分和单步更新都通过后显示。
 
 
 if __name__ == "__main__":  # 只有直接运行本文件时才启动演示。
