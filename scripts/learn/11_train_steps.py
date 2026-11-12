@@ -1,6 +1,22 @@
 from importlib import import_module  # 按字符串导入已有数据与模型模块。
 from itertools import islice  # 从批次生成器中只取指定数量的批次。
 import numpy as np  # 检查批次数组与训练损失。
+import json  # 导入 JSON 工具，读取独立的验证章节文件。
+
+def evaluate(model, batches, network):  # 固定参数，只前向计算给定批次的平均损失。
+    saved_params = {name: param.copy() for name, param in model.params.items()}  # 保存评估前的参数，用来检查评估没有更新模型。
+    loss_sum = 0.0  # 累计所有预测位置的损失总和。
+    position_count = 0  # 累计实际参与评估的预测位置数。
+    for batch in batches:  # 依次评估固定子集中的各个批次。
+        x, y = batch["x"], batch["y"]  # 取验证输入与正确的下一字编号。
+        loss, _ = network.cross_entropy(model.forward(x), y)  # 只做前向和损失计算，不调用反向传播。
+        assert np.isfinite(loss), "验证损失不是有限数"  # 出现无效结果时停止检查。
+        loss_sum += loss * y.size  # 按本批实际位置数加权，不能把大小不同的批次简单等权平均。
+        position_count += y.size  # 累计包括小尾批在内的实际位置数。
+    assert position_count > 0, "没有可评估的位置"  # 防止空子集导致除以零。
+    assert all(np.array_equal(param, saved_params[name]) for name, param in model.params.items()), "评估修改了参数"  # 参数必须与评估之前完全一致。
+    return loss_sum / position_count, position_count  # 返回固定参数下的加权平均损失和评估规模。
+
 
 
 def main():  # 定义连续训练少量批次的演示入口。
@@ -12,6 +28,19 @@ def main():  # 定义连续训练少量批次的演示入口。
     learning_rate = 0.1  # 每一步使用相同的普通梯度下降学习率。
     max_norm = 1.0  # 每一步都对完整梯度使用相同的全局范数上限。
     model = network.TinyRNN(len(data.tokens), hidden_size=64, seed=42)  # 只在循环外创建一次模型，之后持续更新同一份参数。
+
+    validation_path = data.ROOT / "data" / "splits" / "validation.jsonl"  # 读取此前按完整章节划分的验证集。
+    with validation_path.open(encoding="utf-8") as file:  # 以 UTF-8 打开验证章节文件。
+        validation_records = [json.loads(line) for line in file]  # 逐行还原验证章节，保留原有顺序。
+    assert not ({record["id"] for record in data.train_records} & {record["id"] for record in validation_records}), "训练与验证章节标识重叠"  # 确认评估章节没有进入训练集。
+    validation_windows = data.iter_windows(validation_records, seq_length, seq_length)  # 继续使用训练词表编码验证文字，未见字符映射到已有未知编号。
+    validation_batches = list(islice(data.iter_batches(validation_windows, batch_size), 3))  # 固定保存前三个验证批次，前后评估复用相同数据。
+    assert len(validation_batches) == 3, "本课验证数据不足三批"  # 当前数据应能提供三批窗口。
+    validation_before, validation_positions = evaluate(model, validation_batches, network)  # 在任何训练更新之前评估初始模型。
+    print("固定验证子集批次数：", len(validation_batches))  # 应为 3，不能称为整个验证集。
+    print("固定验证子集预测位置数：", validation_positions)  # 当前三批共有 1536 个位置。
+    print("训练前固定验证子集损失：", validation_before)  # 记录未训练模型在固定验证子集上的损失。
+
     windows = data.iter_windows(data.train_records, seq_length, seq_length)  # 只创建一次窗口生成器，使窗口位置持续向后移动。
     batches = data.iter_batches(windows, batch_size)  # 把这一个窗口流打包为连续批次。
     completed_steps = 0  # 累计真正完成的参数更新次数。
@@ -46,6 +75,11 @@ def main():  # 定义连续训练少量批次的演示入口。
     print("本次是否遍历完整训练集：", seen_windows == windows_per_epoch)  # 本课只取五批，因此应为 False。
     print("同一模型连续多批更新检查：通过")  # 所有本课断言通过后显示。
 
+    validation_after, after_positions = evaluate(model, validation_batches, network)  # 五步训练结束后，用同一子集评估最终参数。
+    assert after_positions == validation_positions, "前后评估位置数不一致"  # 前后比较必须使用相同的数据范围。
+    print("训练后固定验证子集损失：", validation_after)  # 不要求它一定低于训练前，验证结果需要如实记录。
+    print("固定验证子集损失变化：", validation_after - validation_before)  # 负数表示该子集损失降低，正数表示升高。
+    print("验证只前向、参数不变与固定子集检查：通过")  # 正确性检查通过不代表验证效果一定改善。
 
 if __name__ == "__main__":  # 只有直接运行文件时才开始训练演示。
     main()  # 创建一次模型并连续执行五步更新。

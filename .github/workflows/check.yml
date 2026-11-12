@@ -36,5 +36,5 @@ jobs: # 定义需要执行的任务。
           python scripts/learn/08_gradient_demo.py # 检查数值梯度和单参数梯度下降的更新方向。
           python scripts/learn/09_softmax_gradient.py # 检查分数、输出层、循环单步与整段反向、表示表重复编号累加。
           python scripts/learn/10_train_one_batch.py # 读取真实训练批次，检查完整反向、全局裁剪和一次参数更新。
-          python scripts/learn/11_train_steps.py # 检查同一模型连续五批更新、训练量统计与完整一轮步数。
+          python scripts/learn/11_train_steps.py # 检查连续五批更新、训练量统计及固定验证子集只前向、参数不变。
           git diff --exit-code -- data/corpus data/corpus_processed data/chapters data/splits data/vocab # 检查原文未变，且所有已完成的数据产物可复现。
