@@ -2953,3 +2953,103 @@ step=5 loss=8.615304 grad_norm=0.471498 scale=1.000000 来源=三国演义:010 �
 学习者回答“因为是在做验证，所以不需要更新参数”，正确。评估保持当前参数固定，只前向计算预测分数与损失并汇总；本课使用 forward 加 cross_entropy，不额外计算反向梯度。训练批次才用于完整反向、裁剪与参数更新。
 
 第二十五课实操检查、固定子集控制变量问答和验证不更新参数复核均通过。保留之前的接口澄清：loss_and_grad 单独调用不会自动更新，但会多算评估不需要的梯度。当前仅验证固定前三批，未扩大为完整验证集；本次只补记回答，未修改练习代码。下一课可学习保存五组参数和模型配置，并重新加载核对预测与损失，使训练成果在退出程序后仍可使用；该功能尚未实现。
+
+## 第二十六课：保存模型权重与词表，重新加载核对结果
+
+状态：老师已在临时目录预检以下修改，待学习者亲自修改 scripts/learn/11_train_steps.py 并运行。未代写学习者代码，未在仓库中生成本课权重。本课实际运行后才会保存 model/learn_rnn_step005.npz，不覆盖原 model/tiny_rnn.npz 示例。
+
+### 需要保存什么
+
+训练结果主要是五组浮点参数，重新创建随机模型并不能恢复训练成果。还需保留隐藏维度、模型结构格式、词表编号顺序与已完成训练步数。本课将整个已有 vocab 字典一起保存，包括 tokens、未知字符配置和训练数据来源 SHA-256；词表顺序与权重必须配套，否则同一编号会被解释成其他字符。
+
+保存采用 np.savez_compressed：文件包含五组有名字的 NumPy 数组，加一个 JSON 字符串数组 metadata。加载时 allow_pickle=False，不保存或加载整个 Python 模型对象。文件仍需搭配本项目 TinyRNN 实现，它不是独立可执行程序，也不是其他示例脚本权重格式的自动兼容文件。
+
+### 第一块：顶部增加路径导入
+
+```python
+from pathlib import Path  # 导入路径工具，创建权重目录并检查文件大小。
+```
+
+保留已有 json、np 和其他导入。
+
+### 第二块：在 main 前顶格添加保存与加载函数
+
+```python
+def save_checkpoint(path, model, vocab, completed_steps):  # 将模型参数、词表、结构配置和已完成步数保存到一个文件。
+    path = Path(path)  # 把传入路径统一转换为 Path 对象。
+    assert path.suffix == ".npz", "本课权重文件使用 .npz 后缀"  # 避免保存工具自动补后缀导致路径不一致。
+    assert len(vocab["tokens"]) == model.vocab_size, "词表与模型大小不一致"  # 每个输入输出编号都必须对应保存的词表。
+    assert isinstance(completed_steps, int) and completed_steps >= 0, "训练步数不合法"  # 已完成更新次数必须是非负整数。
+    assert all(param.dtype == np.float32 and np.isfinite(param).all() for param in model.params.values()), "本课只保存有限的 float32 参数"  # 与当前正式模型的类型保持一致。
+    metadata = {"format": "tiny_rnn_char_v1", "hidden_size": model.hidden_size, "completed_steps": completed_steps, "vocab": vocab}  # 保存重建模型和解释编号所需的信息。
+    metadata_text = json.dumps(metadata, ensure_ascii=False)  # 将配置转成普通 JSON 字符串，保留中文字符。
+    path.parent.mkdir(parents=True, exist_ok=True)  # 确保权重文件的父目录存在。
+    np.savez_compressed(path, metadata=np.array(metadata_text), **model.params)  # 将字符串配置和五组参数压缩到同一个 npz 文件。
+
+
+def load_checkpoint(path, network):  # 从权重文件创建一个带已训练参数的新模型。
+    with np.load(path, allow_pickle=False) as archive:  # 只读取数组和字符串，不依赖 Python 对象反序列化。
+        metadata = json.loads(str(archive["metadata"].item()))  # 将保存的单个字符串数组还原为配置字典。
+        assert metadata["format"] == "tiny_rnn_char_v1", "权重格式与本模型不匹配"  # 不把其他结构的权重当成本课模型。
+        vocab = metadata["vocab"]  # 使用权重文件内保存的词表，保留原来的编号顺序。
+        model = network.TinyRNN(len(vocab["tokens"]), hidden_size=metadata["hidden_size"], seed=0)  # 按保存的维度创建模型，随机初值稍后全部被覆盖。
+        for name, expected in model.params.items():  # 逐一加载模型必须具有的五组参数。
+            value = archive[name]  # 取出当前参数数组。
+            assert value.shape == expected.shape and value.dtype == expected.dtype and np.isfinite(value).all(), name + "权重形状、类型或数值不正确"  # 防止错误数组进入模型。
+            model.params[name] = value.copy()  # 复制已训练参数，文件关闭后新模型仍可独立使用。
+    return model, vocab, metadata["completed_steps"]  # 返回新模型、对应词表和保存时的训练步数。
+```
+
+metadata 中 format 标明本课字符 RNN 结构版本；hidden_size 配置隐藏维；词表长度确定 V；每个参数按名称检查形状、float32 类型和有限数值。加载时先创建同结构模型，再完整替换五组随机参数，所以构造时 seed=0 不决定加载后的训练结果。value.copy() 保证数组由模型独立持有。加载过程不会再次训练。
+
+`model.params` 将键映射到数组，`**model.params` 在函数调用中把字典展开为同名关键字参数，即 embedding=...、recurrent=...、bias=...、output=...、output_bias=...。metadata 是独立的字符串数组；JSON 能保存普通整数、列表和字典，权重数组则由 NumPy 自己保存，不转成庞大的 JSON 数值列表。
+
+本课只支持正式 float32 模型文件。当前普通梯度下降没有额外动量状态，但仅保存权重与步数仍不等于精确恢复整个训练过程：文件未保存批次生成器位置、未来随机打乱状态等；本课不实现断点续训。
+
+### 第三块：在原 main 末尾追加保存与重载检查
+
+放在上一课 print("验证只前向、参数不变与固定子集检查：通过") 后面，保持四格缩进，文件末尾入口判断仍顶格。沿用现有 model、data、completed_steps、validation_batches、validation_after、after_positions。
+
+```python
+    checkpoint_path = data.ROOT / "model" / "learn_rnn_step005.npz"  # 将本课五步训练成果保存在独立文件，不覆盖原示例权重。
+    save_checkpoint(checkpoint_path, model, data.vocab, completed_steps)  # 保存训练后的五组参数与完整词表配置。
+    loaded_model, loaded_vocab, loaded_steps = load_checkpoint(checkpoint_path, network)  # 从磁盘加载成一个新的模型对象。
+    assert loaded_model is not model and loaded_vocab == data.vocab and loaded_steps == completed_steps, "加载配置或训练步数不一致"  # 新对象应保留原词表和步数。
+    assert all(np.array_equal(param, loaded_model.params[name]) for name, param in model.params.items()), "加载后的参数发生变化"  # 无损保存后五组参数应逐元素完全一致。
+    probe_x = validation_batches[0]["x"]  # 固定同一个验证输入，比较加载前后的预测分数。
+    logits_before = model.forward(probe_x)  # 用内存中的训练模型计算分数。
+    logits_loaded = loaded_model.forward(probe_x)  # 用磁盘重新加载的模型计算相同输入的分数。
+    assert np.allclose(logits_before, logits_loaded, rtol=1e-5, atol=1e-6), "加载前后预测不一致"  # 在浮点容差内检查预测计算一致。
+    loaded_loss, loaded_positions = evaluate(loaded_model, validation_batches, network)  # 重新评估加载模型，不进行训练。
+    assert loaded_positions == after_positions and np.isclose(loaded_loss, validation_after, rtol=1e-6, atol=1e-7), "加载前后验证损失不一致"  # 使用相同固定子集比较损失。
+    assert checkpoint_path.stat().st_size < 1_000_000_000, "权重文件超过本项目的 1 GB 上限"  # 检查实际保存文件的字节数。
+    print("权重保存路径：", checkpoint_path)  # 显示可供以后独立加载的文件位置。
+    print("权重文件字节数：", checkpoint_path.stat().st_size)  # 文件包含压缩参数与配置，大小不等于裸参数字节数。
+    print("加载后训练步数：", loaded_steps)  # 应为 5，这只是保存的记录，不会自动执行继续训练。
+    print("加载前后验证损失：", validation_after, loaded_loss)  # 两个值应在容差内一致。
+    print("模型保存、重载与预测一致性检查：通过")  # 配置、参数、预测与损失检查全部通过后显示。
+```
+
+npz 对数组是无损保存，参数必须逐元素完全一致；同输入的浮点预测与损失按容差核对，不能只验证“文件存在”就认为加载正确。重新加载的模型是新对象，参数来源是文件，不靠旧对象的引用。
+
+### 磁盘大小、仓库管理与边界
+
+裸参数数据区为 719723*4=2878892 字节，npz 内还有词表与配置及压缩容器开销，压缩后大小不等于裸参数大小。本课文件远小于用户要求的 1 GB，代码也检查实际文件字节数。加载后的第二个模型需要另一份参数内存，比较预测也会临时分配分数数组，不把文件大小当作运行内存峰值。
+
+保存函数会将相同路径替换为本次五步训练结果，旧示例权重不受影响；目前脚本每次重新运行仍从初始模型训练五步再保存，尚未实现从上次文件接着训练。接下来的文字生成脚本可以直接加载该文件。
+
+当前 .gitignore 默认忽略 model 内的新训练产物。为了遵守每课完成后完整上传的约定，待本课实操完成后，将这个约数 MB 的学习里程碑权重作为明确例外连同代码笔记一起上传，并记录大小；不把它与未来大量实验检查点混为一谈。本次备课不修改忽略规则或上传尚未生成的权重。
+
+### 老师预检与待提交
+
+老师在临时目录运行以上完整修改，原训练与验证断言、五组参数无损往返、同输入预测与固定验证损失检查通过；另外用独立 Python 子进程加载文件并前向，确认可脱离旧模型对象使用，并检查错误结构格式或错误参数形状会被拒绝。未在仓库保存老师预检权重。参考末尾输出（路径按实际实操位置显示）：
+
+```text
+权重保存路径： D:\projects\playatry\model\learn_rnn_step005.npz
+权重文件字节数： 2686396
+加载后训练步数： 5
+加载前后验证损失： 8.628433227539062 8.628433227539062
+模型保存、重载与预测一致性检查：通过
+```
+
+运行 python scripts/learn/11_train_steps.py，提交末尾保存与重载输出。回答：一、为什么除了五组权重，还要保存词表的编号顺序？二、加载模型时构造函数使用 seed=0，而训练初始 seed=42，为什么完整覆盖五组参数后预测仍应相同？完成后复查脚本与权重，补充笔记、仓库例外与 CI 保存重载说明，并完整同步 GitHub。
