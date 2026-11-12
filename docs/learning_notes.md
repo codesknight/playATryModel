@@ -1680,3 +1680,129 @@ if __name__ == "__main__":  # 直接运行本文件时启动演示。
 - GitHub 自动检查增加 09_softmax_gradient.py，持续核对该教学公式和数值差分。
 
 本课代码与关于梯度来源、标签选择、方向以及中心差分的补充笔记一并提交。下一课计划用链式法则，把 logits 梯度传给输出权重、输出偏移和隐藏状态，明确它们各自的形状与跨位置累加方式。
+
+## 第 16 课：输出层反向传播
+
+状态：代码实操复查通过，学习者已在 scripts/learn/09_softmax_gradient.py 完成输出层反向和三组数值检查。口述题学习者表示不知道，形状和梯度累加原理补充见本课末尾。此课未改完整 RNN、未训练小说语料、未保存权重。
+
+### 从分数梯度到参数梯度
+
+输出层 Z=AW+b，其中 A 为隐藏状态，形状 (N,H)，W 为 (H,V)，b 为 (V,)。G=dL/dZ 与 Z 同形状 (N,V)。N 可以表示批次和位置展平后的数量，当前演示 N=1、H=2、V=3。
+
+单个分数 Z[n,j]=sum_i A[n,i]W[i,j]+b[j]。链式法则要求上游损失变化速率乘本步局部变化速率，并对所有影响路径求和：
+
+- dL/dW[i,j]=sum_n A[n,i]G[n,j]，矩阵写法 grad_weight=A.T@G。
+- dL/db[j]=sum_n G[n,j]，代码 grad_bias=G.sum(axis=0)。共享偏移在每一行都用到，所以贡献相加，不再重复平均。
+- dL/dA[n,i]=sum_j G[n,j]W[i,j]，矩阵写法 grad_hidden=G@W.T。
+
+| 梯度 | 计算形状 | 返回形状 |
+| --- | --- | --- |
+| 权重梯度 | (H,N)@(N,V) | (H,V)，与 W 一致 |
+| 偏移梯度 | (N,V) 沿 N 求和 | (V,)，与 b 一致 |
+| 隐藏状态梯度 | (N,V)@(V,H) | (N,H)，与 A 一致 |
+
+若 G 已由平均交叉熵得到，包含 1/N，则本层不要再除以 N。当前一位置 loss_and_grad 返回 p-q，无额外平均。
+
+### 第一块：在 main 之前增加输出层的损失和反向函数
+
+下列函数均在类外顶格。本文件本来就是独立教学脚本，保留已有 loss_and_grad 与 numerical_gradient：
+
+```python
+def output_loss(hidden, weight, bias, target):  # 计算单个位置经过输出层后的交叉熵。
+    logits = hidden @ weight + bias  # 从 (1,H) 状态计算 (1,V) 分数。
+    assert logits.shape[0] == 1, "本演示损失只处理一个位置"  # 复用已有单位置损失函数。
+    loss, _, _ = loss_and_grad(logits[0], target)  # 取出这一行分数，计算标量损失。
+    return loss  # 返回数值差分需要的损失值。
+
+def output_backward(hidden, weight, grad_logits):  # 接收上游分数梯度，计算输出层的三组梯度。
+    assert hidden.ndim == weight.ndim == grad_logits.ndim == 2, "需要二维状态、权重和分数梯度"  # 统一使用矩阵形状。
+    assert hidden.shape[0] == grad_logits.shape[0] and hidden.shape[1] == weight.shape[0] and grad_logits.shape[1] == weight.shape[1], "反向传播形状不匹配"  # 核对 N、H、V 的对应关系。
+    grad_weight = hidden.T @ grad_logits  # 汇总各位置对共享输出权重的贡献，得到 (H,V)。
+    grad_bias = grad_logits.sum(axis=0)  # 汇总各位置对共享输出偏移的贡献，得到 (V,)。
+    grad_hidden = grad_logits @ weight.T  # 将分数梯度沿输出权重传回隐藏状态，得到 (N,H)。
+    return grad_weight, grad_bias, grad_hidden  # 参数梯度用于更新，状态梯度留给前面的层继续反传。
+```
+
+### 第二块：通用小数组数值检查
+
+同样放在 main 之前顶格添加：
+
+```python
+def numerical_array_gradient(value, evaluate, epsilon=1e-5):  # 用给定的损失计算方法，逐元素检查一个小数组的梯度。
+    assert epsilon > 0, "试探距离必须大于零"  # 防止无效差分距离。
+    value = np.asarray(value, dtype=np.float64)  # 使用双精度进行微小扰动。
+    gradient = np.zeros_like(value)  # 梯度形状与被检查的数组相同。
+    for index in np.ndindex(value.shape):  # 依次取得 (行,列) 等下标，兼容向量和矩阵。
+        plus = value.copy()  # 正向试探使用独立副本。
+        minus = value.copy()  # 反向试探也使用独立副本。
+        plus[index] += epsilon  # 每次只增加一个元素。
+        minus[index] -= epsilon  # 每次只减少同一个元素。
+        gradient[index] = (evaluate(plus) - evaluate(minus)) / (2 * epsilon)  # 调用传入的方法计算两侧损失。
+    return gradient  # 返回数值近似，不改动原数组。
+```
+
+evaluate 是一个函数参数：收到候选数组后返回损失。下面用 lambda 指定候选数组要替换 W、b 或 hidden，其余保持固定。np.ndindex 对 (2,3) 依次给出 (0,0)、(0,1)、(0,2)、(1,0) 等位置，不是将所有元素一起扰动。
+
+### 第三块：在原 main 末尾添加
+
+整体缩进 4 个空格，保留原有全部检查：
+
+```python
+    hidden = np.array([[0.2, -0.1]], dtype=np.float64)  # 一个位置、两个隐藏分量，形状为 (1,2)。
+    weight = np.array([[1.0, 0.0, -1.0], [0.5, 2.0, 1.0]], dtype=np.float64)  # 三个候选的输出权重，形状为 (2,3)。
+    bias = np.array([0.0, 0.1, 0.0], dtype=np.float64)  # 每个候选一个偏移。
+    target = 0  # 正确答案仍为第 0 项。
+    scores = hidden @ weight + bias  # 得到 [0.15,-0.1,-0.3]，但保留 (1,3) 形状。
+    current_loss, _, score_gradient = loss_and_grad(scores[0], target)  # 先取得对三个分数的梯度。
+    grad_weight, grad_bias, grad_hidden = output_backward(hidden, weight, score_gradient.reshape(1, -1))  # 恢复一行形状并计算三组梯度。
+    numeric_weight = numerical_array_gradient(weight, lambda candidate: output_loss(hidden, candidate, bias, target))  # 只试探输出权重。
+    numeric_bias = numerical_array_gradient(bias, lambda candidate: output_loss(hidden, weight, candidate, target))  # 只试探输出偏移。
+    numeric_hidden = numerical_array_gradient(hidden, lambda candidate: output_loss(candidate, weight, bias, target))  # 只试探隐藏状态，不将其当作模型参数。
+    assert np.allclose(grad_weight, numeric_weight, rtol=1e-6, atol=1e-8), "输出权重梯度不正确"  # 核对权重每个元素。
+    assert np.allclose(grad_bias, numeric_bias, rtol=1e-6, atol=1e-8), "输出偏移梯度不正确"  # 核对每个偏移。
+    assert np.allclose(grad_hidden, numeric_hidden, rtol=1e-6, atol=1e-8), "隐藏状态梯度不正确"  # 核对传给前层的梯度。
+    updated_weight = weight - 0.1 * grad_weight  # 沿负梯度更新演示输出层权重。
+    updated_bias = bias - 0.1 * grad_bias  # 沿负梯度更新演示输出层偏移。
+    after_output_update = output_loss(hidden, updated_weight, updated_bias, target)  # 固定隐藏状态，重新前向计算。
+    assert after_output_update < current_loss, "本例输出层更新没有降低损失"  # 验证这个具体小步的效果。
+    print("输出权重梯度：", grad_weight)  # 应为 (2,3)，每个权重一个偏导。
+    print("输出偏移梯度：", grad_bias)  # 应为 (3,)。
+    print("隐藏状态梯度：", grad_hidden)  # 应为 (1,2)，传给循环层的接口。
+    print("三组梯度最大误差：", np.max(np.abs(grad_weight - numeric_weight)), np.max(np.abs(grad_bias - numeric_bias)), np.max(np.abs(grad_hidden - numeric_hidden)))  # 显示各组数值检查误差。
+    print("输出层更新前后损失：", current_loss, after_output_update)  # 这次更新的是产生分数的参数，不直接改 scores。
+    print("输出层反向传播与数值检查：通过")  # 全部断言通过后显示。
+```
+
+### 形状与数值解释
+
+本例分数梯度约 [-0.58616619,0.32229410,0.26387209]，W[0,0] 的梯度是 hidden[0,0]×G[0,0]=0.2×(-0.58616619)≈-0.11723324；W[1,0] 的梯度则是 (-0.1)×(-0.58616619)≈0.05861662。即使同属于正确候选一列，权重更新方向也可能不同，因为隐藏分量有不同符号。
+
+grad_hidden 用于继续沿计算链向前层传播，不直接执行 hidden-=学习率×grad_hidden；真实隐藏状态由之前的模型参数算出，不是需要持久保存优化的独立参数。此处只更新小输出层 W、b，已有 RNN 不受影响。
+
+完整 RNN 的 states=(B,L,H) 可先展平为 (B×L,H)，分数梯度同序展平为 (B×L,V) 后应用相同公式，再将状态梯度恢复为 (B,L,H)。形状不能凭转置死记，应由每个共享参数的影响路径和求和关系推导。
+
+待提交：修改后的脚本、三组梯度与误差、更新前后损失。口述题：hidden=(4,2)、weight=(2,3)、grad_logits=(4,3) 时，三组梯度分别什么形状？为什么偏移梯度要沿第 0 维求和，而不是再除以 4？实操通过后更新笔记和 CI 并完整上传 GitHub。
+
+### 第十六课实操复查：通过
+
+学习者提交结果与参考一致：权重梯度 (2,3)、偏移梯度 (3,)、隐藏状态梯度 (1,2)，三组中心差分最大绝对差约为 8.12e-12、7.66e-12、6.15e-12；小输出层更新后损失从 0.88229080 降至 0.82904450。
+
+老师检查实际代码并重新运行；另行构造四行状态 (4,2)、权重 (2,3)、偏移 (3,)，以四行平均交叉熵为目标核对三个数组的全部元素，解析与数值梯度均一致。测试确认原输入、权重、偏移及上游梯度未被反向函数或数值试探改写。本次未代改学习者实现，GitHub 自动检查继续执行当前教学脚本的全部断言。
+
+### 口述题补充：每个原始元素对应一个偏导
+
+学习者表示不知道。梯度回答“这个具体元素改变一点，损失怎样变”，所以每个需要求导的元素对应一个梯度数。weight 为 (2,3) 有 6 个元素，grad_weight 也为 (2,3)；bias 为 (3,) 有 3 个元素，grad_bias 为 (3,)；hidden 为 (4,2) 有 8 个元素，grad_hidden 为 (4,2)。梯度保持对应对象的形状，不把所有对象的维度拼接起来。
+
+矩阵公式逐步核对：hidden.T 为 (2,4)，乘 grad_logits=(4,3) 得 (2,3)；grad_logits 沿 axis=0 将四行贡献合并，得 (3,)；grad_logits=(4,3) 乘 weight.T=(3,2) 得 (4,2)。
+
+### 为什么偏移梯度求和，为什么不能重复平均
+
+同一个 bias[j] 被加到每行的第 j 个分数上，不是每行拥有一套独立偏移。若 bias[0] 增加一点，四行第 0 项分数都会增加同样一点，因此损失通过四条路径变化，总贡献必须相加。axis=0 对应行维度，所以 grad_logits.sum(axis=0) 将四行合成各候选偏移的三个梯度。
+
+损失若已定义为 L=(l0+l1+l2+l3)/4，那么上游 G[n,j]=dL/dZ[n,j] 已等于该位置未平均梯度除以 4。求共享偏移梯度时只需合并这些已经缩放的贡献，不再除 4。
+
+例如某个偏移的四个未平均贡献为 [0.4,0.8,-0.2,0.6]，传入本层的 G 对应一列已为 [0.1,0.2,-0.05,0.15]。求和得到 0.4，等于原贡献总和 1.6/4；若再除 4 则变为 0.1，相当于把整条损失错误地又缩小四倍。这里的 sum 是合并共享参数的多条作用路径，不是在定义新的损失平均。
+
+如果上游传入的是总损失梯度而不是平均损失梯度，那也是对那个已定义目标求和，不能在中间层擅自改变目标；应从整体损失定义统一决定归一化。
+
+当前记录为实操通过、概念已补充讲解，不提前视为独立掌握。先做单偏移两行贡献相加的复习，再进入循环层 tanh 的局部梯度和跨时间反传。
