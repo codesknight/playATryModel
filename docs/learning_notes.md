@@ -2460,3 +2460,111 @@ output_bias整体梯度最大误差： 1.301336816084131e-11
 学习者回答“反向没结束时应该还是2”，正确。本次前向使用 w=2，完整反向也必须保持这份参数不变；全部时间步的贡献收集完，才用完整梯度更新参数。下一次前向与反向再使用更新后的参数。
 
 第二十一课实际脚本和五组参数的整体差分检查通过，平均损失缩放题与参数保持不变题均回答正确。本次仅补记理解确认，未修改练习代码。下一阶段可学习梯度范数与梯度裁剪，为完整训练循环做准备；尚未实施新的课程代码或正式语料训练。
+
+## 第二十二课：梯度全局范数与梯度裁剪
+
+状态：老师已在内存中预检以下代码，待学习者在 scripts/learn/07_tiny_rnn.py 亲自输入、运行和回答。未替学习者修改脚本。本课用小模型演示，不启动语料训练，不宣称已经在本项目训练中观察到梯度爆炸。
+
+### 梯度有方向，也有长度
+
+把五组参数的所有梯度元素按任意固定顺序排成一个长向量 g，全局 L2 范数 ||g||₂=sqrt(Σ_i g_i²)。它是全部参数梯度的总长度，不是梯度元素之和、最大元素、平均值，也不是每组各算各的阈值。例如 [3,4] 的长度 sqrt(9+16)=5；[3,0,4] 长度同样为 5。
+
+阈值 C>0，缩放比例 s=1（||g||≤C），或 s=C/||g||（||g||>C），最终裁剪梯度 g_clip=s*g。所有参数组使用同一个正比例，保留整体方向与各分量的相对比例。没有超过阈值时不改变，不把小梯度放大；零梯度保持零。
+
+例如原梯度 [3,4]、C=2.5，s=0.5，裁剪后 [1.5,2]，长度为 2.5。逐元素直接限制在 [-2.5,2.5] 则会得到 [2.5,2.5]，不是本课的全局范数裁剪，方向也不同。
+
+普通梯度下降 Δθ=-η*g_clip，所以 ||Δθ||₂=η*||g_clip||₂≤η*C。例如 η=0.1、C=0.1，更新长度最多 0.01。这一直接关系针对当前普通梯度下降；以后若使用动量或 Adam，需要按其更新公式重新分析。裁剪限制过大的更新，不保证每次损失都下降，也不能修复梯度消失。RNN 多步反向含连续矩阵乘法，梯度可能衰减或放大，裁剪是控制过大梯度的一种手段。
+
+正确位置：完整前向→完整反向并汇总→对全部参数的平均损失梯度做一次全局裁剪→统一更新参数。不要在各时间步汇总完成前分别裁剪，也不要改写 loss_and_grad 来返回裁剪结果后再拿它与损失数值导数对比；数值检查验证的应是原始梯度。
+
+### 第一块：在 TinyRNN 类之前顶格添加两个函数
+
+```python
+def gradient_norm(grads):  # 把全部参数梯度看作一个长向量，计算它的总长度。
+    assert grads, "梯度字典不能为空"  # 至少需要一组梯度才能检查。
+    squared_sum = 0.0  # 从零开始累加所有梯度分量的平方。
+    for grad in grads.values():  # 遍历五组参数各自的梯度数组。
+        assert np.issubdtype(grad.dtype, np.floating) and np.isfinite(grad).all(), "梯度必须是有限浮点数"  # 拒绝异常梯度，避免把错误带入更新。
+        squared_sum += float(np.sum(grad.astype(np.float64) ** 2))  # 用双精度计算平方和，降低单精度累计误差。
+    assert np.isfinite(squared_sum), "梯度平方和超出可计算范围"  # 平方和必须有限才能计算缩放比例。
+    return float(np.sqrt(squared_sum))  # 对总平方和开根号，得到全局 L2 范数。
+```
+
+```python
+def clip_gradients(grads, max_norm):  # 超过阈值时，将全部梯度按同一个比例缩小。
+    assert np.isfinite(max_norm) and max_norm > 0, "裁剪阈值必须是有限正数"  # 阈值表示允许的最大梯度长度。
+    norm = gradient_norm(grads)  # 在裁剪之前计算所有参数梯度的全局长度。
+    scale = max_norm / norm if norm > max_norm else 1.0  # 超过阈值才缩小，零梯度也不会除以零。
+    clipped = {name: grad * scale for name, grad in grads.items()}  # 返回新的梯度数组，保留原始梯度用于检查。
+    return clipped, norm, scale  # 返回裁剪结果、原始长度和本次缩放比例。
+```
+
+浮点累加用 float64，而返回的裁剪数组保留现有 float32/float64 梯度类型。这里是面向正常有限训练梯度的简明平方和实现；不把 NaN/Inf 静默改为零，若平方和溢出会明确报错，不能用裁剪掩盖异常数值。条件分支已经处理零范数，不需要分母额外加 epsilon；本函数 max_norm 是阈值，和学习率、数值差分 epsilon 是不同概念。
+
+### 第二块：在原 main 末尾添加手算及边界检查
+
+整体缩进四个空格，保留上一课代码。
+
+```python
+    demo_grads = {"first": np.array([3.0, 0.0]), "second": np.array([[4.0]])}  # 用两组参数模拟合起来为 [3,0,4] 的梯度。
+    demo_saved = {name: grad.copy() for name, grad in demo_grads.items()}  # 保存原始梯度，检查裁剪函数不改输入。
+    demo_clipped, demo_norm, demo_scale = clip_gradients(demo_grads, max_norm=2.5)  # 总长度为 5，阈值为 2.5，所以按一半缩小。
+    assert np.isclose(demo_norm, 5.0) and np.isclose(demo_scale, 0.5), "范数或比例计算不正确"  # 核对勾股定理和缩放公式。
+    assert np.allclose(demo_clipped["first"], [1.5, 0.0]) and np.allclose(demo_clipped["second"], [[2.0]]), "各组没有按相同比例缩放"  # 所有组必须使用同一个系数。
+    assert all(np.array_equal(grad, demo_saved[name]) for name, grad in demo_grads.items()), "裁剪修改了原始梯度"  # 原始梯度留作对照。
+    unchanged, _, unchanged_scale = clip_gradients(demo_grads, max_norm=10.0)  # 阈值足够大时，梯度数值应保持不变。
+    assert unchanged_scale == 1.0 and all(np.array_equal(unchanged[name], grad) for name, grad in demo_grads.items()), "未超阈值也被改变"  # 小梯度不能被放大到阈值。
+    zero_clipped, zero_norm, zero_scale = clip_gradients({"zero": np.zeros(2)}, max_norm=1.0)  # 检查全部梯度为零的情况。
+    assert zero_norm == 0.0 and zero_scale == 1.0 and np.array_equal(zero_clipped["zero"], np.zeros(2)), "零梯度处理错误"  # 零梯度原样保留。
+    print("演示裁剪前范数：", demo_norm)  # 应为 5。
+    print("演示缩放比例：", demo_scale)  # 应为 0.5。
+    print("演示裁剪后范数：", gradient_norm(demo_clipped))  # 应为 2.5。
+```
+
+这里将 [3,0]、[[4]] 放在两个不同参数组中，检查它们合起来的全局范数，不能分别对两组使用阈值。原始梯度保留不变，裁剪函数返回独立数组；即使不需要裁剪，本实现也返回新数组。
+
+### 第三块：紧接着添加小模型裁剪更新
+
+继续沿用上一课的 check_model、check_x、check_y。注意 check_model 已经做过上一课的一次更新，所以必须重新调用 loss_and_grad，不能使用旧 check_grads。本例的 0.1 阈值只为清楚观察缩放，不是对正式语料训练选好的超参数。
+
+```python
+    clip_loss_before, raw_grads = check_model.loss_and_grad(check_x, check_y)  # 用上一课已更新过的小模型，重新完成一次前向和反向。
+    clipped_grads, raw_norm, clip_scale = clip_gradients(raw_grads, max_norm=0.1)  # 对五组完整梯度进行全局裁剪。
+    clipped_norm = gradient_norm(clipped_grads)  # 检查缩放后梯度的实际总长度。
+    assert clipped_norm <= 0.1 + 1e-12, "裁剪后仍超过阈值"  # 为双精度舍入误差保留很小容差。
+    params_before_clip_step = {name: param.copy() for name, param in check_model.params.items()}  # 保存更新前参数，用来计算实际更新长度。
+    clip_learning_rate = 0.1  # 为本次小模型演示指定学习率。
+    for name in check_model.params:  # 完成全部裁剪后，再逐组更新参数。
+        check_model.params[name] -= clip_learning_rate * clipped_grads[name]  # 使用裁剪梯度执行一次普通梯度下降。
+    parameter_change = {name: param - params_before_clip_step[name] for name, param in check_model.params.items()}  # 收集各参数的实际变化。
+    update_norm = gradient_norm(parameter_change)  # 计算全部参数合起来移动了多远。
+    assert np.isclose(update_norm, clip_learning_rate * clipped_norm, rtol=1e-8, atol=1e-12), "普通梯度下降更新长度不匹配"  # 更新长度应为学习率乘裁剪后梯度长度。
+    clip_loss_after, _ = cross_entropy(check_model.forward(check_x), check_y)  # 用更新后参数重新计算损失。
+    assert clip_loss_after < clip_loss_before, "本例裁剪后单步更新没有降低损失"  # 仅验证本例和当前学习率下的结果。
+    print("小模型原始梯度范数：", raw_norm)  # 显示本批完整原始梯度有多大。
+    print("小模型裁剪缩放比例：", clip_scale)  # 显示五组梯度共同使用的系数。
+    print("小模型裁剪后梯度范数：", clipped_norm)  # 本例应约为 0.1。
+    print("小模型实际参数更新长度：", update_norm)  # 本例应约为 0.01。
+    print("裁剪后更新前后损失：", clip_loss_before, clip_loss_after)  # 观察一次裁剪更新的效果。
+    print("全局范数、梯度裁剪与单步更新检查：通过")  # 手算、边界情况和完整模型演示均通过后显示。
+```
+
+### 参数、效率与老师预检
+
+没有新增模型参数。设总参数数 P，全局范数与统一缩放均需 O(P) 时间，返回裁剪梯度副本另需 O(P) 空间。真实模型 P=719723，float32 裁剪结果另占 2878892 字节，不含计算平方和时的临时双精度数组和其他中间值。本阶段以清晰、可检查为主，后续可以讨论就地缩放与减少临时数组。
+
+老师将以上代码与现有脚本在内存中组合，全部原有检查及新增断言通过；另核对 float32/float64 的形状、类型、返回数组与原输入不共享内存、阈值小于/等于/大于范数、零梯度以及异常非有限梯度被拒绝。以下为老师预检结果，学习者运行结果待补。
+
+```text
+演示裁剪前范数： 5.0
+演示缩放比例： 0.5
+演示裁剪后范数： 2.5
+小模型原始梯度范数： 0.4370134224566612
+小模型裁剪缩放比例： 0.22882592355596823
+小模型裁剪后梯度范数： 0.1
+小模型实际参数更新长度： 0.010000000000000002
+裁剪后更新前后损失： 1.3442277271788379 1.33987694724801
+全局范数、梯度裁剪与单步更新检查：通过
+```
+
+运行 python scripts/learn/07_tiny_rnn.py，贴出新增输出并回答：一、梯度为 [3,4]，全局阈值 C=1，缩放比例与裁剪后梯度分别是多少？二、原梯度长度为 0.5，阈值 C=1，是否要把梯度放大到长度 1？完成后检查实际脚本、记录回答与结果、更新 CI 说明并同步 GitHub。
