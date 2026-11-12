@@ -2594,3 +2594,104 @@ def clip_gradients(grads, max_norm):  # 超过阈值时，将全部梯度按同�
 学习者回答“应该乘 0.2”，正确：原长度为 5、上限为 1 时，比例为 1/5=0.2，全部梯度分量使用相同系数，整体长度成为 5*0.2=1。对于梯度 [3,4]，结果为 [0.6,0.8]。没有超过阈值时比例仍为 1，不放大小梯度。
 
 第二十二课代码实操与断言检查通过；低于阈值时保持不变、超过阈值时共同缩小的口述复核均回答正确。后续在训练循环中继续巩固完整求梯度→全局裁剪→统一更新的顺序。本次仅补记回答，未修改练习代码，尚未启动正式语料训练。
+
+## 第二十三课：接入真实语料批次，完成一次训练更新
+
+状态：老师已在内存中预检以下完整脚本，待学习者新建 scripts/learn/10_train_one_batch.py 并亲自输入、运行与回答。没有代写学习者脚本，没有保存模型权重，尚未进行多批训练。本课将第六课真实训练批次与实际 TinyRNN 连接，完成一次训练更新。
+
+### 本课只连接已经学过的部件
+
+真实训练章节→固定词表编码→章节内窗口→一个 NumPy 批次→平均交叉熵和完整梯度→一次全局裁剪→统一更新→同批次重算损失。B=16、T=32，共 512 个预测位置，(p-q)/(B*T) 已在 loss_and_grad 中处理，本脚本不再除一次。模型从随机种子 42 的初始参数开始，仍为 V=5547、H=64、719723 个参数。
+
+固定词表、训练文件 SHA-256 匹配和章节边界继续复用第六课逻辑，不重建词表，不拼接章节。本课取首批顺序窗口；对于当前数据，这 16 个窗口都来自首条训练章节 三国演义:010，起点为 0、32、64、……、480，它不是整套训练数据的均匀随机样本，只用于检查真实数据能否走通一次更新。
+
+### 第一块：新文件中导入模块、取一个真实批次
+
+```python
+from importlib import import_module  # 按模块文件名导入已有代码，支持数字开头的文件名。
+import numpy as np  # 导入 NumPy，检查编号数组、参数和损失。
+
+
+def main():  # 定义一次真实训练批次的演示入口。
+    data = import_module("06_make_windows")  # 复用已有训练记录、固定词表、窗口和批次函数，并执行该模块顶层的旧检查。
+    network = import_module("07_tiny_rnn")  # 复用 TinyRNN、交叉熵与梯度裁剪，该模块的 main 不会被自动执行。
+    batch_size = 16  # 最多收集 16 个窗口作为本次训练批次。
+    seq_length = 32  # 每个窗口预测 32 个位置。
+    learning_rate = 0.1  # 本次演示使用的普通梯度下降学习率。
+    max_norm = 1.0  # 将所有参数梯度的总长度限制在 1 以内。
+    windows = data.iter_windows(data.train_records, seq_length, seq_length)  # 从真实训练章节按顺序产生窗口，窗口不跨章节。
+    batch = next(data.iter_batches(windows, batch_size))  # 只取第一个批次，不遍历训练更新整个数据集。
+    x, y = batch["x"], batch["y"]  # 取出真实输入编号和向后错开一位的目标编号。
+    assert x.shape == y.shape == (batch_size, seq_length), "本例首批尺寸不符合预期"  # 当前数据足够组成 16 行的完整首批。
+    assert x.dtype == y.dtype == np.int64 and np.array_equal(x[:, 1:], y[:, :-1]), "真实批次错位或类型不正确"  # 再次核对接入模型的数据。
+    model = network.TinyRNN(vocab_size=len(data.tokens), hidden_size=64, seed=42)  # 用真实固定词表创建全新的随机模型。
+```
+
+文件名以数字开头，普通 from 07_tiny_rnn import ... 不是合法 Python 语句，使用标准库 import_module("07_tiny_rnn") 按字符串导入。按 python scripts/learn/10_train_one_batch.py 启动时，Python 会把脚本所在目录加入模块搜索路径，所以可以找到同目录的 06 和 07，不要求手动改 sys.path。
+
+06_make_windows.py 目前包含顶层读取、输出与完整窗口统计，首次导入会先执行已有数据检查，所以终端前半段会显示旧的第六课输出；这些检查不会训练模型。07_tiny_rnn.py 已有 main 保护，因此导入它不会运行旧模型演示。本课 main 内才导入数据模块；后续整理数据模块时再将演示移入 main，本课不同时展开大段结构调整。
+
+### 第二块：接在 main 内，求梯度、裁剪并更新一次
+
+```python
+    params_before = {name: param.copy() for name, param in model.params.items()}  # 保存本次前向使用的参数，用来检查反向不会更新它们。
+    loss_before, raw_grads = model.loss_and_grad(x, y)  # 对 512 个真实预测位置完成前向、平均损失和全部反向。
+    assert all(np.array_equal(param, params_before[name]) for name, param in model.params.items()), "求梯度过程中修改了参数"  # 完整反向结束前参数应保持不变。
+    clipped_grads, raw_norm, scale = network.clip_gradients(raw_grads, max_norm)  # 汇总完成后，对五组梯度做一次全局裁剪。
+    clipped_norm = network.gradient_norm(clipped_grads)  # 得到本次实际用于更新的梯度总长度。
+    assert clipped_norm <= max_norm + 1e-6, "裁剪后的梯度超过阈值"  # 为 float32 数组的舍入误差保留容差。
+    for name in model.params:  # 使用同一批计算出的完整裁剪梯度更新五组参数。
+        model.params[name] -= learning_rate * clipped_grads[name]  # 每组参数都减去学习率乘对应梯度。
+    assert all(np.isfinite(param).all() for param in model.params.values()), "更新后参数出现异常"  # 确认更新结果仍是有限数值。
+    assert any(not np.array_equal(param, params_before[name]) for name, param in model.params.items()), "本次更新没有改变任何参数"  # 确认真实执行了一次参数更新。
+    loss_after, _ = network.cross_entropy(model.forward(x), y)  # 使用更新后的参数，对同一个批次重新前向计算损失。
+    assert np.isfinite(loss_after) and loss_after < loss_before, "本例单批更新没有降低损失"  # 验证当前数据、种子和学习率的具体结果。
+```
+
+这里更新前后的损失使用同一批 x、y，但必须重新前向计算，不能复用旧 logits。params_before 是参数副本，用来检查求梯度不改参数，以及真正执行了更新；它不是保存到磁盘的权重文件。assert loss_after<loss_before 仅检查这个固定批次、种子和学习率下的具体结果；一般训练不要求每个不同批次的损失都比上一批小。
+
+### 第三块：接在 main 内打印，再顶格添加入口
+
+```python
+    print("真实批次来源首行：", batch["chapter_ids"][0], "起点：", batch["starts"][0])  # 显示第一行窗口的章节和零起点。
+    print("真实批次 X/Y 形状：", x.shape, y.shape)  # 应为两个 (16,32)。
+    print("本批预测位置数：", y.size)  # 应为 16*32=512。
+    print("首行输入前八字：", repr("".join(data.tokens[index] for index in x[0, :8])))  # 将前八个输入编号还原成文字。
+    print("首行目标前八字：", repr("".join(data.tokens[index] for index in y[0, :8])))  # 展示向后错开一字的目标。
+    print("真实批次原始梯度范数：", raw_norm)  # 显示本批完整梯度的总长度。
+    print("真实批次裁剪比例：", scale)  # 没超过阈值时比例为 1，超过时小于 1。
+    print("真实批次裁剪后范数：", clipped_norm)  # 应不超过阈值 1，允许浮点舍入误差。
+    print("真实批次更新前后损失：", loss_before, loss_after)  # 两个数都在同一个训练批次上计算。
+    print("真实语料单批训练更新检查：通过")  # 所有检查通过后显示。
+
+
+if __name__ == "__main__":  # 只有直接运行新脚本时才开始本次演示。
+    main()  # 运行一次真实批次更新。
+```
+
+### 学习结论与效率
+
+本批输入和目标均为 (16,32)，类型 int64，两数组数据区共 8192 字节；状态形状 (16,32,64)，float32 数据区为 131072 字节；单份 logits 或概率形状 (16,32,5547)，含 2840064 个 float32，数据区为 11360256 字节。这只是单个数组的大小，不是总内存峰值；损失和反向还有其他临时数组、参数、梯度、副本。
+
+一次前向和反向的主要计算量约 O(B*T*(H²+H*V))。本课额外重算一次前向用于比较更新后损失。窗口内使用真实前一字输入进行下一字预测，完成一次带真实目标的训练更新；同批损失下降只能说明这个批次上的目标改善，不能据此判断验证集表现或生成质量。验证集与测试集仍不参与本次更新。
+
+本脚本暂不保存权重，每次运行都从种子 42 的全新随机模型重新开始，所以重复运行两次不等于接着训练两步。当前数据和 NumPy 环境下结果可复现，跨平台浮点尾数允许差异。本课学习率 0.1、裁剪阈值 1 是教学演示配置，不宣称已通过验证集选择。
+
+### 老师预检输出与待提交
+
+老师在内存中执行以上脚本两次，所有断言通过，固定种子与数据产生相同结果；未创建学习者脚本、未保存权重，未改训练数据。首次导入会先输出旧数据检查，新增结果出现在末尾：
+
+```text
+真实批次来源首行： 三国演义:010 起点： 0
+真实批次 X/Y 形状： (16, 32) (16, 32)
+本批预测位置数： 512
+首行输入前八字： '第十回\u3000勤王室马'
+首行目标前八字： '十回\u3000勤王室马腾'
+真实批次原始梯度范数： 0.320137853404229
+真实批次裁剪比例： 1.0
+真实批次裁剪后范数： 0.320137853404229
+真实批次更新前后损失： 8.648512840270996 8.638714790344238
+真实语料单批训练更新检查：通过
+```
+
+运行 python scripts/learn/10_train_one_batch.py，提交末尾新增输出。回答：一、本批 16 个窗口，每个 32 个预测位置，平均交叉熵一共对多少个位置求平均？二、同一训练批次损失下降，能否说明验证集效果也一定变好？完成后检查实际脚本、补记结果、将新脚本加入 CI 并完整同步 GitHub。
