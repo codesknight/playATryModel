@@ -2313,3 +2313,128 @@ def embedding_backward(token_ids, embedding, grad_vectors):  # 把各位置的�
 学习者回答“-03”，结合题意按漏写小数点的 -0.3 理解，结果正确：0.2+(-0.5)=-0.3。规范写法为 -0.3。第二十课实操和数值检查通过，学习者已正确辨认 = 会覆盖前一次贡献，并正确计算 += 的一个分量；后续整合模型时继续巩固按字符编号累加，不据此声称已独立掌握全部求导过程。本次未修改练习脚本。
 
 下一课计划：把已经验证的输出层、时间反向循环和表示表反向整合到实际 TinyRNN，返回与五组参数一一对应的梯度；再做小规模整体梯度检查和一次统一参数更新。该整合尚未实施。
+
+## 第二十一课：将完整反向传播整合进 TinyRNN
+
+状态：老师已在内存中组合预检以下代码，待学习者在 scripts/learn/07_tiny_rnn.py 手敲、运行并回答。scripts/learn/09_softmax_gradient.py 保留作推导实验，不继续堆新代码；未替学习者修改实际模型。本课不进行语料训练，只在短例子上求完整梯度并验证统一单步更新。
+
+### 五组参数与整体依赖
+
+embedding 为 (V,H)，recurrent 为 (H,H)，bias 为 (H,)，output 为 (H,V)，output_bias 为 (V,)，每组梯度与对应参数同形状。参数总数仍为 2VH+H²+H+V=719723，没有增加参数。loss_and_grad 返回 (loss,grads)，grads 的键与 self.params 一致，计算过程中不修改任何参数。
+
+前向：字符编号→查表示表→全部状态→输出分数→稳定平均交叉熵。反向：分数梯度 (p-q)/(B*T)→输出权重/偏移梯度与各状态直接梯度→反向时间循环→循环权重/隐藏偏移累加与表示表行累加。用已有 forward_hidden 计算一次状态，在同一方法中复用状态计算输出，不重复调用 forward 丢失缓存。
+
+### 第一块：仅修改 forward_hidden 中两处 dtype
+
+现有前向把隐藏数组固定为 float32。为了能在小模型中使用双精度差分，把下面两行的 dtype 改为 vectors.dtype，其余逻辑保留。正常参数仍初始化为 float32，所以正式模型类型不变。
+
+```python
+        hidden = np.zeros((batch_size, self.hidden_size), dtype=vectors.dtype)  # 初始状态类型跟随查表向量，支持双精度检查。
+        states = np.zeros((batch_size, seq_length, self.hidden_size), dtype=vectors.dtype)  # 保存状态时保留相同精度，避免检查模型被截回单精度。
+```
+
+### 第二块：在 TinyRNN 类内添加方法的前半段
+
+放在 forward 方法后、顶格 def main() 前。方法定义缩进四个空格，方法体缩进八格。下一块直接续写在同一个方法内部。
+
+```python
+    def loss_and_grad(self, token_ids, targets):  # 计算平均损失和五组参数梯度，暂时不更新参数。
+        token_ids = np.asarray(token_ids)  # 将输入整理成数组，合法性由已有前向检查。
+        targets = np.asarray(targets)  # 保留标签原来的整数类型，交叉熵会检查范围与形状。
+        states = self.forward_hidden(token_ids)  # 保存全部时间位置的状态，供输出层和循环反向使用。
+        logits = states @ self.params["output"] + self.params["output_bias"]  # 使用同一次前向状态计算分数。
+        loss, _ = cross_entropy(logits, targets)  # 使用已有稳定交叉熵，得到所有位置的平均损失。
+        batch_size, seq_length, _ = states.shape  # 读取实际批大小和窗口长度。
+        grad_logits = softmax(logits)  # 分数梯度先从每个位置的预测概率开始。
+        flat_grad = grad_logits.reshape(-1, self.vocab_size)  # 合并批次和时间轴，方便按正确编号减一。
+        flat_grad[np.arange(targets.size), targets.reshape(-1)] -= 1.0  # 每个位置的正确类别减一，实现 p-q。
+        grad_logits /= targets.size  # 平均损失除以实际位置总数 B*T，只在这里缩放一次。
+        grads = {name: np.zeros_like(param) for name, param in self.params.items()}  # 为五组参数准备同形状同类型的梯度。
+        flat_states = states.reshape(-1, self.hidden_size)  # 将全部位置的状态整理成 (B*T,H)。
+        grads["output"] = flat_states.T @ flat_grad  # 汇总所有位置对共享输出权重的贡献。
+        grads["output_bias"] = flat_grad.sum(axis=0)  # 汇总所有位置对输出偏移的贡献。
+        direct = grad_logits @ self.params["output"].T  # 输出层直接传回各状态的梯度，形状为 (B,T,H)。
+```
+
+flat_grad 是 grad_logits 的 reshape 视图；softmax 返回的数组可按这个顺序共享底层数据，因此按正确编号减一后，原 grad_logits 也同步改变，原位 /= 实际位置数后 flat_grad 也获得缩放结果。不要将 flat_grad 改成 .copy() 后仍假定二者同步；本方法使用的 reshape 对当前连续数组为视图。合并 B、T 时每个预测位置有唯一行号，因此这里减一的索引没有重复行，不涉及表示表重复编号累加问题。
+
+输出层计算：N=B*T，flat_states 为 (N,H)，flat_grad 为 (N,V)，所以 dW_o=flat_states.T@flat_grad 为 (H,V)，db_o=flat_grad.sum(axis=0) 为 (V,)，direct 为 (B,T,H)。矩阵乘法和求和已汇总全部位置，后面不再重复累加输出梯度。
+
+### 第三块：续写同一个方法的循环反向部分
+
+```python
+        initial = np.zeros((batch_size, self.hidden_size), dtype=states.dtype)  # 本模型每个窗口都从全零状态开始。
+        future = np.zeros_like(initial)  # 最后一个位置之后没有更多时间步，后续贡献从零开始。
+        for time in reversed(range(seq_length)):  # 从最后一个位置向第零个位置反传。
+            previous = initial if time == 0 else states[:, time - 1, :]  # 取本步前态，第零步取初始状态。
+            total = direct[:, time, :] + future  # 合并当前输出与后续步骤传来的梯度。
+            activation_grad = total * (1.0 - states[:, time, :] ** 2)  # 通过本步 tanh，得到激活前梯度。
+            grads["recurrent"] += previous.T @ activation_grad  # 累加本步对共享循环权重的贡献。
+            grads["bias"] += activation_grad.sum(axis=0)  # 累加本步对隐藏偏移的贡献。
+            for batch in range(batch_size):  # 遍历本时间步各条序列的字符编号。
+                grads["embedding"][token_ids[batch, time]] += activation_grad[batch]  # 将输入向量梯度累加到对应字符行。
+            future = activation_grad @ self.params["recurrent"].T  # 用本步算出的梯度替换 future，继续传给前态。
+        return loss, grads  # 返回损失和五组完整梯度，调用者之后再统一更新参数。
+```
+
+本模型输入向量直接相加，因此 activation_grad 也是对应输入向量的梯度，可以马上按编号累加到表示表，不必再单独存一个 (B,T,H) 的输入梯度数组。future 每步替换，共享参数梯度每步累加；所有参数保持本次前向使用的原值，完整反向结束后才更新。
+
+### 第四块：在原 main 末尾添加整体检查与统一更新
+
+保留原 main 中 model、toy_x、toy_y、loss 等变量，以下整体缩进四格，放在原 main 的最后一个 print 后、文件末尾 if __name__ 判断前。新建 V=4、H=2 的检查模型，参数数为 8+4+2+8+4=26。双精度只用于此小模型检查，不检查真实大模型的每个参数。
+
+```python
+    full_loss, full_grads = model.loss_and_grad(toy_x, toy_y)  # 在真实词表大小的模型上计算完整梯度。
+    assert np.isclose(full_loss, loss), "整合后的损失与原前向不一致"  # 对同一输入和标签，损失定义应保持一致。
+    for name, param in model.params.items():  # 检查真实模型五组梯度的形状、类型和数值。
+        assert full_grads[name].shape == param.shape and full_grads[name].dtype == param.dtype and np.isfinite(full_grads[name]).all(), name + "梯度异常"  # 每个参数都应有同形状的有限梯度。
+    print("完整模型梯度形状：", {name: grad.shape for name, grad in full_grads.items()})  # 显示实际五组梯度的形状。
+    check_model = TinyRNN(vocab_size=4, hidden_size=2, seed=42)  # 创建只有 26 个参数的小模型，避免逐个差分检查大模型。
+    check_model.params = {name: param.astype(np.float64) for name, param in check_model.params.items()}  # 只把检查模型改为双精度，正式模型仍用 float32。
+    check_x = np.array([[0, 1, 0], [1, 2, 1]], dtype=np.int64)  # 两条序列含重复字符，也包含跨序列重复编号。
+    check_y = np.array([[1, 0, 2], [2, 1, 0]], dtype=np.int64)  # 每个输入位置指定一个下一字目标编号。
+    saved_params = {name: param.copy() for name, param in check_model.params.items()}  # 保存参数，检查计算梯度不会偷偷更新模型。
+    before, check_grads = check_model.loss_and_grad(check_x, check_y)  # 一次解析反向得到全部参数梯度。
+    assert all(np.array_equal(param, saved_params[name]) for name, param in check_model.params.items()), "求梯度时修改了参数"  # 更新必须发生在完整反向结束之后。
+    epsilon = 1e-5  # 双精度中心差分使用的小试探距离。
+    for name, param in check_model.params.items():  # 逐组核对五种参数的梯度。
+        numeric = np.zeros_like(param)  # 为当前参数组准备数值梯度。
+        for index in np.ndindex(param.shape):  # 逐个检查当前参数组中的标量。
+            original = float(param[index])  # 记住本元素原值，试探完必须恢复。
+            param[index] = original + epsilon  # 向正方向试探当前元素。
+            plus, _ = cross_entropy(check_model.forward(check_x), check_y)  # 重新前向，得到正向试探损失。
+            param[index] = original - epsilon  # 从原值向负方向试探同一元素。
+            minus, _ = cross_entropy(check_model.forward(check_x), check_y)  # 重新前向，得到负向试探损失。
+            param[index] = original  # 恢复原参数，避免影响其他元素的检查。
+            numeric[index] = (plus - minus) / (2.0 * epsilon)  # 用中心差分估计该元素的偏导数。
+        assert np.allclose(check_grads[name], numeric, rtol=1e-5, atol=1e-8), name + "整体梯度检查失败"  # 对比当前组的所有解析与数值梯度。
+        print(name + "整体梯度最大误差：", np.max(np.abs(check_grads[name] - numeric)))  # 输出当前参数组的最大绝对误差。
+    assert np.array_equal(check_grads["embedding"][3], np.zeros(2)), "未使用的输入表示行梯度应为零"  # 输出权重与表示表独立，未作为输入出现的行不受损失影响。
+    for name in check_model.params:  # 使用同一次完整反向得到的梯度，统一更新全部参数组。
+        check_model.params[name] -= 0.1 * check_grads[name]  # 每个参数沿负梯度方向走一个小步。
+    after, _ = cross_entropy(check_model.forward(check_x), check_y)  # 所有参数更新完后再重新计算损失。
+    assert after < before, "本例完整参数更新没有降低损失"  # 只验证本例与本学习率下的结果。
+    print("完整模型单步更新前后损失：", before, after)  # 显示完整模型一次更新带来的变化。
+    print("完整梯度与统一单步更新检查：通过")  # 五组差分和单步更新都通过后显示。
+```
+
+数值差分改变一个参数元素后，调用正常前向与交叉熵重新计算损失，再恢复参数；不调用解析反向当作数值参考。五组梯度都基于更新前的同一份参数，更新循环中不重新计算梯度，全部更新完成后再前向。本例学习率 0.1 能降低损失，不是任意学习率都必然下降的保证。
+
+### 计算量、内存与老师预检
+
+真实模型 float32 参数占 719723*4=2878892 字节；五组稠密梯度再占相同大小，不含状态、分数、概率等中间数组，仍远低于 1 GB。完整反向主要计算量约 O(B*T*(H²+H*V))，另有 O(参数数量) 的梯度数组初始化。若逐标量差分，每个标量至少需要两次前向；大模型一次全量核对约需 1439446 次前向，而 26 参数检查只需 52 次，因此先用极小模型验证算法。
+
+老师将以上修改应用于内存中的源码，运行原 main 与本课全部检查通过。另检查 (B,T)=(1,1)、(1,4)、(3,2) 的全部五组参数中心差分，检查计算梯度不改参数，并确认等长多序列批次的平均梯度等于逐行平均梯度的均值。以下为老师预检输出，待学习者实际完成后另行记录。
+
+```text
+完整模型梯度形状： {'embedding': (5547, 64), 'recurrent': (64, 64), 'bias': (64,), 'output': (64, 5547), 'output_bias': (5547,)}
+embedding整体梯度最大误差： 2.73799455330348e-11
+recurrent整体梯度最大误差： 1.0723519294764117e-11
+bias整体梯度最大误差： 3.5172004198003037e-12
+output整体梯度最大误差： 2.6684005699495472e-11
+output_bias整体梯度最大误差： 1.301336816084131e-11
+完整模型单步更新前后损失： 1.3645426721710658 1.3442277271788379
+完整梯度与统一单步更新检查：通过
+```
+
+运行 python scripts/learn/07_tiny_rnn.py，原有前向与交叉熵检查也必须通过。提交新增输出，并回答：一、批大小 B=2、窗口长度 T=3 时，分数梯度应该除以多少？二、为什么不能在反向时间循环里一边求梯度一边马上修改 recurrent 权重？学习者完成后复查代码、记录实际结果、更新 CI 说明并同步 GitHub。
