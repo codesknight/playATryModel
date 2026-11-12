@@ -32,7 +32,7 @@ jobs: # 定义需要执行的任务。
           python scripts/learn/04_split_dataset.py # 重新划分整章数据并执行集合互斥及覆盖检查。
           python scripts/learn/05_build_vocab.py # 只从训练集重建词表，检查编码解码及验证集未知率。
           python scripts/learn/06_make_windows.py # 检查预测窗口和 NumPy 批次的形状、错位关系、数量及尾批。
-          python scripts/learn/07_tiny_rnn.py # 检查模型前向、稳定损失、五组完整梯度的差分和统一单步更新。
+          python scripts/learn/07_tiny_rnn.py # 检查前向与损失、五组完整梯度、全局范数裁剪及单步更新。
           python scripts/learn/08_gradient_demo.py # 检查数值梯度和单参数梯度下降的更新方向。
           python scripts/learn/09_softmax_gradient.py # 检查分数、输出层、循环单步与整段反向、表示表重复编号累加。
           git diff --exit-code -- data/corpus data/corpus_processed data/chapters data/splits data/vocab # 检查原文未变，且所有已完成的数据产物可复现。

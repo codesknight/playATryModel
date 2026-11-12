@@ -34,6 +34,22 @@ def cross_entropy(logits, targets):  # 输入候选分数和正确编号，返�
     position_losses = -correct_log_probs.reshape(targets.shape)  # 取负号，恢复为 (B,L) 的逐位置损失。
     return float(position_losses.mean()), position_losses  # 按实际位置数求平均，同时返回逐位置结果。
 
+def gradient_norm(grads):  # 把全部参数梯度看作一个长向量，计算它的总长度。
+    assert grads, "梯度字典不能为空"  # 至少需要一组梯度才能检查。
+    squared_sum = 0.0  # 从零开始累加所有梯度分量的平方。
+    for grad in grads.values():  # 遍历五组参数各自的梯度数组。
+        assert np.issubdtype(grad.dtype, np.floating) and np.isfinite(grad).all(), "梯度必须是有限浮点数"  # 拒绝异常梯度，避免把错误带入更新。
+        squared_sum += float(np.sum(grad.astype(np.float64) ** 2))  # 用双精度计算平方和，降低单精度累计误差。
+    assert np.isfinite(squared_sum), "梯度平方和超出可计算范围"  # 平方和必须有限才能计算缩放比例。
+    return float(np.sqrt(squared_sum))  # 对总平方和开根号，得到全局 L2 范数。
+
+def clip_gradients(grads, max_norm):  # 超过阈值时，将全部梯度按同一个比例缩小。
+    assert np.isfinite(max_norm) and max_norm > 0, "裁剪阈值必须是有限正数"  # 阈值表示允许的最大梯度长度。
+    norm = gradient_norm(grads)  # 在裁剪之前计算所有参数梯度的全局长度。
+    scale = max_norm / norm if norm > max_norm else 1.0  # 超过阈值才缩小，零梯度也不会除以零。
+    clipped = {name: grad * scale for name, grad in grads.items()}  # 返回新的梯度数组，保留原始梯度用于检查。
+    return clipped, norm, scale  # 返回裁剪结果、原始长度和本次缩放比例。
+
 class TinyRNN:  # 模型包含字符表示、循环隐藏状态和候选字符分数输出层。
     def __init__(self, vocab_size, hidden_size=64, seed=42):  # 接收词表大小、向量维度和初始化种子。
         assert vocab_size > 0 and hidden_size > 0, "模型维度必须为正"  # 防止创建无效参数矩阵。
@@ -247,6 +263,41 @@ def main():  # 定义演示入口，被其他文件导入时不自动执行。
     assert after < before, "本例完整参数更新没有降低损失"  # 只验证本例与本学习率下的结果。
     print("完整模型单步更新前后损失：", before, after)  # 显示完整模型一次更新带来的变化。
     print("完整梯度与统一单步更新检查：通过")  # 五组差分和单步更新都通过后显示。
+
+    demo_grads = {"first": np.array([3.0, 0.0]), "second": np.array([[4.0]])}  # 用两组参数模拟合起来为 [3,0,4] 的梯度。
+    demo_saved = {name: grad.copy() for name, grad in demo_grads.items()}  # 保存原始梯度，检查裁剪函数不改输入。
+    demo_clipped, demo_norm, demo_scale = clip_gradients(demo_grads, max_norm=2.5)  # 总长度为 5，阈值为 2.5，所以按一半缩小。
+    assert np.isclose(demo_norm, 5.0) and np.isclose(demo_scale, 0.5), "范数或比例计算不正确"  # 核对勾股定理和缩放公式。
+    assert np.allclose(demo_clipped["first"], [1.5, 0.0]) and np.allclose(demo_clipped["second"], [[2.0]]), "各组没有按相同比例缩放"  # 所有组必须使用同一个系数。
+    assert all(np.array_equal(grad, demo_saved[name]) for name, grad in demo_grads.items()), "裁剪修改了原始梯度"  # 原始梯度留作对照。
+    unchanged, _, unchanged_scale = clip_gradients(demo_grads, max_norm=10.0)  # 阈值足够大时，梯度数值应保持不变。
+    assert unchanged_scale == 1.0 and all(np.array_equal(unchanged[name], grad) for name, grad in demo_grads.items()), "未超阈值也被改变"  # 小梯度不能被放大到阈值。
+    zero_clipped, zero_norm, zero_scale = clip_gradients({"zero": np.zeros(2)}, max_norm=1.0)  # 检查全部梯度为零的情况。
+    assert zero_norm == 0.0 and zero_scale == 1.0 and np.array_equal(zero_clipped["zero"], np.zeros(2)), "零梯度处理错误"  # 零梯度原样保留。
+    print("演示裁剪前范数：", demo_norm)  # 应为 5。
+    print("演示缩放比例：", demo_scale)  # 应为 0.5。
+    print("演示裁剪后范数：", gradient_norm(demo_clipped))  # 应为 2.5。
+
+    clip_loss_before, raw_grads = check_model.loss_and_grad(check_x, check_y)  # 用上一课已更新过的小模型，重新完成一次前向和反向。
+    clipped_grads, raw_norm, clip_scale = clip_gradients(raw_grads, max_norm=0.1)  # 对五组完整梯度进行全局裁剪。
+    clipped_norm = gradient_norm(clipped_grads)  # 检查缩放后梯度的实际总长度。
+    assert clipped_norm <= 0.1 + 1e-12, "裁剪后仍超过阈值"  # 为双精度舍入误差保留很小容差。
+    params_before_clip_step = {name: param.copy() for name, param in check_model.params.items()}  # 保存更新前参数，用来计算实际更新长度。
+    clip_learning_rate = 0.1  # 为本次小模型演示指定学习率。
+    for name in check_model.params:  # 完成全部裁剪后，再逐组更新参数。
+        check_model.params[name] -= clip_learning_rate * clipped_grads[name]  # 使用裁剪梯度执行一次普通梯度下降。
+    parameter_change = {name: param - params_before_clip_step[name] for name, param in check_model.params.items()}  # 收集各参数的实际变化。
+    update_norm = gradient_norm(parameter_change)  # 计算全部参数合起来移动了多远。
+    assert np.isclose(update_norm, clip_learning_rate * clipped_norm, rtol=1e-8, atol=1e-12), "普通梯度下降更新长度不匹配"  # 更新长度应为学习率乘裁剪后梯度长度。
+    clip_loss_after, _ = cross_entropy(check_model.forward(check_x), check_y)  # 用更新后参数重新计算损失。
+    assert clip_loss_after < clip_loss_before, "本例裁剪后单步更新没有降低损失"  # 仅验证本例和当前学习率下的结果。
+    print("小模型原始梯度范数：", raw_norm)  # 显示本批完整原始梯度有多大。
+    print("小模型裁剪缩放比例：", clip_scale)  # 显示五组梯度共同使用的系数。
+    print("小模型裁剪后梯度范数：", clipped_norm)  # 本例应约为 0.1。
+    print("小模型实际参数更新长度：", update_norm)  # 本例应约为 0.01。
+    print("裁剪后更新前后损失：", clip_loss_before, clip_loss_after)  # 观察一次裁剪更新的效果。
+    print("全局范数、梯度裁剪与单步更新检查：通过")  # 手算、边界情况和完整模型演示均通过后显示。
+
 
 
 if __name__ == "__main__":  # 只有直接运行本文件时才启动演示。
