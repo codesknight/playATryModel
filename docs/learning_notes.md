@@ -2826,3 +2826,112 @@ step=5 loss=8.615304 grad_norm=0.471498 scale=1.000000 来源=三国演义:010 �
 第一题学习者回答“五个批次是5个step”，正确。本课一个 batch 对应一次参数更新，所以是 5 个 step，不是 5 个 epoch。第二题回答模型只需加载一次，循环内重载会无法有效学习，核心理解正确。术语补充：本代码 TinyRNN(...) 是创建模型并随机初始化参数，尚未从权重文件加载；放在循环内会每批重新初始化，丢掉前面训练结果。固定 seed=42 时每次甚至会回到同一份初始参数。训练循环的职责是取新批次、求梯度和更新同一个模型，更新步数统计只是其中一部分。
 
 第二十四课实操与问答通过。同一次运行内参数连续保留，隐藏状态仍按每个窗口从零开始；重新运行整个脚本仍会从新模型开始，尚未保存权重。下一课可增加固定验证数据上的前向评估，区分训练过程损失和固定模型的验证损失；该评估尚未实现。
+
+## 第二十五课：固定验证子集，只做前向评估
+
+状态：老师已在内存中预检以下修改，待学习者亲自修改 scripts/learn/11_train_steps.py、运行并回答。未替学习者修改练习脚本；本课在已有五步训练前后评估同一份验证子集，尚未评估完整验证集、使用测试集或保存模型。
+
+### 训练与评估的区别
+
+训练：前向→损失→反向→裁剪→更新。验证：前向→损失→按位置汇总，参数保持不变。验证文字使用训练集建立的固定词表，未见字符继续映射到 <UNK>，不把验证字符加入词表。这里模型是纯 NumPy，没有自动求导，也没有 dropout 或 batch normalization；不需要为这个模型调用不存在的 eval() 或 no_grad() 接口。
+
+固定参数 θ 时，验证平均交叉熵 L_val(θ)=Σ_b(n_b*L_b(θ))/Σ_b n_b，其中 n_b 是每个批次实际预测位置数。评估期间所有批次使用同一份 θ；这与训练日志在不同参数点的平均值含义不同。
+
+### 第一块：文件顶部增加一个导入
+
+```python
+import json  # 导入 JSON 工具，读取独立的验证章节文件。
+```
+
+原来的 import_module、islice 和 np 导入保留。
+
+### 第二块：在 main 前顶格增加评估函数
+
+```python
+def evaluate(model, batches, network):  # 固定参数，只前向计算给定批次的平均损失。
+    saved_params = {name: param.copy() for name, param in model.params.items()}  # 保存评估前的参数，用来检查评估没有更新模型。
+    loss_sum = 0.0  # 累计所有预测位置的损失总和。
+    position_count = 0  # 累计实际参与评估的预测位置数。
+    for batch in batches:  # 依次评估固定子集中的各个批次。
+        x, y = batch["x"], batch["y"]  # 取验证输入与正确的下一字编号。
+        loss, _ = network.cross_entropy(model.forward(x), y)  # 只做前向和损失计算，不调用反向传播。
+        assert np.isfinite(loss), "验证损失不是有限数"  # 出现无效结果时停止检查。
+        loss_sum += loss * y.size  # 按本批实际位置数加权，不能把大小不同的批次简单等权平均。
+        position_count += y.size  # 累计包括小尾批在内的实际位置数。
+    assert position_count > 0, "没有可评估的位置"  # 防止空子集导致除以零。
+    assert all(np.array_equal(param, saved_params[name]) for name, param in model.params.items()), "评估修改了参数"  # 参数必须与评估之前完全一致。
+    return loss_sum / position_count, position_count  # 返回固定参数下的加权平均损失和评估规模。
+```
+
+函数只调用 model.forward 和交叉熵，不计算参数梯度，也不裁剪或更新参数。保存参数副本并逐元素比较，是本课用来核对“评估不修改模型”的教学检查，不能把它理解为评估的训练步骤。若原始参数已含 NaN，前向或损失检查会先报错。
+
+### 第三块：在 main 内模型创建后、训练窗口生成前插入
+
+找到 model=network.TinyRNN(...)，紧接它添加以下代码，旧 windows=... 及之后的训练循环仍保留在新代码后。此时 batch_size、seq_length 和模型都已定义，尚未执行任何训练更新。
+
+```python
+    validation_path = data.ROOT / "data" / "splits" / "validation.jsonl"  # 读取此前按完整章节划分的验证集。
+    with validation_path.open(encoding="utf-8") as file:  # 以 UTF-8 打开验证章节文件。
+        validation_records = [json.loads(line) for line in file]  # 逐行还原验证章节，保留原有顺序。
+    assert not ({record["id"] for record in data.train_records} & {record["id"] for record in validation_records}), "训练与验证章节标识重叠"  # 确认评估章节没有进入训练集。
+    validation_windows = data.iter_windows(validation_records, seq_length, seq_length)  # 继续使用训练词表编码验证文字，未见字符映射到已有未知编号。
+    validation_batches = list(islice(data.iter_batches(validation_windows, batch_size), 3))  # 固定保存前三个验证批次，前后评估复用相同数据。
+    assert len(validation_batches) == 3, "本课验证数据不足三批"  # 当前数据应能提供三批窗口。
+    validation_before, validation_positions = evaluate(model, validation_batches, network)  # 在任何训练更新之前评估初始模型。
+    print("固定验证子集批次数：", len(validation_batches))  # 应为 3，不能称为整个验证集。
+    print("固定验证子集预测位置数：", validation_positions)  # 当前三批共有 1536 个位置。
+    print("训练前固定验证子集损失：", validation_before)  # 记录未训练模型在固定验证子集上的损失。
+```
+
+把前三个验证批次保存成列表，而不是将整个验证集窗口全部装入列表。前后都遍历同一个小列表，不会因生成器耗尽导致第二次评估为空；也不会在两次评估中换不同的窗口。当前 B=16、T=32，三批共 48 个窗口、1536 个位置，输入和目标数组合计约 24 KiB，不含元数据与其他数组。
+
+这只是验证集顺序前缀，并非随机代表样本或整个验证集的准确估计；对于当前排序，前缀来自验证集中较早的章节，不覆盖所有书籍。所有输出明确写“固定验证子集”。后续扩大评估时，再说明全验证集覆盖和计算成本。
+
+### 第四块：在原 main 末尾追加训练后评估
+
+放在原 print("同一模型连续多批更新检查：通过") 后，仍在 main 内，缩进四格；文件末尾 if __name__ 入口仍顶格保留。
+
+```python
+    validation_after, after_positions = evaluate(model, validation_batches, network)  # 五步训练结束后，用同一子集评估最终参数。
+    assert after_positions == validation_positions, "前后评估位置数不一致"  # 前后比较必须使用相同的数据范围。
+    print("训练后固定验证子集损失：", validation_after)  # 不要求它一定低于训练前，验证结果需要如实记录。
+    print("固定验证子集损失变化：", validation_after - validation_before)  # 负数表示该子集损失降低，正数表示升高。
+    print("验证只前向、参数不变与固定子集检查：通过")  # 正确性检查通过不代表验证效果一定改善。
+```
+
+不要增加 assert validation_after<validation_before。数据流程正确和验证效果改善是不同判断：如果验证损失升高，仍然要如实输出并分析。也不要将训练过程平均损失和验证损失的差值直接解释为严谨的最终模型泛化差距，因为训练过程平均值来自不断变化的参数。
+
+### 理解结果与评估范围
+
+训练前后使用同一批验证输入和标签，所以损失变化主要用于比较两份参数在这个固定子集上的表现。下降只说明该子集平均损失改善，不保证完整验证集、其他领域或文字生成质量都改善。验证数据不直接用于参数梯度，但以后选择学习率、训练步数或模型时仍会间接影响选择，因此测试集继续保留，不在本课使用。
+
+训练时仍只迭代 data.train_records，验证记录只传给评估批次构造。章节 id 交集为空是本课的接口核对，不代表已经证明没有任何重复段落。模型每个窗口的初始隐藏状态仍为零，训练和验证沿用同一计算定义。
+
+### 效率与老师预检
+
+训练仍为五步，验证在训练前后各做三批前向，共六批额外前向，不做反向。主要验证计算量约 O(B*T*(H²+HV)) 每批；不会为验证生成五组梯度。教学用参数快照额外占约 2.88 MB float32 数据区，后续可在可信实现中减少该检查开销。当前子集只缓存三批编号，仍逐批计算分数和状态。
+
+老师在内存中组合修改并运行全部旧检查与新增断言，实际模型两次评估参数均不改变；另用两批大小不同的固定损失检查按位置加权（两位置损失均为 2、另一位置损失为 4，正确均值为 8/3，而不是 3），并检查空评估会报错。以下为老师预检，学习者运行结果待补：
+
+```text
+固定验证子集批次数： 3
+固定验证子集预测位置数： 1536
+训练前固定验证子集损失： 8.651848157246908
+step=1 loss=8.648513 grad_norm=0.320138 scale=1.000000 来源=三国演义:010 起点=0
+step=2 loss=8.656752 grad_norm=0.666002 scale=1.000000 来源=三国演义:010 起点=512
+step=3 loss=8.613806 grad_norm=0.392007 scale=1.000000 来源=三国演义:010 起点=1024
+step=4 loss=8.647432 grad_norm=0.416489 scale=1.000000 来源=三国演义:010 起点=1536
+step=5 loss=8.615304 grad_norm=0.471498 scale=1.000000 来源=三国演义:010 起点=2048
+已完成更新步数： 5
+已训练窗口数： 80
+已训练预测位置数： 2560
+训练过程按位置加权的平均损失： 8.63636131286621
+完整一轮需要的更新步数： 4787
+本次是否遍历完整训练集： False
+同一模型连续多批更新检查：通过
+训练后固定验证子集损失： 8.628433227539062
+固定验证子集损失变化： -0.023414929707845644
+验证只前向、参数不变与固定子集检查：通过
+```
+
+运行 python scripts/learn/11_train_steps.py，提交固定验证子集批次数、位置数、训练前后损失和变化值；原五步日志也应继续一致。回答：一、验证时应调用 model.forward，还是调用 loss_and_grad 后再更新参数？二、前后比较验证损失，为什么本课要使用同一份固定子集？完成后复查脚本、记录回答与结果、更新 CI 说明并同步 GitHub。
