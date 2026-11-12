@@ -1926,3 +1926,88 @@ grad_previous 是传给前一个时间步的接口，不直接将 previous 当�
 学习者回答：“不会变化，因为是相互独立的分量。”回答正确：在 a→tanh(a) 这一段，每个输出只依赖同一位置的输入，所以只改变 a0、保持 a1 不变，h1=tanh(a1) 不变。这里的独立指这一步计算的依赖关系，不是声称各个隐藏分量在统计上独立，也不是说前面的循环矩阵不会混合分量。
 
 因此反向传播时，每个位置的上游梯度只乘该位置的局部导数：grad_activation = grad_hidden * (1-hidden**2)。本课代码实操、标量导数计算和逐元素依赖解释均已通过。下一课再串联两个时间步，学习合并当前输出与后续状态传回的梯度。
+
+## 第十八课：两个时间步的反向传播与共享梯度累加
+
+状态：老师已预检以下练习；待学习者亲自输入、运行并回答问题。未修改学习者脚本，不代表学习者已完成本课。继续在 scripts/learn/09_softmax_gradient.py 中练习，保留上一课全部内容。
+
+### 先画清依赖关系
+
+初始状态 h0，本次两个输入向量 x1、x2。这里 x 是已经查表得到的向量，不是字符编号；h0 沿用 previous_hidden，是给定初始状态，不要求全零。
+
+h1=tanh(x1+h0@W_h+b_h)
+h2=tanh(x2+h1@W_h+b_h)
+z1=h1@W_o+b_o，z2=h2@W_o+b_o
+L=(L1+L2)/2
+
+h1 有两条通向损失的路径：h1→z1→L1→L，以及 h1→h2→z2→L2→L。h2 只有第二处输出这一条后续路径。本课只有两步，没有第三步损失。
+
+先由输出层得到 direct1=(p1-q1)/2 @ W_o.T、direct2=(p2-q2)/2 @ W_o.T（实际代码先将分数梯度恢复为行矩阵）。第二步激活前梯度 A2=direct2*(1-h2²)，传回第一状态的梯度 future=A2@W_h.T。于是第一状态总梯度 G_h1=direct1+future，第一步激活前梯度 A1=G_h1*(1-h1²)。因此先反传第二步，再反传第一步，这就是跨时间反向传播 BPTT 的两步版本。
+
+相加来自多元链式法则：若 L 通过 u(h1) 和 v(h1) 两条路径依赖 h1，dL/dh1 就是两条路径贡献之和。不能只保留当前输出路径，也不能把两个梯度相乘或再求平均。损失的 /2 已包含在各自输出梯度里，后续只按链式法则累加。
+
+同一 W_h 在两个时间步重复使用，所以 dL/dW_h=h0.T@A1+h1.T@A2；隐藏偏移梯度为 A1.sum(axis=0)+A2.sum(axis=0)。输出权重与输出偏移也分别累加两个位置的贡献。第一项已通过 A1 包含未来的影响，再加第二次使用权重的直接贡献是共享参数链式求导，不是重复计算。
+
+### 第一块：在 main 前添加一个辅助函数
+
+此函数的正确标签固定为第一位置 0、第二位置 1，仅用于本课玩具例子。数值差分必须从候选输入或候选共享权重重新计算两步，不复用固定的旧状态。
+
+```python
+def two_step_loss(first, second, initial, recurrent_weight, hidden_bias, output_weight, output_bias):  # 重新计算两步的平均损失，供数值差分检查。
+    first_hidden = recurrent_step(first, initial, recurrent_weight, hidden_bias)  # 从初始状态计算第一步状态。
+    second_hidden = recurrent_step(second, first_hidden, recurrent_weight, hidden_bias)  # 第一状态参与第二步计算。
+    first_loss = output_loss(first_hidden, output_weight, output_bias, 0)  # 本例第一个位置的正确编号固定为 0。
+    second_loss = output_loss(second_hidden, output_weight, output_bias, 1)  # 本例第二个位置的正确编号固定为 1。
+    return (first_loss + second_loss) / 2.0  # 两个预测位置的损失取平均。
+```
+
+### 第二块：在原 main 末尾添加检查
+
+保留原 main 中 current_vector、previous_hidden、recurrent_weight、hidden_bias、weight、bias。weight 和 bias 仍是旧例子的输出参数，不使用 updated_weight 或 updated_bias。以下代码整体缩进四个空格，放在原来的最后一个 print 后面、文件末尾的 if __name__ 判断之前。
+
+```python
+    second_vector = np.array([[-0.2, 0.3]], dtype=np.float64)  # 新增第二步的输入向量，第一步沿用 current_vector。
+    first_hidden = recurrent_step(current_vector, previous_hidden, recurrent_weight, hidden_bias)  # 从给定初始状态计算第一步。
+    second_hidden = recurrent_step(second_vector, first_hidden, recurrent_weight, hidden_bias)  # 使用第一步状态计算第二步。
+    first_loss, _, first_score_grad = loss_and_grad((first_hidden @ weight + bias)[0], 0)  # 第一位置的正确编号为 0。
+    second_loss, _, second_score_grad = loss_and_grad((second_hidden @ weight + bias)[0], 1)  # 第二位置的正确编号为 1。
+    mean_loss = (first_loss + second_loss) / 2.0  # 本例优化的是两个位置的平均损失。
+    first_out_weight_grad, first_out_bias_grad, first_direct = output_backward(first_hidden, weight, first_score_grad.reshape(1, -1) / 2.0)  # 第一路输出梯度除以位置数，只除一次。
+    second_out_weight_grad, second_out_bias_grad, second_direct = output_backward(second_hidden, weight, second_score_grad.reshape(1, -1) / 2.0)  # 第二路输出梯度也只除一次。
+    second_input_grad, from_second, second_recurrent_grad, second_hidden_bias_grad = recurrent_backward(first_hidden, recurrent_weight, second_hidden, second_direct)  # 先反传第二步，取得传给第一步状态的梯度。
+    first_total = first_direct + from_second  # 第一状态同时影响两处损失，必须合并两条路径。
+    first_input_grad, initial_grad, first_recurrent_grad, first_hidden_bias_grad = recurrent_backward(previous_hidden, recurrent_weight, first_hidden, first_total)  # 合并后再通过第一步的 tanh 和循环连接。
+    total_recurrent_grad = first_recurrent_grad + second_recurrent_grad  # 同一循环权重在两步使用，其梯度贡献相加。
+    total_hidden_bias_grad = first_hidden_bias_grad + second_hidden_bias_grad  # 隐藏偏移也是两步共享的参数。
+    total_output_weight_grad = first_out_weight_grad + second_out_weight_grad  # 输出权重在两处预测中的贡献也要相加。
+    total_output_bias_grad = first_out_bias_grad + second_out_bias_grad  # 输出偏移同样汇总两个位置的贡献。
+    numeric_first = numerical_array_gradient(current_vector, lambda candidate: two_step_loss(candidate, second_vector, previous_hidden, recurrent_weight, hidden_bias, weight, bias))  # 改变第一输入后重算完整两步，检查跨步路径。
+    numeric_recurrent = numerical_array_gradient(recurrent_weight, lambda candidate: two_step_loss(current_vector, second_vector, previous_hidden, candidate, hidden_bias, weight, bias))  # 每次试探同一个共享权重，两步都使用候选值。
+    assert np.allclose(first_input_grad, numeric_first, rtol=1e-6, atol=1e-8), "第一输入梯度不正确"  # 漏掉第二步传回的贡献会导致此检查失败。
+    assert np.allclose(total_recurrent_grad, numeric_recurrent, rtol=1e-6, atol=1e-8), "共享循环权重梯度不正确"  # 覆盖其中一步贡献会导致此检查失败。
+    print("两步平均损失：", mean_loss)  # 应约为 0.90833260。
+    print("第一状态的直接梯度：", first_direct)  # 来自第一个位置的输出层。
+    print("第二步传回的梯度：", from_second)  # 来自第二个位置，经循环连接传回。
+    print("第一状态的总梯度：", first_total)  # 这才是第一步 tanh 接收的上游梯度。
+    print("第一输入梯度：", first_input_grad)  # 应约为 [[-0.50547377,0.27042386]]。
+    print("共享循环权重总梯度：", total_recurrent_grad)  # 显示两次使用共同产生的梯度。
+    print("第一输入最大绝对误差：", np.max(np.abs(first_input_grad - numeric_first)))  # 显示第一输入的数值核对误差。
+    print("共享权重最大绝对误差：", np.max(np.abs(total_recurrent_grad - numeric_recurrent)))  # 显示共享权重的数值核对误差。
+    print("两步反向传播与梯度累加检查：通过")  # 两项断言都通过后显示。
+```
+
+### 如何理解形状、参数和计算量
+
+本例 B=1、H=2、V=3：两个输入和各状态均为 (1,2)，循环权重及其梯度为 (2,2)，隐藏偏移及梯度为 (2,)，输出权重及梯度为 (2,3)，输出偏移及梯度为 (3,)。first_direct、from_second、first_total 都为 (1,2)，所以对应位置相加后形状不变。initial_grad 是传向给定初始状态的梯度，本课不更新初始状态；两个输入梯度后续才会用于表示表行的梯度累加。
+
+增加时间步不会增加参数：两步共享 W_h、b_h、W_o、b_o。本演示这四组参数共 4+2+6+3=15 个数，独立给定的输入向量与初始状态不算这四组可训练参数。完整字符 RNN 还要加表示表，模型总参数仍是上一阶段的 719723 个。
+
+一般 B 个窗口、T 个位置、隐藏维 H、词表 V 时，循环和输出层前向/反向的主要计算量均为 O(BT(H²+HV))；反向常数开销与前向不同。保存全部状态需 O(BTH) 空间，若同时保存全部分数或概率，还需 O(BTV) 空间。这是数量级估计，不是实测运行时间。教学用逐参数中心差分会反复前向，不作为正式训练算法。
+
+### 运行与提交
+
+运行 python scripts/learn/09_softmax_gradient.py，原有检查也应继续通过。老师在内存中组合上述代码预检，未替学习者写入脚本；并对两个输入、初始状态和四组共享参数共七组数组逐元素差分核对通过，故意漏掉未来路径会被检查识别。
+
+预期新输出包括：平均损失约 0.9083325958；第一状态直接梯度 [[-0.44845625,0.36866788]]，第二步传回梯度 [[-0.08423192,-0.08728206]]，总梯度 [[-0.53268818,0.28138582]]；第一输入梯度 [[-0.50547377,0.27042386]]；共享循环权重总梯度约 [[-0.11520967,-0.00582196],[0.03822178,-0.07935490]]。差分误差通常在 1e-11 左右，尾数允许平台差异，以断言通过为准。
+
+待提交：新增输出和两个问题的回答。问题一：第一状态从当前输出收到 0.3、从第二步收到 -0.1，这两项已经包含平均损失的缩放，那么合并后是多少？问题二：为什么共享循环权重的梯度要相加，不能只保留最后一个时间步的梯度？完成后复查实际脚本、记录结果并上传 GitHub。
