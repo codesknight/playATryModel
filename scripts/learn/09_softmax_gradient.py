@@ -72,6 +72,17 @@ def recurrent_backward(previous, weight, hidden, grad_hidden):  # 将上游梯�
     grad_bias = grad_activation.sum(axis=0)  # 累加各行对共享隐藏偏移的贡献。
     return grad_current, grad_previous, grad_weight, grad_bias  # 返回梯度，暂不更新任何数组。
 
+
+def two_step_loss(first, second, initial, recurrent_weight, hidden_bias, output_weight, output_bias):  # 重新计算两步平均损失，供数值差分检查。
+    first_hidden = recurrent_step(first, initial, recurrent_weight, hidden_bias)  # 从初始状态计算第一步状态。
+    second_hidden = recurrent_step(second, first_hidden, recurrent_weight, hidden_bias)  # 第一状态参与第二步计算。
+    first_loss = output_loss(first_hidden, output_weight, output_bias, 0)  # 第一位置的正确编号固定为 0。
+    second_loss = output_loss(second_hidden, output_weight, output_bias, 1)  # 第二位置的正确编号固定为 1。
+    return (first_loss + second_loss) / 2.0  # 两个预测位置的损失取平均。
+
+
+
+
 def main():  # 定义检查入口。
     logits = np.array([0.15, -0.1, -0.3], dtype=np.float64)  # 设置天、风、雨的分数。
     target = 0  # 正确答案是第 0 项天。
@@ -144,6 +155,37 @@ def main():  # 定义检查入口。
     print("当前状态：", step_hidden)  # 应约为 [[0.22602835,0.19737532]]。
     print("本例单步损失：", step_loss)  # 固定例子的核对值，不代表模型测评结果。
     print("tanh 与循环单步反向检查：通过")  # 四组检查通过后显示。
+
+    second_vector = np.array([[-0.2, 0.3]], dtype=np.float64)  # 新增第二步输入，第一步沿用 current_vector。
+    first_hidden = recurrent_step(current_vector, previous_hidden, recurrent_weight, hidden_bias)  # 从给定初始状态计算第一步。
+    second_hidden = recurrent_step(second_vector, first_hidden, recurrent_weight, hidden_bias)  # 使用第一状态计算第二步。
+    first_loss, _, first_score_grad = loss_and_grad((first_hidden @ weight + bias)[0], 0)  # 第一位置的正确编号为 0。
+    second_loss, _, second_score_grad = loss_and_grad((second_hidden @ weight + bias)[0], 1)  # 第二位置的正确编号为 1。
+    mean_loss = (first_loss + second_loss) / 2.0  # 本次目标是两个位置的平均损失。
+    first_out_weight_grad, first_out_bias_grad, first_direct = output_backward(first_hidden, weight, first_score_grad.reshape(1, -1) / 2.0)  # 第一处输出梯度只除以位置数一次。
+    second_out_weight_grad, second_out_bias_grad, second_direct = output_backward(second_hidden, weight, second_score_grad.reshape(1, -1) / 2.0)  # 第二处输出梯度也只除一次。
+
+    second_input_grad, from_second, second_recurrent_grad, second_hidden_bias_grad = recurrent_backward(first_hidden, recurrent_weight, second_hidden, second_direct)  # 先反传第二步，取得传给第一状态的梯度。
+    first_total = first_direct + from_second  # 第一状态收到两路贡献，逐元素相加。
+    first_input_grad, initial_grad, first_recurrent_grad, first_hidden_bias_grad = recurrent_backward(previous_hidden, recurrent_weight, first_hidden, first_total)  # 合并后再反传第一步。
+    total_recurrent_grad = first_recurrent_grad + second_recurrent_grad  # 同一个循环权重在两步使用，贡献相加。
+    total_hidden_bias_grad = first_hidden_bias_grad + second_hidden_bias_grad  # 隐藏偏移也是两步共享的参数。
+    total_output_weight_grad = first_out_weight_grad + second_out_weight_grad  # 汇总两处预测对输出权重的贡献。
+    total_output_bias_grad = first_out_bias_grad + second_out_bias_grad  # 汇总两处预测对输出偏移的贡献。
+
+    numeric_first = numerical_array_gradient(current_vector, lambda candidate: two_step_loss(candidate, second_vector, previous_hidden, recurrent_weight, hidden_bias, weight, bias))  # 改变第一输入后重算两步，检查跨步路径。
+    numeric_recurrent = numerical_array_gradient(recurrent_weight, lambda candidate: two_step_loss(current_vector, second_vector, previous_hidden, candidate, hidden_bias, weight, bias))  # 两步都使用同一个候选循环权重。
+    assert np.allclose(first_input_grad, numeric_first, rtol=1e-6, atol=1e-8), "第一输入梯度不正确"  # 漏掉第二步传回的梯度会使本检查失败。
+    assert np.allclose(total_recurrent_grad, numeric_recurrent, rtol=1e-6, atol=1e-8), "共享循环权重梯度不正确"  # 检查是否正确累加两步贡献。
+    print("两步平均损失：", mean_loss)  # 显示两个位置的平均损失。
+    print("第一状态的直接梯度：", first_direct)  # 来自第一个位置的输出层。
+    print("第二步传回的梯度：", from_second)  # 经第二步循环连接传回。
+    print("第一状态的总梯度：", first_total)  # 第一处 tanh 真正接收的上游梯度。
+    print("第一输入梯度：", first_input_grad)  # 显示继续传给第一个输入向量的梯度。
+    print("共享循环权重总梯度：", total_recurrent_grad)  # 显示两个时间步的累计贡献。
+    print("第一输入最大绝对误差：", np.max(np.abs(first_input_grad - numeric_first)))  # 核对第一输入的梯度。
+    print("共享权重最大绝对误差：", np.max(np.abs(total_recurrent_grad - numeric_recurrent)))  # 核对共享权重的梯度。
+    print("两步反向传播与梯度累加检查：通过")  # 两项断言通过后显示。
 
 
 
