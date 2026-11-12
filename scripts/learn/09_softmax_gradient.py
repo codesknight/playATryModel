@@ -53,6 +53,25 @@ def numerical_array_gradient(value, evaluate, epsilon=1e-5):  # 根据给定损�
         gradient[index] = (evaluate(plus) - evaluate(minus)) / (2 * epsilon)  # 计算两侧损失的差分。
     return gradient  # 返回近似梯度，不修改原数组。
 
+def recurrent_step(current, previous, weight, bias):  # 计算一个时间步，不处理整段序列。
+    return np.tanh(current + previous @ weight + bias)  # 结合当前向量、上一状态和偏移，再激活。
+
+
+def recurrent_step_loss(current, previous, recurrent_weight, hidden_bias, output_weight, output_bias, target):  # 将单步循环接到已有输出层损失。
+    hidden = recurrent_step(current, previous, recurrent_weight, hidden_bias)  # 计算当前状态。
+    return output_loss(hidden, output_weight, output_bias, target)  # 复用上一课的单位置损失。
+
+
+def recurrent_backward(previous, weight, hidden, grad_hidden):  # 将上游梯度继续传过一个循环步。
+    assert previous.ndim == 2 and previous.shape == hidden.shape == grad_hidden.shape, "状态与上游梯度形状不一致"  # 每行每个分量都要对应。
+    assert weight.shape == (hidden.shape[1], hidden.shape[1]), "循环权重形状错误"  # 本模型使用 H×H 循环矩阵。
+    grad_activation = grad_hidden * (1.0 - hidden ** 2)  # 逐元素乘 tanh 的局部导数。
+    grad_current = grad_activation.copy()  # 当前字符向量直接相加，收到同样数值的梯度。
+    grad_previous = grad_activation @ weight.T  # 将梯度传回上一时刻状态。
+    grad_weight = previous.T @ grad_activation  # 累加各行对循环权重的贡献。
+    grad_bias = grad_activation.sum(axis=0)  # 累加各行对共享隐藏偏移的贡献。
+    return grad_current, grad_previous, grad_weight, grad_bias  # 返回梯度，暂不更新任何数组。
+
 def main():  # 定义检查入口。
     logits = np.array([0.15, -0.1, -0.3], dtype=np.float64)  # 设置天、风、雨的分数。
     target = 0  # 正确答案是第 0 项天。
@@ -99,6 +118,34 @@ def main():  # 定义检查入口。
     print("三组梯度最大误差：", np.max(np.abs(grad_weight - numeric_weight)), np.max(np.abs(grad_bias - numeric_bias)), np.max(np.abs(grad_hidden - numeric_hidden)))  # 显示数值检查误差。
     print("输出层更新前后损失：", current_loss, after_output_update)  # 这次更新的是权重和偏移，不直接改分数。
     print("输出层反向传播与数值检查：通过")  # 全部断言通过后显示。
+
+    current_vector = np.array([[0.1, 0.2]], dtype=np.float64)  # 当前字符的两维向量。
+    previous_hidden = np.array([[0.2, -0.1]], dtype=np.float64)  # 上一步的两维状态。
+    recurrent_weight = np.array([[0.5, 0.2], [-0.3, 0.4]], dtype=np.float64)  # 两维循环权重。
+    hidden_bias = np.zeros(2, dtype=np.float64)  # 隐藏偏移，与输出层 bias 区分。
+
+    step_hidden = recurrent_step(current_vector, previous_hidden, recurrent_weight, hidden_bias)  # 得到 tanh([0.23,0.2])。
+    step_scores = step_hidden @ weight + bias  # 使用已有输出层计算候选分数。
+    step_loss, _, step_score_gradient = loss_and_grad(step_scores[0], target)  # 计算损失和分数梯度。
+    _, _, step_hidden_gradient = output_backward(step_hidden, weight, step_score_gradient.reshape(1, -1))  # 先通过输出层，取得状态梯度。
+    grad_current, grad_previous, grad_recurrent, grad_hidden_bias = recurrent_backward(previous_hidden, recurrent_weight, step_hidden, step_hidden_gradient)  # 再通过 tanh 和循环连接。
+
+    numeric_current = numerical_array_gradient(current_vector, lambda candidate: recurrent_step_loss(candidate, previous_hidden, recurrent_weight, hidden_bias, weight, bias, target))  # 只试探当前字符向量。
+    numeric_previous = numerical_array_gradient(previous_hidden, lambda candidate: recurrent_step_loss(current_vector, candidate, recurrent_weight, hidden_bias, weight, bias, target))  # 只试探上一步状态。
+    numeric_recurrent = numerical_array_gradient(recurrent_weight, lambda candidate: recurrent_step_loss(current_vector, previous_hidden, candidate, hidden_bias, weight, bias, target))  # 只试探循环权重。
+    numeric_hidden_bias = numerical_array_gradient(hidden_bias, lambda candidate: recurrent_step_loss(current_vector, previous_hidden, recurrent_weight, candidate, weight, bias, target))  # 只试探隐藏偏移。
+
+    checks = [("当前向量", grad_current, numeric_current), ("上一步状态", grad_previous, numeric_previous), ("循环权重", grad_recurrent, numeric_recurrent), ("隐藏偏移", grad_hidden_bias, numeric_hidden_bias)]  # 组织四组检查。
+    for name, analytic, numeric in checks:  # 逐组核对解析与数值梯度。
+        assert analytic.shape == numeric.shape and np.allclose(analytic, numeric, rtol=1e-6, atol=1e-8), name + "梯度不正确"  # 对照完整数组。
+        print(name + "梯度：", analytic)  # 显示当前对象的解析梯度。
+        print(name + "最大绝对误差：", np.max(np.abs(analytic - numeric)))  # 显示差分检查误差。
+
+    print("当前状态：", step_hidden)  # 应约为 [[0.22602835,0.19737532]]。
+    print("本例单步损失：", step_loss)  # 固定例子的核对值，不代表模型测评结果。
+    print("tanh 与循环单步反向检查：通过")  # 四组检查通过后显示。
+
+
 
 if __name__ == "__main__":  # 直接运行文件时启动演示。
     main()  # 调用入口，不改变现有 RNN。

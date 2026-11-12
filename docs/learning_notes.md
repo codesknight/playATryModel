@@ -1806,3 +1806,117 @@ grad_hidden 用于继续沿计算链向前层传播，不直接执行 hidden-=�
 如果上游传入的是总损失梯度而不是平均损失梯度，那也是对那个已定义目标求和，不能在中间层擅自改变目标；应从整体损失定义统一决定归一化。
 
 当前记录为实操通过、概念已补充讲解，不提前视为独立掌握。先做单偏移两行贡献相加的复习，再进入循环层 tanh 的局部梯度和跨时间反传。
+
+### 第十六课共享偏移复习题
+
+对已经包含平均因子的两行上游贡献 0.3 和 -0.1，学习者回答共享偏移总梯度为 0.2，正确。记录为该复习题通过，不据此认定所有矩阵梯度公式已经独立掌握。
+
+## 第 17 课：tanh 与循环层单步反向传播
+
+状态：实操复查通过，学习者已实现循环单步反向及四组数值检查，tanh 标量梯度题回答正确；逐元素乘法原因需补充讲解。不改完整 RNN、不跨时间反传、不训练小说、不更新权重。
+
+### 一步循环的计算链
+
+先计算激活前数值 a=current+previous@W_h+b_h，再令 hidden=tanh(a)，之后经过输出层与交叉熵得到损失。
+
+顺序为：当前字符向量和上一步状态 → 激活前数值 → tanh 后的状态 → 输出层 → 损失。反向按相反顺序传递，先复用输出层得到 G_h=dL/dhidden，然后穿过 tanh，再穿过加法和循环矩阵。
+
+### tanh 导数与逐元素乘法
+
+单个数 h=tanh(a)，导数 dh/da=1-h²；所以 G_a=G_h*(1-hidden²)。这里 * 为逐元素乘法，不是矩阵乘法，每个激活分量只依赖同位置的激活前分量。
+
+导数可从指数定义推导：令 u=exp(2a)，tanh(a)=(u-1)/(u+1)，商法则给出导数 4u/(u+1)²；而 1-[(u-1)/(u+1)]² 也等于 4u/(u+1)²。因此已保存 h 时无需重新计算指数。
+
+手算 h=0.8、G_h=0.5，则局部导数为 1-0.8²=0.36，G_a=0.5×0.36=0.18。h 接近 ±1 时局部导数很小，跨很多步相乘时可能削弱梯度，这是后续讨论长期依赖的一个原因，不代表所有循环网络梯度一定变小。
+
+### 其余单步梯度
+
+对 a=current+previous@W_h+b_h：
+
+- grad_current=G_a：当前向量直接相加，局部导数为 1。
+- grad_previous=G_a@W_h.T：将梯度沿循环连接传给前一时刻。
+- grad_recurrent=previous.T@G_a：累积各行对共享循环权重的贡献。
+- grad_hidden_bias=G_a.sum(axis=0)：共享偏移贡献沿行相加。
+
+current、previous、hidden、G_h、G_a 均为 (B,H)，W_h 与其梯度为 (H,H)，隐藏偏移及其梯度为 (H,)。本课 B=1、H=2，所有检查用 float64，不改变已有 RNN 的 float32 配置。
+
+### 第一块：在原 main 前顶格添加三个函数
+
+```python
+def recurrent_step(current, previous, weight, bias):  # 计算一个时间步，不处理整段序列。
+    return np.tanh(current + previous @ weight + bias)  # 把当前向量、上一步状态和偏移结合，再逐元素激活。
+
+def recurrent_step_loss(current, previous, recurrent_weight, hidden_bias, output_weight, output_bias, target):  # 将单步循环接到已有输出层损失。
+    hidden = recurrent_step(current, previous, recurrent_weight, hidden_bias)  # 得到当前时间步的状态。
+    return output_loss(hidden, output_weight, output_bias, target)  # 复用上一课单位置损失，不改变其他目标定义。
+
+def recurrent_backward(previous, weight, hidden, grad_hidden):  # 将当前状态的上游梯度继续传过一个循环步。
+    assert previous.ndim == 2 and previous.shape == hidden.shape == grad_hidden.shape, "状态与上游梯度形状不一致"  # 每行每个分量都要有对应梯度。
+    assert weight.shape == (hidden.shape[1], hidden.shape[1]), "循环权重形状错误"  # 本模型输入和隐藏维度都为 H。
+    grad_activation = grad_hidden * (1.0 - hidden ** 2)  # 梯度乘 tanh 局部导数，必须逐元素计算。
+    grad_current = grad_activation.copy()  # 当前字符向量直接相加，收到相同数值的梯度。
+    grad_previous = grad_activation @ weight.T  # 将梯度传回上一步状态，得到 (B,H)。
+    grad_weight = previous.T @ grad_activation  # 汇总各行贡献，得到 (H,H) 的循环权重梯度。
+    grad_bias = grad_activation.sum(axis=0)  # 汇总共享隐藏偏移的梯度，得到 (H,)。
+    return grad_current, grad_previous, grad_weight, grad_bias  # 返回四组梯度，暂时不更新任何数组。
+```
+
+这里 hidden 是 tanh 后的状态，不能把 previous 误代入导数 1-hidden²；grad_hidden 是上游损失对状态的梯度，不是 hidden 本身。权重梯度要用对应这一步的 previous，而不是当前 hidden。
+
+### 第二块：在原 main 末尾添加单步检查
+
+保留上一课全部代码与变量。weight、bias、target 继续指上一段的小输出层参数；新变量 recurrent_weight 和 hidden_bias 指循环层，不能混淆。整体缩进 4 个空格：
+
+```python
+    current_vector = np.array([[0.1, 0.2]], dtype=np.float64)  # 当前字符的两维向量。
+    previous_hidden = np.array([[0.2, -0.1]], dtype=np.float64)  # 上一步的两维状态，不要求本课重算它的来源。
+    recurrent_weight = np.array([[0.5, 0.2], [-0.3, 0.4]], dtype=np.float64)  # 两维循环权重。
+    hidden_bias = np.zeros(2, dtype=np.float64)  # 隐藏偏移，与上一课输出层的 bias 区分。
+    step_hidden = recurrent_step(current_vector, previous_hidden, recurrent_weight, hidden_bias)  # 得到 tanh([0.23,0.2])。
+    step_scores = step_hidden @ weight + bias  # 使用上一课输出层参数得到候选分数。
+    step_loss, _, step_score_gradient = loss_and_grad(step_scores[0], target)  # 先计算损失和对分数的梯度。
+    _, _, step_hidden_gradient = output_backward(step_hidden, weight, step_score_gradient.reshape(1, -1))  # 先经过输出层，得到当前状态的上游梯度。
+    grad_current, grad_previous, grad_recurrent, grad_hidden_bias = recurrent_backward(previous_hidden, recurrent_weight, step_hidden, step_hidden_gradient)  # 再经过 tanh 和循环连接。
+    numeric_current = numerical_array_gradient(current_vector, lambda candidate: recurrent_step_loss(candidate, previous_hidden, recurrent_weight, hidden_bias, weight, bias, target))  # 只试探当前字符向量。
+    numeric_previous = numerical_array_gradient(previous_hidden, lambda candidate: recurrent_step_loss(current_vector, candidate, recurrent_weight, hidden_bias, weight, bias, target))  # 只试探上一步状态。
+    numeric_recurrent = numerical_array_gradient(recurrent_weight, lambda candidate: recurrent_step_loss(current_vector, previous_hidden, candidate, hidden_bias, weight, bias, target))  # 只试探循环权重。
+    numeric_hidden_bias = numerical_array_gradient(hidden_bias, lambda candidate: recurrent_step_loss(current_vector, previous_hidden, recurrent_weight, candidate, weight, bias, target))  # 只试探隐藏偏移。
+    checks = [("当前向量", grad_current, numeric_current), ("上一步状态", grad_previous, numeric_previous), ("循环权重", grad_recurrent, numeric_recurrent), ("隐藏偏移", grad_hidden_bias, numeric_hidden_bias)]  # 统一组织四组检查。
+    for name, analytic, numeric in checks:  # 依次核对每个对象的梯度。
+        assert analytic.shape == numeric.shape and np.allclose(analytic, numeric, rtol=1e-6, atol=1e-8), name + "梯度不正确"  # 对照完整数组而非单个元素。
+        print(name + "梯度：", analytic)  # 显示该对象的解析梯度。
+        print(name + "最大绝对误差：", np.max(np.abs(analytic - numeric)))  # 显示中心差分核对误差。
+    print("当前状态：", step_hidden)  # 应约为 [[0.22602835,0.19737532]]。
+    print("本例单步损失：", step_loss)  # 只用于核对固定例子，不代表真实模型测评。
+    print("tanh 与循环单步反向检查：通过")  # 四组数值检查通过后显示。
+```
+
+数值差分每次从候选 current/previous/weight/bias 重新计算当前 hidden、分数和损失，不能把固定 step_hidden 再用进数值检查，否则会漏掉要验证的依赖路径。
+
+### 单步与跨时间的边界
+
+grad_previous 是传给前一个时间步的接口，不直接将 previous 当作独立参数更新。grad_current 后面需要累加到对应字符表示表行；重复字符的多次贡献也要累加，尚未在本课实现。
+
+本课 grad_hidden 来自当前输出层；完整序列中还可能收到后一个时间步的回传，进入 tanh 之前必须合并这些路径，之后按时间反向累加共享参数梯度。不能仅做当前步输出梯度就宣称完整 RNN 反向传播正确。
+
+本课局部反向的主要矩阵计算约 O(BH²)，没有新增参数，也没有运行更新。待提交：修改后的脚本、四组梯度和误差，并回答：某个 tanh 输出 h=0.8、上游梯度为 0.5，则激活之前的梯度是多少？为什么 grad_hidden*(1-hidden²) 用逐元素乘法，而不是 @ 矩阵乘法？完成后记录结果、更新 CI 并完整上传。
+
+### 第十七课实操复查：通过
+
+学习者提交的四组梯度、误差、当前状态和损失均与参考一致。老师检查实际脚本并重新运行：四组中心差分误差约为 1.99e-11、5.77e-12、5.05e-12、1.99e-11，当前状态约 [[0.22602835,0.19737532]]，单步损失约 1.06044782。
+
+老师另行用一行和三行随机状态、任意固定上游线性目标检查四组数组梯度，形状与数值全部正确；前后输入、权重、偏移、状态及上游梯度均未被改写。未改学习者计算实现，只清理行尾空白。GitHub 自动检查继续运行已有演示中的 tanh 与循环单步断言。
+
+### 口述题：标量计算正确，逐元素依赖继续解释
+
+学习者回答激活前梯度为 0.18，正确：0.5×(1-0.8²)=0.18。对为什么使用逐元素乘法，学习者仍需解释，以下只记为补充讲解，不提前认定掌握。
+
+单独看激活前向量 a=[a0,a1] 到激活后状态 h=[tanh(a0),tanh(a1)] 这一段：h0 只依赖 a0，h1 只依赖 a1，没有分量之间的混合。因此 dL/da0=G_h0×(1-h0²)，dL/da1=G_h1×(1-h1²)，每个上游梯度只乘对应位置的局部导数。
+
+例如 h=[0.8,0.3]，G_h=[0.5,-0.2]，局部导数为 [0.36,0.91]，结果 G_a=[0.18,-0.182]。得到的梯度形状与 h 一样，不把不同分量相加。
+
+完整链式法则也能写为行向量 G_h 乘一个对角雅可比矩阵 diag(1-h²)，非对角项全零；数值上与逐元素乘法一致，但构造对角矩阵会多占空间并做多余运算。本课不能直接把两个 (B,H) 数组做 @；即使尺寸偶然允许，也不表示符合这段计算的依赖。
+
+前面的线性连接 previous@weight 本来就把多个状态分量混合到每个结果分量，所以反向用矩阵乘法汇总相应路径。选择 * 还是 @ 要从前向依赖推导，不能按“反向传播一律使用哪一种”记忆。这里讨论的是 a→tanh(a)，不是说整个循环状态不依赖其他历史分量。
+
+当前记录为代码实操与标量题通过、逐元素原因已补充，待复习：只改变 a0、保持 a1 不变时，tanh(a1) 会不会变化？之后再串联两个时间步，合并当前输出和后续状态传回的梯度。
