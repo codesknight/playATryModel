@@ -3330,3 +3330,180 @@ temperature=None 保留旧贪心行为，所以原 main 中的贪心结果与断
 学习者回答第一题“否”、第二题“更集中”，均正确。概率采样时编号 0 的概率虽最高，其他非零概率候选仍可能被选中；温度从 1 降到 0.5 后，这个示例第一项概率从 0.6 升至约 0.7826，分布更集中，但仍不等于每次必选最大项。
 
 第二十八课实操与问答通过。本次仅补记回答，未修改代码、权重或重新训练。当前模型仍只训练五步，下一阶段可增加实际训练步数，并使用固定验证子集与生成结果共同观察模型变化；具体训练配置和记录将在下一课实现，不将本次采样检查视为模型语言能力已经合格。
+
+## 第二十九课：增加训练步数，对照验证损失与生成结果
+
+状态：老师已在临时目录完成 200 步预跑，待学习者新建 scripts/learn/13_training_experiment.py 并手敲运行。未替学习者创建脚本或在仓库生成新权重。原 model/learn_rnn_step005.npz、11 和 12 脚本保持不变；本课新模型从种子 42 初始化，在同一次训练轨迹的 0、5、50、200 步做对照。
+
+### 实验控制与范围
+
+固定模型结构 V=5547、H=64，B=16、T=32、SGD 学习率 0.1、全局裁剪阈值 1、模型种子 42。四个检查点都评估同一个验证集顺序前三批（1536 个预测位置），并用同一“春风”开头生成 40 个编号；采样温度 1、采样种子 42、生成上下文上限 32 始终相同。验证保持参数不变，测试集不使用。
+
+这次固定 random.Random(42) 打乱训练章节列表，使短训练接触四本书，章内字符顺序与章节边界不变。旧五步权重采用原顺序训练，本实验采用新顺序，所以不能把旧文件与新 200 步结果的差异全归因于步数；主要比较本实验同一顺序轨迹上的 0、5、50、200 步。本次只打乱一次，不开始新 epoch。
+
+模型只创建一次，训练参数递推继续使用 θ_k=θ_(k-1)-η*clip(∇L_(batch_k)(θ_(k-1)))。每个检查点先固定参数评估，再生成样例和保存文件，不用验证梯度更新参数。训练日志是各批更新前损失，不与最终模型固定验证损失混为同一个指标。
+
+### 第一块：新文件导入
+
+```python
+from importlib import import_module  # 复用已有数据、模型、评估、保存与生成代码。
+from itertools import islice  # 只取本次实验需要的前 200 个训练批次。
+import json  # 将实验配置、验证损失和生成文字保存成可复查的记录。
+import random  # 用固定种子打乱章节顺序，不打乱章内字符。
+import numpy as np  # 检查损失和参数是否为有限数值。
+
+network = import_module("07_tiny_rnn")  # 导入模型与梯度裁剪，不执行旧模型演示。
+training = import_module("11_train_steps")  # 复用固定参数评估和权重保存，不执行旧训练入口。
+decoding = import_module("12_generate_text")  # 复用贪心与采样生成，不执行旧生成演示。
+```
+
+三个已有模块都有 main 保护，导入不会执行旧训练或生成。第六课数据模块在 main 中导入，仍会先显示旧数据检查。
+
+### 第二块：记录一个检查点
+
+```python
+def inspect_checkpoint(model, vocab, validation_batches, step, output_dir):  # 对当前参数做固定评估、生成和保存。
+    validation_loss, positions = training.evaluate(model, validation_batches, network)  # 始终评估同一份固定验证子集，不更新参数。
+    greedy, _ = decoding.generate(model, vocab, "春风", new_tokens=40, context_size=32)  # 固定开头和生成长度，观察贪心结果。
+    sampled, _ = decoding.generate(model, vocab, "春风", new_tokens=40, context_size=32, temperature=1.0, seed=42)  # 固定温度和抽样种子，减少比较中的随机干扰。
+    checkpoint_path = output_dir / f"lesson29_step{step:03d}.npz"  # 各步使用不同文件名，不覆盖原五步学习权重。
+    training.save_checkpoint(checkpoint_path, model, vocab, step)  # 保存当前参数，以后可以独立重载这个检查点。
+    print(f"检查点 step={step} 固定验证损失={validation_loss:.6f}")  # 显示同一子集上的模型表现。
+    print("贪心：", repr(greedy))  # 如实保留重复或不通顺的输出。
+    print("采样：", repr(sampled))  # 同步记录概率采样结果，不凭一条样例判断总体质量。
+    return {"step": step, "validation_loss": validation_loss, "validation_positions": positions, "greedy": greedy, "sampled": sampled, "checkpoint": checkpoint_path.name}  # 返回可写入 JSON 的本次观察。
+```
+
+输出目录中的文件名分别为 lesson29_step000.npz、lesson29_step005.npz、lesson29_step050.npz、lesson29_step200.npz。step000 是未训练基线；后面各文件是同一次训练的参数快照，不是另外初始化重训。相同路径再次运行实验会被本次结果覆盖，原 learn_rnn_step005.npz 不受影响。评估和生成不训练模型，保存的是检查点当前参数。
+
+### 第三块：main 中准备固定数据与模型
+
+```python
+def main():  # 从头训练一个模型，比较不同训练步数的检查点。
+    data = import_module("06_make_windows")  # 读取训练集和固定词表，首次导入仍会显示旧数据检查。
+    batch_size = 16  # 每个完整训练批次使用 16 个窗口。
+    seq_length = 32  # 窗口长度和步长均为 32。
+    max_steps = 200  # 本次先连续更新 200 步，仍未完成整个训练集的一轮。
+    learning_rate = 0.1  # 保持普通梯度下降学习率不变。
+    max_norm = 1.0  # 保持全局梯度裁剪阈值不变。
+    train_records = list(data.train_records)  # 复制章节列表，不改变原数据模块的章节顺序。
+    random.Random(42).shuffle(train_records)  # 固定随机打乱章节顺序，章内字序保持原样。
+    with (data.ROOT / "data" / "splits" / "validation.jsonl").open(encoding="utf-8") as file:  # 读取独立验证集。
+        validation_records = [json.loads(line) for line in file]  # 按原顺序保留验证章节。
+    validation_batches = list(islice(data.iter_batches(data.iter_windows(validation_records, seq_length, seq_length), batch_size), 3))  # 沿用之前固定的前三个验证批次。
+    assert len(validation_batches) == 3, "固定验证子集不足三批"  # 确认本次评估范围与之前课程一致。
+    model = network.TinyRNN(len(data.tokens), hidden_size=64, seed=42)  # 只创建一次模型，之后在同一训练轨迹上比较步数。
+    output_dir = data.ROOT / "model"  # 将四个独立检查点写入模型目录。
+    history = [inspect_checkpoint(model, data.vocab, validation_batches, 0, output_dir)]  # 更新之前先记录零步基线。
+    chapter_to_book = {record["id"]: record["book"] for record in train_records}  # 根据章节标识追踪训练窗口来自哪本书。
+    book_windows = {record["book"]: 0 for record in train_records}  # 为四本书分别累计实际参与训练的窗口数。
+    batches = data.iter_batches(data.iter_windows(train_records, seq_length, seq_length), batch_size)  # 按本次固定章节顺序提供连续训练批次。
+    completed_steps = 0  # 累计实际完成的更新次数。
+```
+
+train_records 是原章节列表的浅拷贝，只改变这个列表的排列，不改文本或磁盘数据。打乱单位是完整章节，不是字，不是把下一字目标随机打散。验证子集仍沿用先前课程的相同顺序前三批；它不代表四本书全部验证章节的表现。
+
+### 第四块：接在 main 内连续训练
+
+```python
+    for step, batch in enumerate(islice(batches, max_steps), start=1):  # 连续处理前 200 个批次，每批更新一次。
+        x, y = batch["x"], batch["y"]  # 取真实输入和下一字目标编号。
+        loss, raw_grads = model.loss_and_grad(x, y)  # 用当前参数完成本批前向与完整反向。
+        assert np.isfinite(loss), "训练损失异常"  # 不让无效损失继续进入训练记录。
+        grads, raw_norm, scale = network.clip_gradients(raw_grads, max_norm)  # 汇总全部梯度后，再按全局范数裁剪。
+        for name in model.params:  # 使用本批完整梯度更新五组参数。
+            model.params[name] -= learning_rate * grads[name]  # 下一批继续使用本次更新后的参数。
+        assert all(np.isfinite(param).all() for param in model.params.values()), "模型参数异常"  # 发现无效参数时停止。
+        for chapter_id in batch["chapter_ids"]:  # 按实际窗口来源统计四本书的训练覆盖。
+            book_windows[chapter_to_book[chapter_id]] += 1  # 本批每行窗口为对应书籍增加一次计数。
+        completed_steps = step  # 记录已经完成的更新步数。
+        if step % 25 == 0:  # 每隔 25 步显示一次进度，不逐步刷屏。
+            print(f"训练 step={step} 更新前批次损失={loss:.6f} grad_norm={raw_norm:.6f} scale={scale:.6f}")  # 不要求不同批次损失单调下降。
+        if step in (5, 50, 200):  # 在预先选定的步数评估同一个模型的当前参数。
+            history.append(inspect_checkpoint(model, data.vocab, validation_batches, step, output_dir))  # 记录固定验证损失和相同设置下的生成结果。
+```
+
+enumerate(...,start=1) 提供一开始的更新步数；每个批次先反向、裁剪、完成五组参数更新，再把 step 记入计数并按计划检查。每隔 25 步打印一行进度，固定 5、50、200 步才评估、生成、保存。不要求损失随每条训练日志单调下降；训练检查参数有限，验证变化和文字质量如实观察。
+
+### 第五块：接在 main 内保存实验记录，再添加入口
+
+```python
+    assert completed_steps == max_steps and all(count > 0 for count in book_windows.values()), "本次实验步数或四书覆盖不符合预期"  # 当前数据和固定顺序应完成 200 步并接触四本书。
+    report = {  # 汇总本次实验的配置、数据来源和观察结果。
+        "config": {  # 固定比较条件，方便以后复现实验。
+            "steps": max_steps, "batch_size": batch_size, "seq_length": seq_length,  # 记录训练量与批次尺寸。
+            "learning_rate": learning_rate, "max_norm": max_norm, "model_seed": 42, "chapter_shuffle_seed": 42,  # 记录更新规则与初始化顺序。
+            "prompt": "春风", "new_tokens": 40, "temperature": 1.0, "sampling_seed": 42, "validation_batches": 3,  # 记录固定生成和验证条件。
+        },  # 配置记录结束。
+        "train_sha256": data.vocab["train_sha256"],  # 记录固定词表对应的训练文件指纹。
+        "book_windows": book_windows,  # 记录四本书实际提供的训练窗口数。
+        "history": history,  # 保存四个检查点的验证损失和生成样例。
+    }  # 完整实验记录组装结束。
+    report_path = data.ROOT / "docs" / "training_runs" / "lesson29.json"  # 为本次实验保留独立的可复查记录。
+    report_path.parent.mkdir(parents=True, exist_ok=True)  # 创建记录目录，已经存在时继续使用。
+    report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")  # 写入中文可读的 JSON，不覆盖学习笔记。
+    print("四本书实际训练窗口数：", book_windows)  # 确认四本书都实际提供了本次训练数据。
+    print("完成更新步数：", completed_steps)  # 应为 200，而不是 200 个 epoch。
+    print("实验记录路径：", report_path)  # 显示配置、验证损失和生成样例的保存位置。
+    print("多步训练、固定验证与生成对照记录：完成")  # 只说明流程完成，不保证所有模型指标都更好。
+
+
+if __name__ == "__main__":  # 直接运行脚本时才开始本次训练实验。
+    main()  # 训练并记录零步、五步、五十步和两百步的模型。
+```
+
+book_windows 统计实际训练窗口，避免误以为“加载了四本书”就等于“本次四本书都参与更新”。当前数据和固定种子下四本书均会被访问，但窗口数不相等；章节级打乱不是书籍等量采样。200 步共 3200 个窗口、102400 个预测位置，约为 4787 步一轮的 4.18%，仍未完成一个 epoch。上述覆盖断言针对本课固定配置，不保证把 max_steps 改得很小后仍成立。
+
+JSON 记录保存全部对照条件、数据指纹、验证损失和原样文字，不能只留“看起来最好”的输出。这里没有自动选择最优检查点，也不声称检查点验证损失必然依次降低；若升高也保留。保存四个独立小权重是为了之后独立复查。
+
+### 老师预跑观察
+
+固定验证子集的平均交叉熵：
+
+| 已完成 step | 验证损失 |
+|---:|---:|
+| 0 | 8.651848 |
+| 5 | 8.629895 |
+| 50 | 8.174481 |
+| 200 | 7.676629 |
+
+本环境预跑完整实验（含数据导入检查、四次验证与生成、保存文件）约 18.1 秒，实际实操速度取决于 CPU 与 NumPy，不保证相同用时。模型参数始终为 719723 个，训练步数增加主要增加时间；四个权重文件各约 2.7 MB，合计约 10.7 MB，不增加单个模型的参数数量，也不需要在内存中同时保留四个模型。
+
+观察重点：验证损失下降表明在这个未参与更新的固定子集上，真实下一字的平均对数概率改善；它不能证明已学会通顺句子。第 50 与 200 步贪心结果都重复逗号，说明当前解码下存在强烈重复偏好。采样文字也尚不通顺，不能只凭出现几个常用字就认定模型已学好语言。应将“验证指标改善”和“可读性达标”分开记录，后续再扩大训练与验证、分析重复问题。
+
+完整参考输出如下：
+
+```text
+检查点 step=0 固定验证损失=8.651848
+贪心： '春风忏帐朝瑁抅螳赋舌捶樵语捣砌张喜班貔蘅舐缨墦降莩\n擢椁迤膻休腌将隙帘姓容喟楚豂拶骈'
+采样： '春风衽殆迎腹匿鱼蛮要哀汶旧隶糠贺永屉甩兼赓箔蚤摄鬃重袒姣浒保噎耻蔺骦拧料涕妆哔涸屁美'
+检查点 step=5 固定验证损失=8.629895
+贪心： '春风忏狄程瑁菜浙皴滨曩疮衫睁协履墦务燐晶咨嵘破叫琴泣秋蟒炷跋秋泥瑁喔虼炖赫缪迥皇檀喇'
+采样： '春风衷殆迈腰匮鲂蜉要哈沏旬隰紧赂毙屁甸册赢箱蛙撩鬒钗裙姻浔信嚏联蔷骸拧既浚妮哩淖屡美'
+训练 step=25 更新前批次损失=8.428392 grad_norm=0.498488 scale=1.000000
+训练 step=50 更新前批次损失=7.898736 grad_norm=0.545869 scale=1.000000
+检查点 step=50 固定验证损失=8.174481
+贪心： '春风，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，'
+采样： '春风衷歙逛良剑，谒趔呲洼曳黎翩郑沽岌相俸遭绷误旂，餐赘娇溃令噪芽订，授暂滪妾咂潮屉舜'
+训练 step=75 更新前批次损失=7.735422 grad_norm=0.631560 scale=1.000000
+训练 step=100 更新前批次损失=7.442065 grad_norm=0.599918 scale=1.000000
+训练 step=125 更新前批次损失=7.642580 grad_norm=0.403113 scale=1.000000
+训练 step=150 更新前批次损失=7.306347 grad_norm=0.447093 scale=1.000000
+训练 step=175 更新前批次损失=7.663426 grad_norm=0.493130 scale=1.000000
+训练 step=200 更新前批次损失=6.695289 grad_norm=0.599060 scale=1.000000
+检查点 step=200 固定验证损失=7.676629
+贪心： '春风，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，'
+采样： '春风袋朽锯花上，诵跋乞暮惙，筷道是匝爆。邙程诡待，髭趣僭朴。亲胭裸，岘悚来你了板南罽'
+四本书实际训练窗口数： {'西游记.txt': 1390, '红楼梦.txt': 996, '水浒全传.txt': 433, '三国演义.txt': 381}
+完成更新步数： 200
+实验记录路径： D:\projects\playatry\docs\training_runs\lesson29.json
+多步训练、固定验证与生成对照记录：完成
+```
+
+老师在临时目录完成上述实跑，四个检查点顺序正确，四书实际窗口总数为 3200；重新独立加载 200 步文件，生成与保存记录一致。未在仓库生成这些新权重；最终记录字典仅为排版拆行，语法树与已预跑代码一致。
+
+### 实操与提交
+
+运行 python scripts/learn/13_training_experiment.py。不要同时修改学习率、温度或开头；先保留这一轮对照。请提交四个检查点的验证损失、200 步的贪心/采样文字，以及四本书窗口统计。新增四个权重暂被既有 .gitignore 忽略，待实操复查后会为本课检查点添加明确例外，连同 docs/training_runs/lesson29.json、代码和笔记完整上传 GitHub。后续 CI 的短检查与完整实验运行范围将在复查时明确，避免每次都无意跑很长训练。
+
+回答：一、验证损失从约 8.65 降到 7.68，但贪心仍重复逗号，能否认定已经学会通顺写作？二、为什么比较四个检查点时要固定验证子集、输入开头、温度和采样种子？本课为学生待完成练习，不提前记录其运行成功。
