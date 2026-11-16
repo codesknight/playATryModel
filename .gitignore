@@ -13,7 +13,8 @@ venv/
 .DS_Store
 Thumbs.db
 
-# 只保留可以直接体验生成效果的微型示例权重。
+# 保留微型示例和已复查的学习里程碑权重，其他实验产物默认忽略。
 model/*
 !model/tiny_rnn.npz
+!model/learn_rnn_step005.npz
 !model/README.md

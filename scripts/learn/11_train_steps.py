@@ -2,6 +2,7 @@ from importlib import import_module  # 按字符串导入已有数据与模型�
 from itertools import islice  # 从批次生成器中只取指定数量的批次。
 import numpy as np  # 检查批次数组与训练损失。
 import json  # 导入 JSON 工具，读取独立的验证章节文件。
+from pathlib import Path  # 导入路径工具，创建权重目录并检查文件大小。
 
 def evaluate(model, batches, network):  # 固定参数，只前向计算给定批次的平均损失。
     saved_params = {name: param.copy() for name, param in model.params.items()}  # 保存评估前的参数，用来检查评估没有更新模型。
@@ -17,7 +18,28 @@ def evaluate(model, batches, network):  # 固定参数，只前向计算给定�
     assert all(np.array_equal(param, saved_params[name]) for name, param in model.params.items()), "评估修改了参数"  # 参数必须与评估之前完全一致。
     return loss_sum / position_count, position_count  # 返回固定参数下的加权平均损失和评估规模。
 
+def save_checkpoint(path, model, vocab, completed_steps):  # 将模型参数、词表、结构配置和已完成步数保存到一个文件。
+    path = Path(path)  # 把传入路径统一转换为 Path 对象。
+    assert path.suffix == ".npz", "本课权重文件使用 .npz 后缀"  # 避免保存工具自动补后缀导致路径不一致。
+    assert len(vocab["tokens"]) == model.vocab_size, "词表与模型大小不一致"  # 每个输入输出编号都必须对应保存的词表。
+    assert isinstance(completed_steps, int) and completed_steps >= 0, "训练步数不合法"  # 已完成更新次数必须是非负整数。
+    assert all(param.dtype == np.float32 and np.isfinite(param).all() for param in model.params.values()), "本课只保存有限的 float32 参数"  # 与当前正式模型的类型保持一致。
+    metadata = {"format": "tiny_rnn_char_v1", "hidden_size": model.hidden_size, "completed_steps": completed_steps, "vocab": vocab}  # 保存重建模型和解释编号所需的信息。
+    metadata_text = json.dumps(metadata, ensure_ascii=False)  # 将配置转成普通 JSON 字符串，保留中文字符。
+    path.parent.mkdir(parents=True, exist_ok=True)  # 确保权重文件的父目录存在。
+    np.savez_compressed(path, metadata=np.array(metadata_text), **model.params)  # 将字符串配置和五组参数压缩到同一个 npz 文件。
 
+def load_checkpoint(path, network):  # 从权重文件创建一个带已训练参数的新模型。
+    with np.load(path, allow_pickle=False) as archive:  # 只读取数组和字符串，不依赖 Python 对象反序列化。
+        metadata = json.loads(str(archive["metadata"].item()))  # 将保存的单个字符串数组还原为配置字典。
+        assert metadata["format"] == "tiny_rnn_char_v1", "权重格式与本模型不匹配"  # 不把其他结构的权重当成本课模型。
+        vocab = metadata["vocab"]  # 使用权重文件内保存的词表，保留原来的编号顺序。
+        model = network.TinyRNN(len(vocab["tokens"]), hidden_size=metadata["hidden_size"], seed=0)  # 按保存的维度创建模型，随机初值稍后全部被覆盖。
+        for name, expected in model.params.items():  # 逐一加载模型必须具有的五组参数。
+            value = archive[name]  # 取出当前参数数组。
+            assert value.shape == expected.shape and value.dtype == expected.dtype and np.isfinite(value).all(), name + "权重形状、类型或数值不正确"  # 防止错误数组进入模型。
+            model.params[name] = value.copy()  # 复制已训练参数，文件关闭后新模型仍可独立使用。
+    return model, vocab, metadata["completed_steps"]  # 返回新模型、对应词表和保存时的训练步数。
 
 def main():  # 定义连续训练少量批次的演示入口。
     data = import_module("06_make_windows")  # 复用真实训练章节和批次函数，首次导入会执行旧数据检查。
@@ -80,6 +102,25 @@ def main():  # 定义连续训练少量批次的演示入口。
     print("训练后固定验证子集损失：", validation_after)  # 不要求它一定低于训练前，验证结果需要如实记录。
     print("固定验证子集损失变化：", validation_after - validation_before)  # 负数表示该子集损失降低，正数表示升高。
     print("验证只前向、参数不变与固定子集检查：通过")  # 正确性检查通过不代表验证效果一定改善。
+
+    checkpoint_path = data.ROOT / "model" / "learn_rnn_step005.npz"  # 将本课五步训练成果保存在独立文件，不覆盖原示例权重。
+    save_checkpoint(checkpoint_path, model, data.vocab, completed_steps)  # 保存训练后的五组参数与完整词表配置。
+    loaded_model, loaded_vocab, loaded_steps = load_checkpoint(checkpoint_path, network)  # 从磁盘加载成一个新的模型对象。
+    assert loaded_model is not model and loaded_vocab == data.vocab and loaded_steps == completed_steps, "加载配置或训练步数不一致"  # 新对象应保留原词表和步数。
+    assert all(np.array_equal(param, loaded_model.params[name]) for name, param in model.params.items()), "加载后的参数发生变化"  # 无损保存后五组参数应逐元素完全一致。
+    probe_x = validation_batches[0]["x"]  # 固定同一个验证输入，比较加载前后的预测分数。
+    logits_before = model.forward(probe_x)  # 用内存中的训练模型计算分数。
+    logits_loaded = loaded_model.forward(probe_x)  # 用磁盘重新加载的模型计算相同输入的分数。
+    assert np.allclose(logits_before, logits_loaded, rtol=1e-5, atol=1e-6), "加载前后预测不一致"  # 在浮点容差内检查预测计算一致。
+    loaded_loss, loaded_positions = evaluate(loaded_model, validation_batches, network)  # 重新评估加载模型，不进行训练。
+    assert loaded_positions == after_positions and np.isclose(loaded_loss, validation_after, rtol=1e-6, atol=1e-7), "加载前后验证损失不一致"  # 使用相同固定子集比较损失。
+    assert checkpoint_path.stat().st_size < 1_000_000_000, "权重文件超过本项目的 1 GB 上限"  # 检查实际保存文件的字节数。
+    print("权重保存路径：", checkpoint_path)  # 显示可供以后独立加载的文件位置。
+    print("权重文件字节数：", checkpoint_path.stat().st_size)  # 文件包含压缩参数与配置，大小不等于裸参数字节数。
+    print("加载后训练步数：", loaded_steps)  # 应为 5，这只是保存的记录，不会自动执行继续训练。
+    print("加载前后验证损失：", validation_after, loaded_loss)  # 两个值应在容差内一致。
+    print("模型保存、重载与预测一致性检查：通过")  # 配置、参数、预测与损失检查全部通过后显示。
+
 
 if __name__ == "__main__":  # 只有直接运行文件时才开始训练演示。
     main()  # 创建一次模型并连续执行五步更新。
