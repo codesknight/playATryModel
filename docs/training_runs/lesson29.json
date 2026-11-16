@@ -1,0 +1,57 @@
+{
+  "config": {
+    "steps": 200,
+    "batch_size": 16,
+    "seq_length": 32,
+    "learning_rate": 0.1,
+    "max_norm": 1.0,
+    "model_seed": 42,
+    "chapter_shuffle_seed": 42,
+    "prompt": "春风",
+    "new_tokens": 40,
+    "temperature": 1.0,
+    "sampling_seed": 42,
+    "validation_batches": 3
+  },
+  "train_sha256": "0cee762b4832c3a1c37c84c245ca912c51a1c22fa8df4c37e811ec735e390a69",
+  "book_windows": {
+    "西游记.txt": 1390,
+    "红楼梦.txt": 996,
+    "水浒全传.txt": 433,
+    "三国演义.txt": 381
+  },
+  "history": [
+    {
+      "step": 0,
+      "validation_loss": 8.651848157246908,
+      "validation_positions": 1536,
+      "greedy": "春风忏帐朝瑁抅螳赋舌捶樵语捣砌张喜班貔蘅舐缨墦降莩\n擢椁迤膻休腌将隙帘姓容喟楚豂拶骈",
+      "sampled": "春风衽殆迎腹匿鱼蛮要哀汶旧隶糠贺永屉甩兼赓箔蚤摄鬃重袒姣浒保噎耻蔺骦拧料涕妆哔涸屁美",
+      "checkpoint": "lesson29_step000.npz"
+    },
+    {
+      "step": 5,
+      "validation_loss": 8.629894574483236,
+      "validation_positions": 1536,
+      "greedy": "春风忏狄程瑁菜浙皴滨曩疮衫睁协履墦务燐晶咨嵘破叫琴泣秋蟒炷跋秋泥瑁喔虼炖赫缪迥皇檀喇",
+      "sampled": "春风衷殆迈腰匮鲂蜉要哈沏旬隰紧赂毙屁甸册赢箱蛙撩鬒钗裙姻浔信嚏联蔷骸拧既浚妮哩淖屡美",
+      "checkpoint": "lesson29_step005.npz"
+    },
+    {
+      "step": 50,
+      "validation_loss": 8.174481391906738,
+      "validation_positions": 1536,
+      "greedy": "春风，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，",
+      "sampled": "春风衷歙逛良剑，谒趔呲洼曳黎翩郑沽岌相俸遭绷误旂，餐赘娇溃令噪芽订，授暂滪妾咂潮屉舜",
+      "checkpoint": "lesson29_step050.npz"
+    },
+    {
+      "step": 200,
+      "validation_loss": 7.676629384358724,
+      "validation_positions": 1536,
+      "greedy": "春风，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，",
+      "sampled": "春风袋朽锯花上，诵跋乞暮惙，筷道是匝爆。邙程诡待，髭趣僭朴。亲胭裸，岘悚来你了板南罽",
+      "checkpoint": "lesson29_step200.npz"
+    }
+  ]
+}

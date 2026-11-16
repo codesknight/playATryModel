@@ -17,4 +17,8 @@ Thumbs.db
 model/*
 !model/tiny_rnn.npz
 !model/learn_rnn_step005.npz
+!model/lesson29_step000.npz
+!model/lesson29_step005.npz
+!model/lesson29_step050.npz
+!model/lesson29_step200.npz
 !model/README.md
