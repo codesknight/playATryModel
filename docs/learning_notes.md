@@ -3206,3 +3206,105 @@ if __name__ == "__main__":  # 直接运行新文件时才开始生成演示。
 权重是数值运算中的系数，词表定义编号的字符含义；每个隐藏分量或某个浮点权重通常没有预先规定的独立中文语义，不能仅凭数值就命名为“春天”“人物”等。若要研究某些内部方向是否具有可解释作用，需要另做输入对比、相近向量分析、消融等实验，不能把猜测当成已经验证的结论。本次没有进行这些语义解释实验。
 
 也应区分当前模型的预测与自然语言合理性：这里只训练五步，最高候选概率约为 0.0324%，生成文字尚不通顺。检查到“忏”分数最高，只能说明当前模型与选择规则为何输出它，不能证明它是语言上合理的续写。本次仅读取权重、前向和记录笔记，未改变模型或训练代码；此前的位置选择与编号反馈口述题仍待学习者回答。
+
+### 第二十七课位置选择口述复核与课程推进
+
+学习者回答要在“春风”末尾继续写，应看“读完春风时”的分数，正确：使用最后位置 logits[0,-1,:]。学习者明确要求没有问题就进入下一课，按要求推进。追加编号作为下一轮输入的作用已讲解，并在后续生成循环中继续巩固；不虚构第二题已有独立回答。本课实操通过，当前继续学习解码选择。
+
+## 第二十八课：概率采样与温度
+
+状态：老师已在内存中预检以下修改，待学习者亲自修改 scripts/learn/12_generate_text.py 并运行。保留上一课贪心默认行为，新增按概率采样的可选分支；未修改权重、未重新训练或替学习者修改实际脚本。
+
+### 从固定最高分到按概率抽取
+
+贪心总取 argmax；概率采样先将分数转换为分布，再根据各候选概率抽取。假设三个候选概率是 [0.6,0.3,0.1]：贪心总选第零项，而采样时三项都有机会；概率表示重复抽样的统计规律，不能要求每抽十次恰好得到 6、3、1 次。
+
+温度 T>0 时 p_i(T)=exp(z_i/T)/Σ_j exp(z_j/T)。T=1 使用模型原来的 softmax 分布；T<1 放大分数差距，分布更集中；T>1 缩小差距，分布更平缓。所有温度都在同一组 logits 上操作，不修改模型权重，不进行训练。低温并不保证每次都选最大项，高温也不保证文章更好。
+
+对于非均匀示例 p=[0.6,0.3,0.1]，取 z=ln(p)：T=0.5 时，概率相当于原概率平方后归一化，[0.36,0.09,0.01]/0.46；T=2 时，相当于开平方后归一化。原分数相等时，无论温度多少仍为均匀分布。
+
+### 第一块：在 generate 前顶格添加概率函数
+
+```python
+def sampling_probabilities(scores, temperature):  # 用温度把最后位置的分数转换成抽样概率。
+    scores = np.asarray(scores, dtype=np.float64)  # 用双精度计算概率，供随机抽样使用。
+    assert scores.ndim == 1 and scores.size > 0 and np.isfinite(scores).all(), "需要有限的一维候选分数"  # 每次只处理最后一个位置。
+    assert np.isfinite(temperature) and temperature > 0, "采样温度必须是有限正数"  # 温度参与除法，不能为零或负数。
+    shifted = (scores - scores.max()) / temperature  # 先统一平移，再按温度缩放分数差距。
+    weights = np.exp(shifted)  # 将缩放后的分数转换为非负权重。
+    return weights / weights.sum()  # 除以权重总和，得到概率总和为 1 的分布。
+```
+
+先减去最大值保证最大指数为 1，再除以温度；对全部候选统一平移不改变 softmax。双精度概率供 rng.choice 使用，模型参数仍是 float32。本课使用普通正温度，不把 T=0 当作合法除数；想贪心时使用下一块的 temperature=None。
+
+### 第二块：只修改 generate 的三处，其余原代码保留
+
+把函数定义整行替换为：
+
+```python
+def generate(model, vocab, prompt, new_tokens=40, context_size=32, temperature=None, seed=42):  # 默认贪心，指定正温度时按概率采样。
+```
+
+在原 for _ in range(new_tokens) 前、generated_ids=[] 后添加：
+
+```python
+    rng = np.random.default_rng(seed)  # 每次生成创建一个局部随机数生成器，在整个生成循环中持续使用。
+```
+
+把原 next_id=int(np.argmax(logits[0,-1,:])) 那一整行替换为下面六行，保持在 for 循环内的八格缩进：
+
+```python
+        scores = logits[0, -1, :]  # 读完当前上下文后，用最后位置的分数预测下一字。
+        if temperature is None:  # 未指定采样温度时保留上一课的贪心方式。
+            next_id = int(np.argmax(scores))  # 直接选择分数最高的编号。
+        else:  # 指定正温度后，允许按概率选择其他候选。
+            probabilities = sampling_probabilities(scores, temperature)  # 温度调整概率的集中程度，不修改模型参数。
+            next_id = int(rng.choice(len(tokens), p=probabilities))  # 根据每个候选的概率抽取一个合法编号。
+```
+
+原 token_ids.append(next_id)、generated_ids.append(next_id)、返回文字等代码保留。无论选择哪个分支，都必须将选中的编号加入下一轮上下文。rng 创建在生成循环外，让抽样状态每步继续向前；每次 generate 调用用给定 seed 新建局部随机数生成器。
+
+两个“种子”作用不同：权重加载时的临时初始化种子随后被文件参数覆盖；这里 seed 控制生成时抽样序列，不改变权重。同一参数、词表、开头、温度、上下文策略、采样种子和一致环境下结果可复现；不同种子通常产生不同结果，但并非数学上保证每次不同。
+
+temperature=None 保留旧贪心行为，所以原 main 中的贪心结果与断言仍应通过。temperature=1.0 使用原概率采样；T=1 不表示每次都选择最高分。不能把采样种子当成额外训练参数。
+
+### 第三块：在原 main 末尾追加温度与采样检查
+
+放在原 print("权重独立加载、贪心生成与参数不变检查：通过") 后，仍为 main 内四格缩进，入口判断仍顶格。
+
+```python
+    demo_scores = np.log(np.array([0.6, 0.3, 0.1], dtype=np.float64))  # 构造温度为 1 时恰好得到这三个概率的分数。
+    for temperature in (0.5, 1.0, 2.0):  # 比较较低、标准和较高温度。
+        probabilities = sampling_probabilities(demo_scores, temperature)  # 对同一组分数只改变温度。
+        assert np.isfinite(probabilities).all() and np.all(probabilities >= 0) and np.isclose(probabilities.sum(), 1.0), "采样概率不合法"  # 核对抽样分布。
+        print(f"温度 {temperature} 的演示概率：", np.round(probabilities, 6))  # 只为展示而四舍五入，抽样不使用截短概率。
+    sampled_text, sampled_ids = generate(model, vocab, prompt, new_tokens=40, context_size=32, temperature=1.0, seed=42)  # 用保存权重按原始概率连续抽样四十步。
+    repeated_sample, repeated_ids = generate(model, vocab, prompt, new_tokens=40, context_size=32, temperature=1.0, seed=42)  # 同参数、温度、开头和采样种子再次生成。
+    assert sampled_text == repeated_sample and sampled_ids == repeated_ids, "固定采样种子没有复现结果"  # 局部随机数状态应从同一种子出发。
+    assert len(sampled_ids) == 40 and all(0 <= index < len(vocab["tokens"]) for index in sampled_ids), "采样编号数量或范围错误"  # 每一步必须得到一个合法编号。
+    assert all(np.array_equal(param, saved_params[name]) for name, param in model.params.items()), "采样生成修改了参数"  # 改变解码策略不改变权重。
+    print("温度 1.0、采样种子 42 的结果：", repr(sampled_text))  # 观察概率抽样与贪心结果的区别。
+    print("温度概率、固定种子采样与参数不变检查：通过")  # 检查流程正确，不判断文字质量。
+```
+
+打印时 round 只影响展示，不用四舍五入后的数值抽样，以免概率和偏离 1。示例分布只有三项便于手算，真实模型抽样仍在全部 5547 个候选上进行。本课尚未实现 top-k、top-p 或未知编号屏蔽。
+
+### 生成质量与效率
+
+当前权重只训练五步，概率分布很分散，采样输出仍可能不通顺或出现罕见字符；采样改变选择方式，不能替代训练或保证生成质量改善。本课先验证解码算法，下一阶段再推进训练与评估。
+
+主要前向计算量与上一课相同；每次抽样额外对 V 个候选计算概率并选择，约 O(V) 级开销，临时概率向量为 V 个 float64，当前约 44376 字节，不增加模型参数。没有做训练速度或生成质量基准比较。
+
+### 老师预检与待提交
+
+老师在内存中组合修改运行，原贪心断言与新采样断言均通过；另检查大分数平移稳定性、相等分数的均匀分布、低温示例的精确分布与非法温度拒绝。没有修改学习者脚本或权重。新增参考输出如下，采样文字在不同 NumPy 实现或浮点环境下可能有差异，以流程与复现断言为准：
+
+```text
+温度 0.5 的演示概率： [0.782609 0.195652 0.021739]
+温度 1.0 的演示概率： [0.6 0.3 0.1]
+温度 2.0 的演示概率： [0.472734 0.334273 0.192993]
+温度 1.0、采样种子 42 的结果： '春风衽殃返腭匹鲂蜩觌哏沃旱隶索赀毫屎畚兹赡篡蜓撼髽钢裩娈浙俦园肚蕴骥挛旺浴妯哭渍层翕'
+温度概率、固定种子采样与参数不变检查：通过
+```
+
+运行 python scripts/learn/12_generate_text.py，提交新增概率与采样输出。回答：一、概率为 [0.6,0.3,0.1]，采样是否每次都选第零项？二、温度从 1 降到 0.5，这个非均匀示例的概率分布会更集中还是更平缓？完成后复查实际代码、补记结果、更新 CI 说明并同步 GitHub。
