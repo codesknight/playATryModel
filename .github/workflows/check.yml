@@ -37,5 +37,5 @@ jobs: # 定义需要执行的任务。
           python scripts/learn/09_softmax_gradient.py # 检查分数、输出层、循环单步与整段反向、表示表重复编号累加。
           python scripts/learn/10_train_one_batch.py # 读取真实训练批次，检查完整反向、全局裁剪和一次参数更新。
           python scripts/learn/11_train_steps.py # 检查连续训练、固定验证子集、权重保存重载及参数与预测一致性。
-          python scripts/learn/12_generate_text.py # 独立加载权重，检查贪心生成编号、重复结果与参数不变。
+          python scripts/learn/12_generate_text.py # 独立加载权重，检查贪心、温度概率、固定种子采样与参数不变。
           git diff --exit-code -- data/corpus data/corpus_processed data/chapters data/splits data/vocab # 检查原文未变，且所有已完成的数据产物可复现。
