@@ -3087,3 +3087,96 @@ npz 对数组是无损保存，参数必须逐元素完全一致；同输入的�
 学习者回答“文件里保存的训练参数”，正确。加载函数完整覆盖五组临时随机参数后，预测使用文件中保存的数值，所以临时构造模型时 seed=0 与原训练初始 seed=42 不同，也不影响恢复后的预测；前提是模型结构、词表顺序与输入保持一致。初始训练种子仍可能影响从头训练的结果，不能混为一谈。
 
 第二十六课保存与重载实操、参数及预测一致性检查通过；词表解码和加载参数来源经补充讲解后的口述复核均回答正确。模型权重已作为学习里程碑纳入仓库。本次仅补记回答，未修改代码或重新训练。下一课可独立加载已保存模型，实现逐字生成；该生成练习尚未实施。
+
+## 第二十七课：独立加载权重，给定开头逐字生成
+
+状态：老师已在内存中预检以下完整代码，待学习者新建 scripts/learn/12_generate_text.py 并亲自输入、运行和回答。未替学习者创建脚本，未重新训练或修改已保存权重。本课实现最简单的贪心生成，不使用随机采样、温度或 top-k。
+
+### 生成循环与数学
+
+输入“春风”，将它编码后前向计算，取最后一个输入位置的分数向量，选择分数最大的编号 i*=argmax_i z_i，再把该编号接到输入末尾。下一步前向包含刚生成的编号，重复四十次。完整循环是：当前文字编号→前向→取最后位置分数→选择一个编号→追加编号→下一轮。
+
+训练时各位置使用真实前一字符作为输入；生成时开头之后使用自己选择的字符继续预测，错误和重复也可能被继续输入。所有参数固定，不计算梯度、不调用更新。模型输出 (1,T,V)，logits[0,-1,:] 是最后位置预测下一个字符的候选分数，之前位置的输出对应更早的预测位置，不是本次应追加的字符。
+
+因为 softmax 对各分数使用同一个正分母，指数函数严格递增，所以 argmax softmax(z)=argmax z；贪心选择无需先求概率。argmax 返回编号而不是字符，要用保存词表 tokens[next_id] 解码。分数恰好相同时，NumPy argmax 选择第一个最大值；本课同参数同开头的生成是确定性的。
+
+### 第一块：新文件导入
+
+```python
+from importlib import import_module  # 按字符串导入已有模型和权重加载函数。
+from pathlib import Path  # 根据脚本位置找到已保存的权重文件。
+import numpy as np  # 创建输入编号数组，并选择分数最高的候选。
+```
+
+### 第二块：接着添加生成函数
+
+```python
+def generate(model, vocab, prompt, new_tokens=40, context_size=32):  # 根据开头逐步选择新编号，不更新任何参数。
+    assert isinstance(prompt, str) and len(prompt) > 0, "开头文字不能为空"  # 至少提供一个字符，模型才能预测后续。
+    assert isinstance(new_tokens, int) and new_tokens >= 0 and isinstance(context_size, int) and context_size > 0, "生成步数或上下文长度不合法"  # 允许生成零步，但上下文长度必须为正。
+    tokens = vocab["tokens"]  # 使用权重文件内保存的词表顺序。
+    char_to_id = {char: index for index, char in enumerate(tokens)}  # 根据保存词表恢复字符到编号的映射。
+    token_ids = [char_to_id.get(char, vocab["unk_id"]) for char in prompt]  # 未见字符使用已有未知编号，不扩充词表。
+    generated_ids = []  # 只记录新生成的编号，便于检查生成步数。
+    for _ in range(new_tokens):  # 每次循环选出一个新编号。
+        x = np.asarray([token_ids[-context_size:]], dtype=np.int64)  # 只取最近的上下文，整理成一条二维输入。
+        logits = model.forward(x)  # 只做前向，得到 (1,上下文长度,词表大小) 的分数。
+        next_id = int(np.argmax(logits[0, -1, :]))  # 最后位置预测下一个编号，贪心选择分数最高的一项。
+        token_ids.append(next_id)  # 将本次结果加入输入，下一轮就能读到它。
+        generated_ids.append(next_id)  # 单独保存本次生成的编号。
+    text = prompt + "".join(tokens[index] for index in generated_ids)  # 保留原始开头，将新编号按保存词表解码。
+    return text, generated_ids  # 返回文字和新编号，特殊未知符号也按词表显示。
+```
+
+本课每步重新前向，最多取最近 32 个编号，并按现有 forward_hidden 从零初态重算这段上下文。这样是一个明确的生成策略，不表示 RNN 结构只能处理 32 字；超过 32 的更早历史不会参与本步计算。以后讨论缓存隐藏状态时，需区分完整历史递推与滑动窗口重算，两者并不自动等价。
+
+未见的开头字符映射到文件中保存的 unk_id，不更改词表；输出文字保留原始 prompt 仅为显示，模型实际上无法区分映射到同一未知编号的不同字符。若模型生成 <UNK>，输出会显示这个特殊字符串；因此应检查生成编号数为 40，不能普遍断言可见字符串恰好新增 40 个 Unicode 字符。本课不额外屏蔽未知编号或强制停止符；生成步数就是循环次数。
+
+### 第三块：添加独立加载与检查入口
+
+```python
+def main():  # 独立加载权重并生成文字，不运行训练脚本的 main。
+    network = import_module("07_tiny_rnn")  # 取得前向模型实现。
+    checkpoints = import_module("11_train_steps")  # 只复用加载函数，模块的训练入口不会被执行。
+    root = Path(__file__).resolve().parents[2]  # 从当前脚本位置找到项目根目录。
+    checkpoint_path = root / "model" / "learn_rnn_step005.npz"  # 使用上一课已经保存并上传的学习权重。
+    model, vocab, completed_steps = checkpoints.load_checkpoint(checkpoint_path, network)  # 从文件恢复参数和配套词表。
+    prompt = "春风"  # 给定希望模型继续写下去的开头。
+    saved_params = {name: param.copy() for name, param in model.params.items()}  # 保存副本，检查生成过程没有修改权重。
+    text, generated_ids = generate(model, vocab, prompt, new_tokens=40, context_size=32)  # 连续选择四十个新编号。
+    repeat_text, repeat_ids = generate(model, vocab, prompt, new_tokens=40, context_size=32)  # 同参数同输入再次贪心生成，核对确定性。
+    assert len(generated_ids) == 40 and all(0 <= index < len(vocab["tokens"]) for index in generated_ids), "生成编号数量或范围不正确"  # 每步恰好生成一个合法编号。
+    assert text.startswith(prompt) and text == repeat_text and generated_ids == repeat_ids, "开头或重复生成结果不一致"  # 贪心生成没有随机抽样。
+    assert all(np.array_equal(param, saved_params[name]) for name, param in model.params.items()), "生成过程修改了参数"  # 生成只前向，不训练。
+    print("加载权重的训练步数：", completed_steps)  # 当前权重只训练了五步。
+    print("输入开头：", repr(prompt))  # 清楚显示开头中的特殊字符。
+    print("新生成编号数：", len(generated_ids))  # 应为 40，不包含开头编号。
+    print("生成结果：", repr(text))  # 用 repr 保留换行等特殊字符，方便核对输出。
+    print("权重独立加载、贪心生成与参数不变检查：通过")  # 正确性检查通过不代表文字质量已经良好。
+
+
+if __name__ == "__main__":  # 直接运行新文件时才开始生成演示。
+    main()  # 加载磁盘权重并生成，不执行训练更新。
+```
+
+导入 11_train_steps 只定义函数，不执行受 main 保护的训练入口；因此本脚本不读取训练批次、不重建词表、不重新训练，不会出现第六课的数据统计输出。完整词表和参数都来自上一课权重文件。保存参数副本是教学检查，核对生成过程中参数保持不变；第二次生成检查确定性，不是再训练一次。
+
+### 如何看待结果与效率
+
+当前权重只训练五步，尚未完成一个 epoch，更没有完成所有书籍的充分训练。输出可能重复、罕见字符较多或不通顺。本课通过标准是模型可从文件独立加载、逐步生成合法编号并保留参数，不把生成质量当作代码正确性断言。下一阶段再学习不同解码方式与更充分的训练，不能用随机抽样掩盖模型尚未学好的事实。
+
+设生成步数 G、最大上下文 K，每步复用现有 forward，会重算最长 K 步状态和全部位置输出，主要计算量约 O(G*K*(H²+HV))，另有每步 argmax 的 O(V) 开销。当前 V=5547、H=64、K=32，单份最大 logits 有 32*5547 个 float32，数据区为 710016 字节，不包含参数与其他数组。这种写法优先清楚，后面可学习只计算最后位置输出和复用隐藏状态来减少重复工作；本课没有声称已做性能优化。
+
+### 老师预检与待提交
+
+老师在内存中组合以上完整新脚本，独立加载已保存权重，不执行训练，全部断言通过。另用可记录输入的小模型检查新编号正确反馈、上下文截断、生成零步及未知开头字符映射。未修改仓库代码或权重。以下是当前文件和环境下的参考输出，跨平台极接近的候选分数若顺序变化，文字可能不同，以流程断言为准：
+
+```text
+加载权重的训练步数： 5
+输入开头： '春风'
+新生成编号数： 40
+生成结果： '春风忏帐程踊昏膻帑幔徐抬咯诐烟掇窃旭崇艮狠仄揿箔刘踏染攒狭诰幔凿傍匡媛箕馄筒纬样州比'
+权重独立加载、贪心生成与参数不变检查：通过
+```
+
+运行 python scripts/learn/12_generate_text.py，贴出完整输出。回答：一、为什么选择 logits[0,-1,:]，而不是 logits[0,0,:]？二、选出一个新编号后，为什么要 token_ids.append(next_id)？完成后复查实际脚本、记录输出与回答、加入 CI 并同步 GitHub。若文字重复先如实记录，不据此要求随意调整学习率或认定保存加载错误。
