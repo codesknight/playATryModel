@@ -3523,3 +3523,192 @@ JSON 记录保存全部对照条件、数据指纹、验证损失和原样文字
 权重 SHA-256：step000 为 630b7ea373a0d5c74544775ae4f34bcd3805ab370a77bd760e7df34c9f5848a5；step005 为 dddc439409f3b78f90df12a0cbb8d5dd24edd4e7db17d171bb75afd154c5d0e1；step050 为 09c1f153c07750ce5230da8ef1fa678108f659eddc1a35e6df2bf3d9335e509e；step200 为 e076bc06fe64ecedac3f7aa5cbb28be6d8f7f315f36ee10455a2a06aa50db033。
 
 第二十九课实操和问答通过。下一阶段可先诊断重复现象，例如建立只利用训练集字符频率的简单基线，再比较固定验证损失，判断当前改进是否已超越基本字频预测；该诊断尚未实施，不直接宣称增加步数就能解决重复。
+
+## 第三十课：字符频率基线与重复逗号诊断
+
+状态：老师已在内存中预检完整新脚本，待学习者新建 scripts/learn/14_frequency_baseline.py 并输入、运行与回答。未代写学习者脚本、未更新 RNN 权重或写入正式诊断报告。模型仍使用上一课已保存的 200 步检查点。
+
+### 什么是字频基线
+
+不看前文，每个位置都使用同一份训练字符概率 p(i)。计数 c_i，目标出现总次数 N，词表大小 V，加一平滑 α=1：p(i)=(c_i+α)/(N+αV)。加的是每个编号的虚拟出现次数，避免未出现编号（包括匹配训练范围中未出现的字符或未知编号）概率为零，使验证损失变成无穷。α 在评估前固定，不用验证数据调优。
+
+若计数 [3,1,0]、V=3，平滑后 [4,2,1]，分母为 7，概率 [4/7,2/7,1/7]。这是闭式计数估计，不需要梯度下降。对真实下一字 y 的损失仍是 -ln p(y)，在相同验证位置取平均，所以可与 RNN 的交叉熵比较。
+
+两条字频基线：一条只统计同一章节顺序前 200 个批次的 y，共 102400 个目标；另一条统计全部训练窗口的 y，共 2450688 个目标。前者与当前 RNN 的训练目标出现范围匹配，后者使用了更多训练目标，必须明确标注，不能据后者胜出就作同等数据量的架构优劣结论。两条都不读取验证目标进行计数。
+
+本课统计窗口目标 y，不是任意原文字符：每章首字符不成为下一字目标、丢弃不足完整窗口的尾部，与 RNN 当前训练任务定义保持一致。重复出现的同一字符每次都计数；词表不因验证数据而改变。
+
+### 第一块：新文件导入与两个函数
+
+```python
+from importlib import import_module  # 复用固定词表、窗口、模型和评估接口。
+from itertools import islice  # 构造与上一课完全相同的固定验证子集。
+import json  # 读取实验配置，并保存本课诊断记录。
+import random  # 恢复上一课固定的训练章节顺序。
+import numpy as np  # 按编号计数、计算概率和交叉熵。
+
+
+def smoothed_probabilities(counts, alpha=1.0):  # 给每个编号加虚拟计数，再计算字符频率概率。
+    counts = np.asarray(counts, dtype=np.float64)  # 用双精度计算概率，避免整数除法问题。
+    assert counts.ndim == 1 and counts.size > 0 and np.isfinite(counts).all() and np.all(counts >= 0), "计数不合法"  # 每个词表编号对应一个非负计数。
+    assert np.isfinite(alpha) and alpha > 0, "平滑系数必须是有限正数"  # 正平滑保证没出现的编号也有非零概率。
+    return (counts + alpha) / (counts.sum() + alpha * counts.size)  # 所有编号的概率总和为 1。
+
+
+def frequency_loss(probabilities, batches):  # 不看输入前文，只根据正确目标编号计算字频基线损失。
+    assert probabilities.ndim == 1 and np.isfinite(probabilities).all() and np.all(probabilities > 0) and np.isclose(probabilities.sum(), 1.0), "概率分布不合法"  # 对数需要正概率。
+    log_probs = np.log(probabilities)  # 同一分布用于每个位置，只需计算一次对数。
+    loss_sum = 0.0  # 累计全部预测位置的负对数概率。
+    positions = 0  # 累计实际评估位置数。
+    for batch in batches:  # 遍历与 RNN 相同的验证批次。
+        loss_sum += float((-log_probs[batch["y"]]).sum())  # 每个位置查正确答案对应概率，再取负对数。
+        positions += batch["y"].size  # 尾批也按实际位置数统计。
+    assert positions > 0, "没有可评估的位置"  # 不对空子集计算平均。
+    return loss_sum / positions, positions  # 返回按位置平均的交叉熵及评估规模。
+```
+
+np.bincount 会按非负整数编号累计出现次数，minlength=V 保证没出现的编号也保留零计数。frequency_loss 直接按目标编号查 log_probs，不需要为每个验证位置复制一整份 (V,) 概率，也不构造 (B,T,V) 的基线分数数组。
+
+### 第二块：main 中恢复训练顺序，并计数两条范围
+
+```python
+def main():  # 建立两条训练集字频基线，诊断已保存的两百步 RNN。
+    data = import_module("06_make_windows")  # 复用训练数据、固定词表及窗口函数，首次导入会显示旧检查。
+    network = import_module("07_tiny_rnn")  # 只导入模型结构，不重新训练。
+    training = import_module("11_train_steps")  # 复用保存权重的加载和固定参数评估。
+    experiment = json.loads((data.ROOT / "docs" / "training_runs" / "lesson29.json").read_text(encoding="utf-8"))  # 读取上一课实际实验条件。
+    config = experiment["config"]  # 保持训练顺序、批大小和窗口长度与上一课一致。
+    assert experiment["train_sha256"] == data.vocab["train_sha256"], "训练数据版本不一致"  # 不能将不同数据版本的基线直接比较。
+    records = list(data.train_records)  # 复制训练章节列表，原数据顺序保持不变。
+    random.Random(config["chapter_shuffle_seed"]).shuffle(records)  # 恢复上一课训练时的同一章节顺序。
+    vocab_size = len(data.tokens)  # 每个词表编号都要有一个计数和概率。
+    full_counts = np.zeros(vocab_size, dtype=np.int64)  # 统计全部训练窗口目标字符。
+    seen_counts = np.zeros_like(full_counts)  # 另统计 RNN 前两百步实际见过的目标字符。
+    batches = data.iter_batches(data.iter_windows(records, config["seq_length"], config["seq_length"]), config["batch_size"])  # 重走训练窗口流，只计数不更新模型。
+    for batch_index, batch in enumerate(batches, start=1):  # 按相同顺序遍历全部训练批次。
+        batch_counts = np.bincount(batch["y"].reshape(-1), minlength=vocab_size)  # 同一编号出现多次就增加多次计数。
+        full_counts += batch_counts  # 全训练集基线累加每个批次的目标出现次数。
+        if batch_index <= config["steps"]:  # 只给匹配训练范围的基线累计前两百批。
+            seen_counts += batch_counts  # 与 RNN 相同的目标出现范围，包含重复字符。
+    assert int(seen_counts.sum()) == 102400 and int(full_counts.sum()) == 2450688, "本课目标计数与实验范围不符"  # 确认匹配范围和全训练范围。
+    alpha = 1.0  # 预先固定加一平滑，不用验证集选择该数值。
+    seen_probs = smoothed_probabilities(seen_counts, alpha)  # 得到匹配两百步目标范围的频率模型。
+    full_probs = smoothed_probabilities(full_counts, alpha)  # 得到使用全部训练目标的频率模型。
+```
+
+此处遍历全部批次只为了计数，不训练模型。前 200 批的匹配顺序从上一课 JSON 配置恢复，不能随意用未打乱的前 200 批替代。词频拟合使用 train_records；验证集到下一块才被读取用于损失测量。
+
+### 第三块：评估相同验证子集，并观察高频字符
+
+```python
+    with (data.ROOT / "data" / "splits" / "validation.jsonl").open(encoding="utf-8") as file:  # 验证集仅用于测量，不参与计数拟合。
+        validation_records = [json.loads(line) for line in file]  # 保留原验证章节顺序。
+    validation_batches = list(islice(data.iter_batches(data.iter_windows(validation_records, config["seq_length"], config["seq_length"]), config["batch_size"]), config["validation_batches"]))  # 使用与上一课相同的前三批。
+    seen_loss, seen_positions = frequency_loss(seen_probs, validation_batches)  # 测量匹配训练范围的字频模型。
+    full_loss, full_positions = frequency_loss(full_probs, validation_batches)  # 测量看过更多训练目标的全训练集字频模型。
+    reference = next(row for row in experiment["history"] if row["step"] == config["steps"])  # 找到上一课两百步检查点记录。
+    model, vocab, step = training.load_checkpoint(data.ROOT / "model" / reference["checkpoint"], network)  # 加载已训练模型，不增加训练步数。
+    assert vocab == data.vocab and step == config["steps"], "权重与实验配置不一致"  # 词表顺序和训练步数都要匹配。
+    rnn_loss, rnn_positions = training.evaluate(model, validation_batches, network)  # 固定 RNN 参数，重新评估同一子集。
+    assert seen_positions == full_positions == rnn_positions == reference["validation_positions"] == 1536, "评估范围不一致"  # 四种预测方式必须比较相同位置。
+    assert np.isclose(rnn_loss, reference["validation_loss"], rtol=1e-6, atol=1e-6), "RNN 与历史记录不一致"  # 先确认加载结果可复核。
+    metrics = {"uniform": float(np.log(vocab_size)), "matched_frequency": seen_loss, "full_frequency": full_loss, "rnn200": rnn_loss}  # 均匀预测的交叉熵为 ln(V)，其余使用同一验证子集。
+    print("匹配前两百步的目标字符数：", int(seen_counts.sum()))  # 应为 102400。
+    print("全部训练窗口的目标字符数：", int(full_counts.sum()))  # 应为 2450688，区别于原文字符数。
+    for name, loss in metrics.items():  # 列出四种预测方式的同范围损失。
+        print(f"{name} 固定验证交叉熵：{loss:.6f}")  # 交叉熵越低，在当前目标上的平均对数概率越好。
+    top_frequency = []  # 保留全训练集最常见的五个编号，供解释与记录。
+    for index in np.argsort(full_probs)[-5:][::-1]:  # 按概率从高到低取前五项。
+        item = {"token": data.tokens[index], "count": int(full_counts[index]), "probability": float(full_probs[index])}  # 记录真实计数和加一平滑概率。
+        top_frequency.append(item)  # 将观察保存在本课报告中。
+        print("高频字符：", repr(item["token"]), "次数：", item["count"], "平滑概率：", round(item["probability"], 6))  # 用 repr 显示标点和可能的换行。
+    most_frequent = data.tokens[int(np.argmax(full_probs))]  # 字频模型不看前文，所以每步的最高概率编号都相同。
+    print("全训练集字频基线贪心：", repr("春风" + most_frequent * 40))  # 演示简单字频模型也会连续重复最高频字符。
+```
+
+均匀预测在 V 个编号上都给 1/V，任意正确目标的损失为 ln(V)，所以可以直接计算 uniform 指标。所有预测方式都针对同一 1536 个验证位置，不能把训练集频率拟合损失与 RNN 验证损失混比。
+
+字频模型不看前文，最高频字符在每一步都相同；当前最高频目标是中文逗号。其贪心生成自然重复逗号，说明重复现象可以在一个实现正确但不利用上下文的简单模型中出现；不能仅凭重复就认定 RNN 保存加载或反向传播有错。
+
+### 第四块：查看 RNN 对不同输入的真实分布
+
+```python
+    observations = []  # 记录不同输入下 RNN 的实际下一字分布摘要。
+    comma_id = data.char_to_id["，"]  # 找到当前词表中中文逗号的编号。
+    for text in ("春风", "秋风", "唐僧", "曹操", "宝玉", "春风，", "春风，，"):  # 固定若干输入，包含相同末字与逐步追加逗号的对照。
+        x = np.array([[data.char_to_id.get(char, data.unk_id) for char in text]], dtype=np.int64)  # 按同一词表编码每条输入。
+        probabilities = network.softmax(model.forward(x)[0, -1, :])  # 只前向，查看读完输入后的下一字概率。
+        next_id = int(np.argmax(probabilities))  # 观察贪心选择，不改变模型参数。
+        item = {"input": text, "top_token": data.tokens[next_id], "top_probability": float(probabilities[next_id]), "comma_probability": float(probabilities[comma_id])}  # 保存最高候选和逗号概率。
+        observations.append(item)  # 将不同输入下的观察保留在报告中。
+        print(f"输入={text!r} 最高候选={item['top_token']!r} 最高概率={item['top_probability']:.6f} 逗号概率={item['comma_probability']:.6f}")  # 不能把最高候选误认为概率接近百分之百。
+```
+
+比较“春风”和“秋风”时末字相同，较早输入不同；概率变化可说明输出受到输入历史变化影响，但不证明已经学会语法或正确语义。依次给“春风”“春风，”“春风，，”时，观察最高候选及逗号概率，联系生成循环中把自己选择的字反馈进输入这一机制。只是固定少量输入的观察，不将其推广为所有前文的完整因果分析。
+
+### 第五块：保存诊断记录并添加入口
+
+```python
+    result = {  # 汇总本课可复查的诊断结果。
+        "alpha": alpha, "train_sha256": data.vocab["train_sha256"],  # 记录平滑设置与训练来源。
+        "matched_steps": config["steps"], "matched_target_count": int(seen_counts.sum()), "full_target_count": int(full_counts.sum()),  # 标明两条基线不同的计数范围。
+        "validation_positions": rnn_positions, "reference_checkpoint": reference["checkpoint"],  # 记录共同评估范围和被诊断的 RNN。
+        "metrics": metrics, "top_frequency": top_frequency, "context_observations": observations,  # 保留损失、字频和真实输入对照。
+    }  # 本课只写诊断记录，不保存或更新新的 RNN 权重。
+    report_path = data.ROOT / "docs" / "training_runs" / "lesson30.json"  # 与上一课实验记录分开保存。
+    report_path.parent.mkdir(parents=True, exist_ok=True)  # 确保记录目录存在。
+    report_path.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")  # 保存中文可读的诊断结果。
+    print("字频基线诊断记录：", report_path)  # 显示本课记录文件位置。
+    print("训练集计数、同范围验证与字频基线检查：通过")  # 表示比较流程正确，不强制 RNN 必须胜出。
+
+
+if __name__ == "__main__":  # 直接运行文件时才开始基线诊断。
+    main()  # 只统计训练目标并评估，不执行参数更新。
+```
+
+### 老师预检结果与解释
+
+| 预测方式 | 同一固定验证子集交叉熵 |
+|---|---:|
+| uniform | 8.621013 |
+| matched_frequency | 6.890807 |
+| full_frequency | 6.662431 |
+| rnn200 | 7.676629 |
+
+这里同范围字频约 6.89081，低于 RNN 的 7.67663，说明当前 200 步 RNN 在这个固定子集上尚未超越简单字频预测。该结论不等于 RNN 架构无法学习上下文，也不等于当前 RNN 完全没使用输入；它只说明目前训练状态仍不足。全训练集字频约 6.66243，还利用了更多训练目标，需要单独看待。
+
+同一 RNN 已比均匀预测好，但仍比同范围字频差，这比单独看到损失随步数下降提供了更具体的参照。最高候选是逗号也不代表概率接近 100%：当前“春风”后的逗号概率约 0.00694，即约 0.694%；输入追加逗号后，它在这些示例中的概率会上升。贪心只看谁最大，即使最高概率很小，也会选择它；反馈后的输入仍让它居首，就会继续重复。
+
+计数与基线概率存储主要为 O(V)，遍历目标计数主要为 O(N)，每个 NumPy 批次还需构造 V 长度的 bincount 临时数组。基线评估约 O(M)，M 为验证目标数，无需循环隐藏状态。该实现的全训练流计数会多次分配 V 长度临时数组，优先保证清晰，不声称已经最优。模型参数没有增加，本课没有反向传播。
+
+老师在临时目录运行上述完整代码，所有计数、相同评估位置与 RNN 历史指标核对通过；另检查 [3,1,0] 的精确加一平滑、零计数均匀分布、大小不同批次按位置平均。未生成正式报告或改写权重。参考输出如下：
+
+```text
+匹配前两百步的目标字符数： 102400
+全部训练窗口的目标字符数： 2450688
+uniform 固定验证交叉熵：8.621013
+matched_frequency 固定验证交叉熵：6.890807
+full_frequency 固定验证交叉熵：6.662431
+rnn200 固定验证交叉熵：7.676629
+高频字符： '，' 次数： 180616 平滑概率： 0.073534
+高频字符： '。' 次数： 81208 平滑概率： 0.033062
+高频字符： '：' 次数： 37689 平滑概率： 0.015345
+高频字符： '“' 次数： 34183 平滑概率： 0.013917
+高频字符： '”' 次数： 34162 平滑概率： 0.013909
+全训练集字频基线贪心： '春风，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，'
+输入='春风' 最高候选='，' 最高概率=0.006939 逗号概率=0.006939
+输入='秋风' 最高候选='，' 最高概率=0.005782 逗号概率=0.005782
+输入='唐僧' 最高候选='，' 最高概率=0.006223 逗号概率=0.006223
+输入='曹操' 最高候选='，' 最高概率=0.007650 逗号概率=0.007650
+输入='宝玉' 最高候选='，' 最高概率=0.007245 逗号概率=0.007245
+输入='春风，' 最高候选='，' 最高概率=0.034841 逗号概率=0.034841
+输入='春风，，' 最高候选='，' 最高概率=0.057523 逗号概率=0.057523
+字频基线诊断记录： D:\projects\playatry\docs\training_runs\lesson30.json
+训练集计数、同范围验证与字频基线检查：通过
+```
+
+### 实操与提交
+
+运行 python scripts/learn/14_frequency_baseline.py，贴出四种损失、最高频字符和“春风”“春风，”“春风，，”的观察。报告会写入 docs/training_runs/lesson30.json，不覆盖 lesson29.json 或权重。完成后检查实际脚本与报告、补充笔记、加入 CI 并同步 GitHub。
+
+回答：一、为什么字频计数只能使用训练集，不能把验证集目标也计进去？二、当前 RNN 损失约 7.68，同范围字频约 6.89，哪个在这个固定子集上的交叉熵更好？未完成前不记录为学生已掌握。
