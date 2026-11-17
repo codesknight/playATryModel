@@ -45,4 +45,5 @@ jobs: # 定义需要执行的任务。
           python scripts/ci/check_lesson33.py # 只读核对三轮完整验证、逐轮顺序与独立最佳快照，不重训两轮。
           python scripts/ci/check_lesson34.py # 只读复算循环连接消融实验，并检查原权重及报告未变。
           python scripts/ci/check_lesson35.py # 只读复算完整验证的损失、困惑度、准确率与命中数，并检查文件未变。
+          python scripts/ci/check_lesson36.py # 只读复核两组学习率分支、完整验证、数据预算与包括起点的选择，不重训分支。
           git diff --exit-code -- data/corpus data/corpus_processed data/chapters data/splits data/vocab # 检查原文未变，且所有已完成的数据产物可复现。

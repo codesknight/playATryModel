@@ -30,4 +30,6 @@ model/*
 !model/lesson33_epoch02.npz
 !model/lesson33_epoch03.npz
 !model/lesson33_best.npz
+!model/lesson36_lr010.npz
+!model/lesson36_lr003.npz
 !model/README.md

@@ -1,0 +1,53 @@
+{
+  "starting_checkpoint": "lesson33_best.npz",
+  "starting_sha256": "3eebe534171dbb7c660052763d00c4ecff705d2609da3dd33403a90fc9b8a919",
+  "train_sha256": "0cee762b4832c3a1c37c84c245ca912c51a1c22fa8df4c37e811ec735e390a69",
+  "config": {
+    "steps_per_branch": 200,
+    "learning_rates": [
+      0.1,
+      0.03
+    ],
+    "batch_size": 16,
+    "seq_length": 32,
+    "max_norm": 1.0,
+    "chapter_shuffle_seed": 45
+  },
+  "training_positions_per_branch": 102400,
+  "cached_xy_bytes": 1638400,
+  "book_windows": {
+    "西游记.txt": 1014,
+    "红楼梦.txt": 1532,
+    "三国演义.txt": 202,
+    "水浒全传.txt": 452
+  },
+  "validation_positions": 316960,
+  "history": [
+    {
+      "label": "starting_model",
+      "checkpoint": "lesson33_best.npz",
+      "completed_steps": 14361,
+      "validation_loss": 6.011732826733577
+    },
+    {
+      "label": "lr010",
+      "learning_rate": 0.1,
+      "checkpoint": "lesson36_lr010.npz",
+      "completed_steps": 14561,
+      "validation_loss": 5.9848467574584125,
+      "change_from_start": -0.02688606927516446,
+      "greedy": "春风，只是那个，不是，只是那个，不是，只是那个，不是，只是那个，不是，只是那个，不是"
+    },
+    {
+      "label": "lr003",
+      "learning_rate": 0.03,
+      "checkpoint": "lesson36_lr003.npz",
+      "completed_steps": 14561,
+      "validation_loss": 5.9600134563109055,
+      "change_from_start": -0.051719370422671496,
+      "greedy": "春风，只是这个，不是我，一个，不是我，一个，不是我，一个，不是我，一个，不是我，一个"
+    }
+  ],
+  "selected_label": "lr003",
+  "selected_checkpoint": "lesson36_lr003.npz"
+}
