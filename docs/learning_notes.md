@@ -4173,3 +4173,255 @@ if __name__ == "__main__":  # 直接运行文件时才开始本课完整训练�
 CI 只读核对本课已保存权重：检查五份配置与子集损失、生成编号合法性、逐书窗口覆盖、尾批和完整验证/字频损失。语法检查覆盖完整训练脚本，但每次推送不自动重训整轮，不把受浮点边界影响的整段生成文字当作跨平台黄金值。本地这些检查均通过。
 
 第三十二课实操和问答通过。当前模型在两种分别匹配的验证范围上都优于字频基线，文字仍有重复，不能认定生成质量已合格。下一阶段可学习多轮训练、按轮打乱顺序与根据验证损失选择检查点；这些功能尚未实施，不提前承诺增加轮数一定改善所有指标。
+
+## 第三十三课：多轮训练、按轮打乱与验证选择最佳检查点
+
+状态：老师已在临时目录从已保存的一轮模型继续训练两轮，完成总三轮对照和最佳文件核对，待学习者新建 scripts/learn/17_train_epochs.py 并输入、运行和回答。未替学习者创建实际脚本，未在仓库生成本课新模型或报告。第三十二课及其他旧检查点保持不变。
+
+### 本课范围和继续训练前提
+
+为了避免再训练相同第一轮，本课从 lesson32_step4787.npz 加载一次训练模型，继续完整第 2、3 轮，总累计更新步数为 3*4787=14361。本脚本实际新增 9574 次更新；每轮窗口集合仍为同一 76584 个窗口，重复轮数不增加不同样本数量。隐藏状态仍在每个窗口从零开始，跨轮保留的是参数。
+
+当前优化器是无动量普通 SGD，没有额外动量或自适应矩状态；训练没有 dropout 等随机层，在完整一轮的边界继续，下一轮顺序又由轮号种子独立决定，所以可以在当前定义下接上这份参数。这不是任意优化器或批次中途的通用自动断点续训。脚本每次重新运行仍指定从旧第一轮开始，不会自动读取本课最后进度继续到第四轮。
+
+每轮从原章节列表重新复制，再用 shuffle_seed=42+epoch-1 打乱；第一轮为42，第二轮43，第三轮44。章内字序不变，窗口不跨章。每轮重新创建窗口/批次生成器，不能复用已耗尽的旧流。训练模型在外层 epoch 循环之前加载一次，循环中不能重新初始化或重新加载第一轮，否则会丢掉前一轮的更新。
+
+### 最佳检查点按什么选
+
+每轮结束都在同一完整验证窗口集（316960 个位置）上只前向评估，选择 e*=argmin_e L_val(θ_e)，候选为已经观测的第 1、2、3 轮末模型。不是训练过程损失最低，也不是最后一轮必然最好；不代表检查了每个批次的所有可能参数点。
+
+规则为 validation_loss<best_loss 才更新，分数相等保留较早轮。例如三轮损失为6.1、6.0、6.2，应选第二轮。先把第一轮当作初始最佳，后续轮变差时仍可保留旧模型，不强迫继续训练的模型胜出。
+
+验证集在此用于选择已经训练好的候选，这是验证集的职责；没有把验证标签加入训练计数、梯度或参数更新。它仍会间接影响模型选择，所以验证分数不是最终完全未参与选择的独立测试结果，测试集继续保留。本课不实现早停或学习率调度，仍按预定轮数全部完成。
+
+### 第一块：新文件导入与常量
+
+```python
+from importlib import import_module  # 复用数据、模型、评估、保存和生成工具。
+from time import perf_counter  # 记录本次继续训练及验证的耗时。
+import json  # 读取上一轮报告，并逐轮保存新实验记录。
+import random  # 为每轮建立可复现、不同的章节顺序。
+import numpy as np  # 检查数值、比较权重与验证指标。
+
+network = import_module("07_tiny_rnn")  # 复用模型结构和完整梯度裁剪。
+training = import_module("11_train_steps")  # 复用加载、保存与固定参数评估。
+decoding = import_module("12_generate_text")  # 复用固定设置的文字生成。
+BATCH_SIZE, SEQ_LENGTH = 16, 32  # 保持批大小与窗口长度不变。
+LEARNING_RATE, MAX_NORM = 0.1, 1.0  # 沿用无动量 SGD 与全局裁剪设置。
+TOTAL_EPOCHS = 3  # 总共完成三轮，本脚本从已有第一轮继续完成第二、三轮。
+```
+
+这些导入只定义已有功能，不执行旧训练入口。TOTAL_EPOCHS=3 表示加上上一课的第一轮总共三轮，不是再额外训练三轮。
+
+### 第二块：添加完整验证与报告保存函数
+
+```python
+def evaluate_full(model, data, records):  # 在完整验证窗口集上评估当前参数。
+    windows = data.iter_windows(records, SEQ_LENGTH, SEQ_LENGTH)  # 每次评估都新建验证窗口流。
+    batches = data.iter_batches(windows, BATCH_SIZE)  # 流式处理所有验证批次，不缓存完整分数。
+    return training.evaluate(model, batches, network)  # 只前向，已有函数检查评估不改参数。
+
+
+def save_report(path, report):  # 每轮完成后保存配置、指标与当前最佳选择。
+    path.parent.mkdir(parents=True, exist_ok=True)  # 确保报告目录存在。
+    path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")  # 保存中文可读的 JSON。
+```
+
+每次验证重建完整窗口流，避免生成器耗尽；评估保持参数不变。报告每轮保存一次，状态 running 仅表示尚未完成全部计划；最后核对完最佳文件才改为 completed。
+
+### 第三块：main 中加载一次起点并初始化最佳选择
+
+```python
+def main():  # 在完整轮边界继续训练，而不是重复初始化模型。
+    run_started = perf_counter()  # 总耗时包含起始核验、继续训练、逐轮验证和生成。
+    data = import_module("06_make_windows")  # 复用四书训练数据和固定词表，首次导入显示旧数据检查。
+    source = json.loads((data.ROOT / "docs" / "training_runs" / "lesson32.json").read_text(encoding="utf-8"))  # 读取已经完成第一轮的报告。
+    start_epoch = source["config"]["epochs"]  # 当前起点是完整训练一轮之后。
+    assert start_epoch == 1 and source["train_sha256"] == data.vocab["train_sha256"], "起点轮数或数据版本不一致"  # 只接受本课预定的第一轮起点。
+    assert source["config"]["batch_size"] == BATCH_SIZE and source["config"]["seq_length"] == SEQ_LENGTH and source["config"]["learning_rate"] == LEARNING_RATE and source["config"]["max_norm"] == MAX_NORM, "继续训练配置不一致"  # 保持与上一轮相同的更新规则。
+    steps_per_epoch, windows_per_epoch = source["expected_steps"], source["seen_windows"]  # 使用已核验的一轮规模。
+    source_row = source["history"][-1]  # 选择第一轮最后一步，不加载单窗口诊断模型。
+    source_path = data.ROOT / "model" / source_row["checkpoint"]  # 旧权重只读，不覆盖。
+    model, vocab, global_step = training.load_checkpoint(source_path, network)  # 只在外层循环之前加载一次，后续轮保留更新后的参数。
+    assert vocab == data.vocab and model.hidden_size == 64 and global_step == start_epoch * steps_per_epoch == source["completed_steps"], "起点权重配置不一致"  # 确认模型、词表和累计步数对应第一轮结束。
+    with (data.ROOT / "data" / "splits" / "validation.jsonl").open(encoding="utf-8") as file:  # 读取相同验证集，不用于参数更新。
+        validation_records = [json.loads(line) for line in file]  # 所有轮都评估同一套完整验证窗口。
+    initial_loss, positions = evaluate_full(model, data, validation_records)  # 独立核对加载模型的完整验证表现。
+    assert positions == source["full_validation"]["positions"] and np.isclose(initial_loss, source["full_validation"]["rnn_loss"], rtol=1e-6, atol=1e-6), "起点验证结果不一致"  # 不拿旧子集分数冒充完整分数。
+    output_dir = data.ROOT / "model"  # 本课使用独立的逐轮权重与最佳权重文件名。
+    best_path = output_dir / "lesson33_best.npz"  # 最佳文件是独立快照，不是同一模型对象的引用。
+    best_epoch, best_loss = start_epoch, initial_loss  # 第一轮也参与比较，后续训练变差时仍可保留它。
+    training.save_checkpoint(best_path, model, vocab, global_step)  # 先保存起点，确保最佳文件始终对应一个已评估模型。
+    history = [{"epoch": start_epoch, "global_step": global_step, "validation_loss": initial_loss, "validation_positions": positions, "checkpoint": source_path.name, "greedy": source_row["greedy"], "sampled": source_row["sampled"]}]  # 第一轮生成样例沿用对应权重的已有观察。
+    report = {  # 新报告与旧第一轮报告分开保存。
+        "config": {  # 固定本课从第一轮继续到第三轮的条件。
+            "starting_epoch": start_epoch, "total_epochs": TOTAL_EPOCHS, "batch_size": BATCH_SIZE, "seq_length": SEQ_LENGTH,  # 记录训练起点和批次结构。
+            "learning_rate": LEARNING_RATE, "max_norm": MAX_NORM, "shuffle_seed_base": 42,  # 保持更新规则并记录按轮种子起点。
+            "prompt": "春风", "new_tokens": 40, "temperature": 1.0, "sampling_seed": 42,  # 生成比较条件与之前一致。
+        },  # 其余结果记录在下面的历史和统计中。
+        "train_sha256": data.vocab["train_sha256"], "starting_checkpoint": source_path.name, "steps_per_epoch": steps_per_epoch,  # 保留起点与数据来源。
+        "history": history, "training_stats": [], "completed_epochs": start_epoch, "status": "running",  # 每完成一轮就更新进度记录。
+        "best_epoch": best_epoch, "best_validation_loss": best_loss, "best_checkpoint": best_path.name,  # 当前最佳按完整验证损失决定。
+        "full_frequency_loss": source["full_validation"]["frequency_loss"],  # 沿用同范围、已核验的全训练集字频参照。
+    }  # 没有加入测试集指标或自动提前停止逻辑。
+    report_path = data.ROOT / "docs" / "training_runs" / "lesson33.json"  # 独立保存本课继续训练记录。
+    save_report(report_path, report)  # 先保存起点，避免只有最后才有记录。
+    print(f"起点 epoch={start_epoch} global_step={global_step} 完整验证损失={initial_loss:.6f}", flush=True)  # 明确本次加载的是第一轮结束模型。
+    chapter_to_book = {record["id"]: record["book"] for record in data.train_records}  # 后续逐轮核对四书覆盖。
+```
+
+第一轮完整验证损失在本次重新测量并与旧报告核对；其生成样例沿用上一课对应权重的已记录观察。字频参照沿用已经核验、同一完整范围上的 6.36086485508896。反复训练相同语料不增加新的独立字符计数，不通过重复轮数再改变基线平滑强度。
+
+best_path 保存独立磁盘快照，不使用 best_model=model 这种仍指向同一可变训练对象的做法。后续对 model 的更新不会自动改动已经保存的文件，只有验证改善才明确覆盖最佳文件。
+
+### 第四块：main 内逐轮打乱、重建训练流并完整更新
+
+```python
+    for epoch in range(start_epoch + 1, TOTAL_EPOCHS + 1):  # 本次依次训练第二轮和第三轮。
+        records = list(data.train_records)  # 每轮从原始章节列表重新复制，不沿用上轮乱序列表。
+        shuffle_seed = 42 + epoch - 1  # 第一轮为 42，第二轮为 43，第三轮为 44。
+        random.Random(shuffle_seed).shuffle(records)  # 每轮可复现且通常不同，只改变章节顺序。
+        batches = data.iter_batches(data.iter_windows(records, SEQ_LENGTH, SEQ_LENGTH), BATCH_SIZE)  # 每轮重新创建训练流，避免复用已耗尽的生成器。
+        epoch_steps, seen_windows, seen_positions, last_batch_size = 0, 0, 0, 0  # 这些覆盖计数每轮从零开始。
+        loss_sum = 0.0  # 每轮单独统计训练过程损失。
+        book_windows = {record["book"]: 0 for record in records}  # 每轮都应完整访问四本书。
+        started = perf_counter()  # 此计时只覆盖本轮训练与进度输出，不含轮末验证和保存。
+        print(f"开始 epoch={epoch} 章节打乱种子={shuffle_seed} 前三章={[record['id'] for record in records[:3]]}", flush=True)  # 展示本轮顺序已经重建。
+        for batch in batches:  # 完整处理本轮所有窗口，包括八行尾批。
+            x, y = batch["x"], batch["y"]  # 当前批次实际输入与目标。
+            loss, raw_grads = model.loss_and_grad(x, y)  # 使用上一轮留下的参数继续求梯度，不重新初始化。
+            assert np.isfinite(loss), "训练损失异常"  # 无效损失不能继续更新。
+            grads, _, _ = network.clip_gradients(raw_grads, MAX_NORM)  # 完整反向后统一裁剪。
+            for name in model.params:  # 用本批完整梯度更新五组参数。
+                model.params[name] -= LEARNING_RATE * grads[name]  # 下一批及下一轮都继续使用这些更新。
+            assert all(np.isfinite(param).all() for param in model.params.values()), "模型参数异常"  # 及时发现训练中的无效数值。
+            epoch_steps += 1  # 本轮步数只统计当前轮。
+            global_step += 1  # 累计步数不在轮与轮之间清零。
+            seen_windows += x.shape[0]  # 按实际批大小累加窗口。
+            seen_positions += y.size  # 按实际预测位置数统计。
+            last_batch_size = x.shape[0]  # 记录本轮尾批行数。
+            loss_sum += loss * y.size  # 训练过程损失按实际位置数加权。
+            for chapter_id in batch["chapter_ids"]:  # 将每行窗口计入对应书籍。
+                book_windows[chapter_to_book[chapter_id]] += 1  # 各轮窗口数量应相同，顺序可以不同。
+            if epoch_steps % 500 == 0 or epoch_steps == steps_per_epoch:  # 定期输出本轮与累计进度。
+                print(f"epoch={epoch} step={epoch_steps}/{steps_per_epoch} global_step={global_step} loss={loss:.6f}", flush=True)  # 不要求不同批次损失单调下降。
+        epoch_seconds = perf_counter() - started  # 训练计时结束，接下来保持参数固定评估。
+        assert epoch_steps == steps_per_epoch and global_step == epoch * steps_per_epoch and seen_windows == windows_per_epoch, "轮数或更新覆盖错误"  # 核对没有漏掉或重复完整轮。
+        assert seen_positions == windows_per_epoch * SEQ_LENGTH and last_batch_size == source["last_batch_size"] and book_windows == source["book_windows"], "本轮数据覆盖不一致"  # 顺序变化不能改变窗口集合与尾批大小。
+```
+
+epoch_steps、每轮覆盖计数与过程损失在各轮开始清零；model 和 global_step 不能清零。第2轮global_step从4787增加到9574，第3轮再增加到14361；每轮仍保留八行尾批。按书计数必须与第一轮完整窗口集合一致，只改变访问顺序。
+
+每轮 training_seconds 只覆盖该轮训练及进度输出，不含轮末验证、生成和保存；它与第三十二课包含周期检查点的计时口径不同，不能直接拿来当作同等操作速度比较。
+
+### 第五块：轮末评估、保留全部历史并按条件更新最佳
+
+```python
+        checkpoint_path = output_dir / f"lesson33_epoch{epoch:02d}.npz"  # 每轮单独保存，不覆盖旧轮文件。
+        training.save_checkpoint(checkpoint_path, model, vocab, global_step)  # 元数据记录累计更新步数，不是当前轮内步数。
+        validation_loss, current_positions = evaluate_full(model, data, validation_records)  # 所有轮都用完整同一验证窗口集。
+        assert current_positions == positions, "验证范围在轮之间改变"  # 不将不同范围的损失用于最佳模型选择。
+        greedy, _ = decoding.generate(model, vocab, "春风", new_tokens=40, context_size=32)  # 保持原来的贪心生成设置。
+        sampled, _ = decoding.generate(model, vocab, "春风", new_tokens=40, context_size=32, temperature=1.0, seed=42)  # 固定温度和采样种子。
+        history.append({"epoch": epoch, "global_step": global_step, "validation_loss": validation_loss, "validation_positions": current_positions, "checkpoint": checkpoint_path.name, "greedy": greedy, "sampled": sampled})  # 每轮结果都保留，不只留下最好的一轮。
+        report["training_stats"].append({"epoch": epoch, "shuffle_seed": shuffle_seed, "first_chapter_ids": [record["id"] for record in records[:3]], "epoch_steps": epoch_steps, "seen_windows": seen_windows, "seen_positions": seen_positions, "last_batch_size": last_batch_size, "book_windows": book_windows, "training_process_loss": loss_sum / seen_positions, "training_seconds": epoch_seconds})  # 记录顺序、覆盖与训练统计。
+        if validation_loss < best_loss:  # 只有完整验证损失严格更低才替换最佳，相等时保留较早轮。
+            best_epoch, best_loss = epoch, validation_loss  # 更新最佳轮数及对应分数。
+            training.save_checkpoint(best_path, model, vocab, global_step)  # 保存独立文件快照，后续训练不会继续修改它。
+        report["best_epoch"], report["best_validation_loss"] = best_epoch, best_loss  # 报告同步记录当前选择。
+        report["completed_epochs"] = epoch  # 该轮训练和验证完成后才记录为完成。
+        save_report(report_path, report)  # 每轮落盘一次，即使后面中断仍保留此前完整轮的记录。
+        print(f"轮末 epoch={epoch} 完整验证损失={validation_loss:.6f} 当前最佳轮={best_epoch} 最佳损失={best_loss:.6f}", flush=True)  # 最后轮与最佳轮可能不同。
+        print("贪心：", repr(greedy), flush=True)  # 如实输出重复或不通顺。
+        print("采样：", repr(sampled), flush=True)  # 固定设置下记录文字变化。
+```
+
+每轮文件为 lesson33_epoch02.npz、lesson33_epoch03.npz，最佳别名为 lesson33_best.npz。即使某轮不是最佳，也保存它和对应指标，不能只留好看的记录。最佳文件的 metadata 记录其累计更新步数，而非当前轮内步数。
+
+### 第六块：训练结束，独立加载最佳文件核对
+
+```python
+    selected = min(history, key=lambda row: row["validation_loss"])  # 独立从所有已评估轮末记录核对最低完整验证损失。
+    assert selected["epoch"] == best_epoch and np.isclose(selected["validation_loss"], best_loss), "最佳选择与记录不一致"  # 不把最后一轮直接当作最好。
+    best_model, best_vocab, best_step = training.load_checkpoint(best_path, network)  # 训练结束后重新读取实际最佳文件。
+    selected_path = source_path if selected["epoch"] == start_epoch else output_dir / selected["checkpoint"]  # 最佳可能仍是旧第一轮，也可能是新增轮。
+    selected_model, _, selected_step = training.load_checkpoint(selected_path, network)  # 加载被选中轮的独立检查点作对照。
+    assert best_vocab == vocab and best_step == selected_step == selected["global_step"] and all(np.array_equal(param, selected_model.params[name]) for name, param in best_model.params.items()), "最佳文件与所选轮参数不一致"  # 防止最佳文件其实保存了最后一轮或可变引用。
+    best_text, _ = decoding.generate(best_model, best_vocab, "春风", new_tokens=40, context_size=32)  # 结果展示使用最佳文件加载的模型。
+    report["status"], report["run_seconds"] = "completed", perf_counter() - run_started  # 只有全部训练和最佳文件核对完成才标记结束。
+    save_report(report_path, report)  # 保存最终完成状态与耗时。
+    print("总完成轮数与累计更新步数：", report["completed_epochs"], global_step, flush=True)  # 当前应为三轮、14361 步，其中第一轮来自上一课。
+    print("选中最佳轮与完整验证损失：", best_epoch, best_loss, flush=True)  # 该选择只在本课观察过的三个轮末之间比较。
+    print("同范围字频基线损失：", report["full_frequency_loss"], flush=True)  # 重复遍历同一训练语料不增加独立样本。
+    print("加载最佳文件后的贪心：", repr(best_text), flush=True)  # 不把文字样例替代完整验证指标。
+    print("最佳权重与报告：", best_path, report_path, flush=True)  # 旧第一轮文件保持不变。
+    print("多轮覆盖、逐轮打乱与最佳快照检查：通过", flush=True)  # 不保证增加轮数必然提升可读性。
+
+
+if __name__ == "__main__":  # 直接运行脚本时才继续训练本课两轮。
+    main()  # 从已完成一轮的模型继续到总共三轮。
+```
+
+训练模型始终是循环外加载的同一个对象；最后再次加载的是用于核对与展示的独立对象，不是在训练中重置参数。比较最佳文件和被选中的逐轮文件的五组参数完全一致，防止“报告选第二轮，文件其实是第三轮”这类错误。
+
+### 老师完整预跑结果
+
+| 轮末 epoch | 累计更新步数 | 完整验证窗口交叉熵 |
+|---:|---:|---:|
+| 1 | 4787 | 6.163158 |
+| 2 | 9574 | 6.114650 |
+| 3 | 14361 | 6.011733 |
+
+当前预跑选中第 3 轮，完整验证损失 6.011733，低于同范围字频基线 6.360865。这次最佳恰好是最后一轮，但选择规则不能写成“总用最后一轮”；以后验证变差时应保留更早的模型。
+
+贪心和采样仍有明显重复及不通顺，验证交叉熵继续改善不等于生成可读性已经达标。本次没有用生成样例临时调整温度、学习率或轮数来追求好看的输出。
+
+两轮新增训练每轮均完整覆盖76584个窗口、2450688个目标，四书窗口数与第32课一致；独立检查了累计步数、各轮打乱种子43/44，以及最佳文件与所选轮的参数相同。老师预跑总耗时（含起点核对、两轮训练、验证、生成和保存）约 501.2 秒；实际取决于 CPU 与 NumPy，不作运行时间承诺。模型仍为719723个参数，本课三个新文件合计 8063524 字节；最佳文件可能与某份逐轮文件参数完全相同，这是明确快照而非新增模型容量。
+
+预跑只写临时目录；最终配置字典仅为易读排版拆行，语法树与已运行源码一致，不再重复运行数分钟训练来测试纯排版。完整参考输出：
+
+```text
+起点 epoch=1 global_step=4787 完整验证损失=6.163158
+开始 epoch=2 章节打乱种子=43 前三章=['三国演义:034', '水浒全传:062', '西游记:067']
+epoch=2 step=500/4787 global_step=5287 loss=6.011188
+epoch=2 step=1000/4787 global_step=5787 loss=5.904659
+epoch=2 step=1500/4787 global_step=6287 loss=6.079937
+epoch=2 step=2000/4787 global_step=6787 loss=6.644821
+epoch=2 step=2500/4787 global_step=7287 loss=5.935474
+epoch=2 step=3000/4787 global_step=7787 loss=5.570732
+epoch=2 step=3500/4787 global_step=8287 loss=6.057013
+epoch=2 step=4000/4787 global_step=8787 loss=6.062494
+epoch=2 step=4500/4787 global_step=9287 loss=5.511077
+epoch=2 step=4787/4787 global_step=9574 loss=5.738286
+轮末 epoch=2 完整验证损失=6.114650 当前最佳轮=2 最佳损失=6.114650
+贪心： '春风，不曰：“我不道：“我不道：“我不道：“我不道：“我不道：“我不道：“我不道：“'
+采样： '春风逡徐，物之，筛藏五径妹，梁行往别河。罢棒维奉，跷自元念。”犼秘，噇套恩使。十即火'
+开始 epoch=3 章节打乱种子=44 前三章=['三国演义:071', '三国演义:066', '三国演义:025']
+epoch=3 step=500/4787 global_step=10074 loss=7.080385
+epoch=3 step=1000/4787 global_step=10574 loss=6.245220
+epoch=3 step=1500/4787 global_step=11074 loss=5.800443
+epoch=3 step=2000/4787 global_step=11574 loss=6.299842
+epoch=3 step=2500/4787 global_step=12074 loss=6.226132
+epoch=3 step=3000/4787 global_step=12574 loss=5.555647
+epoch=3 step=3500/4787 global_step=13074 loss=6.107298
+epoch=3 step=4000/4787 global_step=13574 loss=5.635727
+epoch=3 step=4500/4787 global_step=14074 loss=5.330650
+epoch=3 step=4787/4787 global_step=14361 loss=6.159735
+轮末 epoch=3 完整验证损失=6.011733 当前最佳轮=3 最佳损失=6.011733
+贪心： '春风，不是道：“你不玉，一个，不是，一个，不是，一个，不是，一个，不是，一个，不是，'
+采样： '春风都弄非虫。锋竟自二归姑，是要平出桌。玄植老头，贾红便得。”王着，只妇得住个我公自'
+总完成轮数与累计更新步数： 3 14361
+选中最佳轮与完整验证损失： 3 6.011732826733577
+同范围字频基线损失： 6.36086485508896
+加载最佳文件后的贪心： '春风，不是道：“你不玉，一个，不是，一个，不是，一个，不是，一个，不是，一个，不是，'
+最佳权重与报告： D:\projects\playatry\model\lesson33_best.npz D:\projects\playatry\docs\training_runs\lesson33.json
+多轮覆盖、逐轮打乱与最佳快照检查：通过
+```
+
+### 实操与提交
+
+运行 python scripts/learn/17_train_epochs.py。需要先已有第32课完整报告和一轮权重；不要把单窗口诊断权重替换进去。运行可能需要数分钟，按每500步查看进度；中断后可保留此前完整轮的报告和文件，但重新运行默认仍从第32课的一轮模型开始，不自动接上中断点。
+
+本课将生成 model/lesson33_epoch02.npz、model/lesson33_epoch03.npz、model/lesson33_best.npz 和 docs/training_runs/lesson33.json。权重暂按现有规则忽略，完成后复查、添加明确例外、配置只读检查并完整上传，CI 不会每次重跑两轮训练。
+
+请提交第2、3轮完整验证损失、最后最佳轮数与分数、累计步数和最佳模型生成结果。回答：一、每轮开始是否应该重新创建或加载初始训练模型？二、如果第2轮验证损失6.0，第3轮6.2，应保留哪一轮作为最佳，为什么？本课仍是待学习者完成的练习，不提前记录其成功。
