@@ -1,0 +1,133 @@
+{
+  "source_report": "lesson37.json",
+  "train_sha256": "0cee762b4832c3a1c37c84c245ca912c51a1c22fa8df4c37e811ec735e390a69",
+  "mode": "replay_without_training",
+  "results": [
+    {
+      "patience": 1,
+      "min_delta": 0.0,
+      "stop_triggered": true,
+      "last_seen_local_step": 1000,
+      "best_local_step": 200,
+      "best_checkpoint": "lesson37_step0200.npz",
+      "best_validation_loss": 5.9600134563109055,
+      "reference_loss": 5.9600134563109055,
+      "actions": [
+        {
+          "local_step": 200,
+          "validation_loss": 5.9600134563109055,
+          "new_best": true,
+          "significant": true,
+          "reference_loss": 5.9600134563109055,
+          "bad_checks": 0,
+          "should_stop": false
+        },
+        {
+          "local_step": 1000,
+          "validation_loss": 5.97161985105604,
+          "new_best": false,
+          "significant": false,
+          "reference_loss": 5.9600134563109055,
+          "bad_checks": 1,
+          "should_stop": true
+        }
+      ]
+    },
+    {
+      "patience": 2,
+      "min_delta": 0.0,
+      "stop_triggered": false,
+      "last_seen_local_step": 4787,
+      "best_local_step": 4787,
+      "best_checkpoint": "lesson37_step4787.npz",
+      "best_validation_loss": 5.937874743698944,
+      "reference_loss": 5.937874743698944,
+      "actions": [
+        {
+          "local_step": 200,
+          "validation_loss": 5.9600134563109055,
+          "new_best": true,
+          "significant": true,
+          "reference_loss": 5.9600134563109055,
+          "bad_checks": 0,
+          "should_stop": false
+        },
+        {
+          "local_step": 1000,
+          "validation_loss": 5.97161985105604,
+          "new_best": false,
+          "significant": false,
+          "reference_loss": 5.9600134563109055,
+          "bad_checks": 1,
+          "should_stop": false
+        },
+        {
+          "local_step": 3000,
+          "validation_loss": 5.939247507329302,
+          "new_best": true,
+          "significant": true,
+          "reference_loss": 5.939247507329302,
+          "bad_checks": 0,
+          "should_stop": false
+        },
+        {
+          "local_step": 4787,
+          "validation_loss": 5.937874743698944,
+          "new_best": true,
+          "significant": true,
+          "reference_loss": 5.937874743698944,
+          "bad_checks": 0,
+          "should_stop": false
+        }
+      ]
+    },
+    {
+      "patience": 2,
+      "min_delta": 0.005,
+      "stop_triggered": false,
+      "last_seen_local_step": 4787,
+      "best_local_step": 4787,
+      "best_checkpoint": "lesson37_step4787.npz",
+      "best_validation_loss": 5.937874743698944,
+      "reference_loss": 5.939247507329302,
+      "actions": [
+        {
+          "local_step": 200,
+          "validation_loss": 5.9600134563109055,
+          "new_best": true,
+          "significant": true,
+          "reference_loss": 5.9600134563109055,
+          "bad_checks": 0,
+          "should_stop": false
+        },
+        {
+          "local_step": 1000,
+          "validation_loss": 5.97161985105604,
+          "new_best": false,
+          "significant": false,
+          "reference_loss": 5.9600134563109055,
+          "bad_checks": 1,
+          "should_stop": false
+        },
+        {
+          "local_step": 3000,
+          "validation_loss": 5.939247507329302,
+          "new_best": true,
+          "significant": true,
+          "reference_loss": 5.939247507329302,
+          "bad_checks": 0,
+          "should_stop": false
+        },
+        {
+          "local_step": 4787,
+          "validation_loss": 5.937874743698944,
+          "new_best": true,
+          "significant": false,
+          "reference_loss": 5.939247507329302,
+          "bad_checks": 1,
+          "should_stop": false
+        }
+      ]
+    }
+  ]
+}
