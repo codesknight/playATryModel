@@ -5186,3 +5186,167 @@ if __name__ == "__main__":  # 直接运行时才模拟并保存本课结果。
 补充理解：最后一组虽然损失从5.9392475降到5.9378747，但降低约0.0013728不足0.005，因此仍计一次未达到改善要求；同时当前分数确实更低，最佳位置仍更新到4787。回放没有真正节省已经完成的第四轮训练，也没有覆盖原权重文件。
 
 脚本语法树与参考代码一致，仅清理末尾空白，非空代码行仍保留中文注释。只读检查scripts/ci/check_lesson38.py重新回放并核对完整报告，还用不可用记录替代1000步之后的未来，确认patience=1在触及未来前停止且结果不变；检查两份报告字节未变及来源历史未变。代码、报告、学习笔记与CI配置按每课完整上传约定提交，不新增权重。
+
+## 第三十九课：围绕生成文字诊断重复与可读性
+
+用户要求将观察重点转到“能否写出更像样的句子”。本课由学习者新建scripts/learn/23_generation_diagnostics.py，正式报告docs/training_runs/lesson39.json；学习者尚未完成，不提前验收。固定第37课最佳模型，不训练或修改旧生成函数。之前“约4到6课”只是教学安排的估计，不是保证达到通顺生成的承诺；是否改善由实际样例判断。
+
+预先固定开头“春风”“唐僧道：”“宝玉听了”；每段续写60个编号、最近32个编号的上下文；贪心每个开头一次，其他三种采样各用42和43两个种子，总计21段。四种设置为贪心、全词表T=1、全词表T=0.7、top-k=40且T=0.7。T=1对T=0.7只改变温度；T=0.7对top-k40/T=0.7只改变候选限制。相同种子便于复现，但不同采样分布的随机轨迹不意味着逐字一一对应，也没有据两个种子作统计显著性结论。
+
+Top-k：取当前分数最高的k个编号组成S，其他候选概率为0，保留候选的概率按q_i=exp(z_i/T)/Σ_{j∈S}exp(z_j/T)重新归一化。示例原概率[0.6,0.3,0.1]，T=1且k=2，变为[2/3,1/3,0]。k=1退化为贪心。低温或小k可能减少低概率生僻字，也可能加强循环重复，并不保证更通顺。正温度不改变候选分数排名。
+
+重复指标repeat4只统计新增编号，不含开头：长度60产生57个可重叠四元组，repeat4=1−不同四元组数量/57。每种片段首次出现不算重复；后续重复出现才计入分子。例如AAAAAA产生3个AAAA，只有1种，重复比例2/3；ABCDEF产生ABCD、BCDE、CDEF这3种不同四元组，比例0。该指标不判断语义，随机乱码也可能几乎不重复。这里按编号统计，UNK显示为多个字符时也算一个编号，所以不直接称为四个显示汉字。
+
+必须人工检查：是否能接上开头、是否能读懂动作或句意、是否明显重复、人物和内容是否前后矛盾。固定审阅三个开头各自的greedy和topk40_t07/seed42共6段，不通过不断换种子只展示最好看的样本。其他15段也完整保留在报告中。可以把人工观察写进docs/myself_note.md，程序报告不预填“流畅”结论，也不凭repeat4最小自动选优。
+
+本课改变解码后的采样分布，不改变模型权重或原始logits；它不会自动提高此前模型验证交叉熵。生成仍使用最近32字重新计算，与旧代码相同。目标是判断重复与生僻字问题能否靠解码缓解，哪些问题仍需训练或结构改善，不用禁用逗号或屏蔽UNK掩盖问题。
+
+### 第一块：固定对照设置及重复统计
+
+```python
+from importlib import import_module  # 复用模型、权重加载和温度概率函数。
+from pathlib import Path  # 从脚本位置找到项目目录。
+import hashlib  # 检查生成前后权重文件没有变化。
+import json  # 读取模型来源并保存诊断记录。
+import numpy as np  # 选择候选编号和执行概率采样。
+
+ROOT = Path(__file__).resolve().parents[2]  # 本文件位于scripts/learn。
+network = import_module("07_tiny_rnn")  # 使用已经训练好的模型结构。
+training = import_module("11_train_steps")  # 复用权重加载函数。
+decoding = import_module("12_generate_text")  # 复用稳定的温度概率计算。
+PROMPTS = ("春风", "唐僧道：", "宝玉听了")  # 预先固定三个开头，避免只展示最好看的一个。
+MODES = (("greedy", None, None), ("sample_t1", 1.0, None), ("sample_t07", 0.7, None), ("topk40_t07", 0.7, 40))  # 分别比较贪心、温度变化及候选限制。
+
+
+def repeat_rate(ids, n=4):  # 统计新生成编号中扣除首次出现后的重复片段比例。
+    assert n >= 1, "片段长度必须为正"  # 本课默认连续四个编号为一个片段。
+    pieces = [tuple(ids[start:start + n]) for start in range(len(ids) - n + 1)]  # 用步长一取出可重叠的片段。
+    return 0.0 if not pieces else 1.0 - len(set(pieces)) / len(pieces)  # 片段越重复，比例通常越高，但不直接衡量通顺程度。
+```
+
+### 第二块：实现top-k采样生成
+
+```python
+def generate_text(model, vocab, prompt, temperature=None, top_k=None, seed=42, new_tokens=60):  # 固定最近三十二字上下文，支持候选限制采样。
+    tokens = vocab["tokens"]  # 使用权重保存的词表顺序。
+    char_to_id = {char: index for index, char in enumerate(tokens)}  # 恢复字符到编号的对应关系。
+    assert isinstance(prompt, str) and prompt and isinstance(new_tokens, int) and new_tokens >= 0, "开头或长度无效"  # 至少提供一个输入字。
+    assert top_k is None or isinstance(top_k, int) and 1 <= top_k <= len(tokens), "候选数量无效"  # 候选数量不能超出词表。
+    assert temperature is None or np.isfinite(temperature) and temperature > 0, "温度无效"  # 采样温度必须为正。
+    assert temperature is not None or top_k is None, "贪心模式不需要top-k"  # 本课只在采样模式限制候选。
+    history = [char_to_id.get(char, vocab["unk_id"]) for char in prompt]  # 未见输入字符使用固定未知编号。
+    generated = []  # 只保存续写编号，不把开头计入重复率。
+    rng = np.random.default_rng(seed)  # 随机生成器在整个生成循环中持续使用。
+    for _ in range(new_tokens):  # 每次生成一个编号并接回上下文。
+        x = np.asarray([history[-32:]], dtype=np.int64)  # 与旧生成函数使用同样的上下文长度。
+        scores = model.forward(x)[0, -1, :]  # 最后位置给出下一字的分数。
+        if temperature is None:  # 贪心每次直接选最高分。
+            next_id = int(np.argmax(scores))  # 不进行随机抽样。
+        else:  # 指定温度时才使用概率采样。
+            candidates = np.arange(len(tokens)) if top_k is None or top_k == len(tokens) else np.argsort(-scores, kind="stable")[:top_k]  # 全词表或最高分的k个编号作为候选。
+            probabilities = decoding.sampling_probabilities(scores[candidates], temperature)  # 只在保留候选内重新归一化。
+            next_id = int(rng.choice(candidates, p=probabilities))  # 按候选编号及其对应概率抽样。
+        history.append(next_id)  # 新编号会成为下一步的输入。
+        generated.append(next_id)  # 单独记录续写部分。
+    return prompt + "".join(tokens[index] for index in generated), generated  # 返回完整文字及续写编号。
+```
+
+### 第三块：保留所有样例并检查权重不变
+
+```python
+def main():  # 固定权重，比较四种解码设置的生成结果。
+    source = json.loads((ROOT / "docs/training_runs/lesson37.json").read_text(encoding="utf-8"))  # 使用完整第四轮选出的最佳模型。
+    assert source["status"] == "completed", "第四轮尚未完成"  # 不使用未核验训练结果。
+    model_path = ROOT / "model" / source["best_checkpoint"]  # 指向保存的最佳权重。
+    before_hash = hashlib.sha256(model_path.read_bytes()).hexdigest()  # 留下原权重文件校验值。
+    model, vocab, step = training.load_checkpoint(model_path, network)  # 只加载，不训练。
+    assert vocab["train_sha256"] == source["train_sha256"], "词表来源不一致"  # 保证输入编号含义正确。
+    saved = {name: value.copy() for name, value in model.params.items()}  # 结束时检查内存参数未变。
+    rows = []  # 保存所有结果，不只保留看起来最好的一段。
+    for prompt in PROMPTS:  # 每种设置都使用同样的三个开头。
+        for mode, temperature, top_k in MODES:  # 成对比较温度和top-k的影响。
+            for seed in ((42,) if temperature is None else (42, 43)):  # 贪心不需要多个种子，采样固定两个种子观察波动。
+                text, ids = generate_text(model, vocab, prompt, temperature, top_k, seed)  # 每段固定续写六十个编号。
+                assert len(ids) == 60 and all(0 <= index < len(vocab["tokens"]) for index in ids), "生成编号无效"  # 检查生成长度及范围。
+                row = {"prompt": prompt, "mode": mode, "temperature": temperature, "top_k": top_k, "seed": seed, "text": text, "generated_ids": ids, "repeat4": repeat_rate(ids), "unknown_count": ids.count(vocab["unk_id"])}  # 记录解码条件、全文及辅助统计。
+                rows.append(row)  # 全量保留，避免只挑选好看的例子。
+                print(f"开头={prompt!r} mode={mode} seed={seed} repeat4={row['repeat4']:.1%}", flush=True)  # 显示重复片段比例。
+                print(repr(text), flush=True)  # 用repr保留换行及特殊字符。
+    summaries = []  # 汇总各设置在这些固定样例上的平均重复比例。
+    for mode, _, _ in MODES:  # 每种设置单独汇总。
+        group = [row for row in rows if row["mode"] == mode]  # 收集对应三个开头及预定种子的结果。
+        average = sum(row["repeat4"] for row in group) / len(group)  # 各段续写长度相同，按样例平均。
+        summaries.append({"mode": mode, "samples": len(group), "mean_repeat4": average})  # 重复统计不能当作语言质量分数。
+        print(f"汇总 {mode}: samples={len(group)} mean_repeat4={average:.1%}", flush=True)  # 先看统计，再人工阅读文字。
+    old_text, old_ids = decoding.generate(model, vocab, PROMPTS[0], new_tokens=60)  # 核对新函数没有改变原贪心行为。
+    assert rows[0]["text"] == old_text and rows[0]["generated_ids"] == old_ids, "贪心实现与旧版不一致"  # 新增采样功能不应破坏贪心。
+    first_text, first_ids = generate_text(model, vocab, PROMPTS[0], 0.7, 40, 42)  # 再次用相同种子生成top-k样例。
+    repeated_text, repeated_ids = generate_text(model, vocab, PROMPTS[0], 0.7, 40, 42)  # 核对当前环境中可复现。
+    assert first_text == repeated_text and first_ids == repeated_ids, "固定种子未复现"  # 不比较不同平台的整段黄金文字。
+    assert all(np.array_equal(value, saved[name]) for name, value in model.params.items()) and hashlib.sha256(model_path.read_bytes()).hexdigest() == before_hash, "生成修改了权重"  # 内存参数和磁盘文件都应不变。
+    return {"checkpoint": model_path.name, "checkpoint_sha256": before_hash, "completed_steps": step, "train_sha256": vocab["train_sha256"], "config": {"new_tokens": 60, "context_size": 32, "sampling_seeds": [42, 43], "repeat_ngram": 4}, "rows": rows, "summaries": summaries}  # 保存全部原始结果，人工评价另行记录。
+```
+
+### 第四块：保存正式报告
+
+```python
+if __name__ == "__main__":  # 直接运行时才生成诊断报告。
+    result = main()  # 本课只前向生成，不进行训练。
+    path = ROOT / "docs/training_runs/lesson39.json"  # 保存独立生成对照报告。
+    path.parent.mkdir(parents=True, exist_ok=True)  # 确保输出目录存在。
+    path.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")  # 保存全部设置、统计和文本。
+    print("生成诊断报告：", path)  # 输出结果位置。
+```
+
+### 实操任务与思考
+
+四块依次放在同一文件，第一二三块的函数定义均在顶层，第四块为脚本入口。运行python scripts/learn/23_generation_diagnostics.py，不重新训练。请提交四条汇总行，以及预先指定6段文字的观察：比贪心是否更少重复、是否真的更容易读懂。问题一：top-k=1时能否随机选到最高分以外的编号？问题二：一段乱码没有重复，是否就能说明它更通顺？老师检查后再完整上传脚本、报告和人工观察，不新增权重。
+
+### 老师预跑与人工阅读
+
+参考代码已在内存执行，没有替学习者创建脚本或正式报告。旧贪心一致、固定种子复现、权重内存和文件不变、top-k=1退化贪心及重复统计示例检查通过。21段均保留在内存预跑结果，本节记录汇总及预先指定6段供人工检查。
+
+| 模式 | 样例数 | 平均repeat4 |
+|---|---:|---:|
+| greedy | 3 | 84.210526% |
+| sample_t1 | 6 | 0.000000% |
+| sample_t07 | 6 | 0.000000% |
+| topk40_t07 | 6 | 1.169591% |
+
+开头'春风'，模式greedy，种子42，repeat4=0.877193：
+
+```text
+春风，只是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人
+```
+
+开头'春风'，模式topk40_t07，种子42，repeat4=0.0：
+
+```text
+春风一个了。”如此了，我见也去了。”我人得有两个事？”那者道：“那好人人，不是道：“我要说：“老里，这个人人了。”贾见道：“
+```
+
+开头'唐僧道：'，模式greedy，种子42，repeat4=0.877193：
+
+```text
+唐僧道：“你是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人
+```
+
+开头'唐僧道：'，模式topk40_t07，种子42，repeat4=0.017544：
+
+```text
+唐僧道：“我日有个好去。”一个家：“这个里，见个了人大家。”一个道：“哥里，一个人不是道：“不个那，便了道：“你了的子。”我是道
+```
+
+开头'宝玉听了'，模式greedy，种子42，repeat4=0.77193：
+
+```text
+宝玉听了。”那个道：“你是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我
+```
+
+开头'宝玉听了'，模式topk40_t07，种子42，repeat4=0.0：
+
+```text
+宝玉听了，一个在个大上。”这个要上人。”说人见一个来头？”那人道：“那好人人，不是道：“我要说：“老里，这个人人了。”贾见道：“
+```
+
+老师对固定6段的阅读结论：贪心在三个开头都进入明显长循环；top-k/T=0.7可打断该长循环，但仍出现“一个在个大上”“这个人人了”等难懂或不合语法的片段。三个开头未表现出稳定的角色和事件连贯性，不能评为已能流畅续写。因此本次诊断支持继续改进模型训练，而不是靠调整解码宣告生成质量达标。
