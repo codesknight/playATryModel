@@ -3742,3 +3742,153 @@ rnn200 固定验证交叉熵：7.676629
 学习者回答“有”，正确：把验证目标加入计数后，拟合出的概率就受到了验证答案的影响，再用同一批目标测量不属于独立验证。字频模型应只用训练集计数固定概率，验证标签仅用于计算损失，不改变该概率分布。
 
 第三十课代码、基线比较与实操检查通过；学习者已正确选出匹配范围字频基线的较低交叉熵，并在补充例子后确认验证答案会影响拟合概率。独立验证的区别后续实践中继续巩固，不据单项复核声称已掌握全部数据泄漏情形。本次仅补记回答，没有修改代码、权重或重新运行实验。
+
+## 第三十一课：单窗口拟合检查（小样本过拟合测试）
+
+状态：老师已在临时目录预检以下完整脚本，待学习者新建 scripts/learn/15_overfit_one_window.py 并输入、运行与回答。未代写学习者脚本，没有覆盖旧 RNN 检查点。本课是独立诊断，不是新的全训练集模型对照。
+
+### 为什么先检查能否记住一个窗口
+
+上一课发现 200 步 RNN 尚未超过同训练目标范围的字频基线。可能原因包括训练不充分、更新设置等，不能仅凭这一结果就判定架构或反向实现错误。本课固定一个真实训练窗口，反复优化同一个目标，检查模型与数据、损失、梯度和更新是否能够配合拟合极小样本。
+
+这里“过拟合测试”指主动尝试把很小的训练样本记住，是排查训练流程的诊断手段，不是以记住样本作为泛化目标。通过只支持在这个样本与配置上能够有效拟合，不能证明所有实现边界都正确；若失败也要进一步检查数据、学习率、模型容量与数值行为，不能自动认定某一处代码必错。
+
+取训练集首个窗口，B=1、T=32，重复更新 300 次；模型从相同种子新建，不从旧两百步权重继续训练。每步梯度的平均仍除以 B*T=32，不再除以重复次数。实际只有一个独立窗口、32 个不同的预测位置，被重复使用 300 次，合计 9600 次位置使用，不等于 300 个不同窗口。模型参数依旧为 719723。
+
+### 第一块：新文件导入与测量函数
+
+```python
+from importlib import import_module  # 复用数据、模型、梯度裁剪、保存和生成函数。
+import json  # 保存单窗口拟合的配置、指标与生成结果。
+import numpy as np  # 检查标签、计算逐位置预测正确数。
+
+network = import_module("07_tiny_rnn")  # 导入完整模型与裁剪工具，不执行旧演示。
+training = import_module("11_train_steps")  # 复用权重保存与加载，不执行旧训练入口。
+decoding = import_module("12_generate_text")  # 复用逐字生成，不执行旧生成演示。
+
+
+def measure_fit(model, x, y, step):  # 在同一个训练窗口上测量当前拟合程度。
+    logits = model.forward(x)  # 用当前参数计算该窗口各位置的下一字分数。
+    loss, _ = network.cross_entropy(logits, y)  # 计算这个训练窗口的平均交叉熵，不是验证损失。
+    correct = int((np.argmax(logits, axis=-1) == y).sum())  # 每个位置取最高分编号，与真实下一字比较。
+    print(f"step={step} 固定训练窗口损失={loss:.6f} 正确位置={correct}/{y.size}")  # 日志比较的是同一组输入和目标。
+    return {"step": step, "loss": loss, "correct": correct, "positions": int(y.size)}  # 记录拟合过程，供之后复查。
+```
+
+correct 是在真实输入 x 的各个位置取最高分编号，与真实目标 y 比较的训练正确数。它不是自由生成的正确率，也不是验证集指标。measure_fit 固定参数只测量当前训练窗口，随后训练循环继续使用同一 x、y。
+
+### 第二块：main 中固定唯一窗口并初始化
+
+```python
+def main():  # 用一个真实窗口进行小样本拟合诊断。
+    data = import_module("06_make_windows")  # 复用训练集首窗口和固定词表，首次导入仍会显示旧数据检查。
+    seq_length = 32  # 只学习一个包含 32 个预测位置的窗口。
+    max_steps = 300  # 对同一窗口反复更新三百次。
+    learning_rate = 0.1  # 使用当前普通梯度下降学习率。
+    max_norm = 1.0  # 保留全局梯度裁剪。
+    batch = next(data.iter_batches(data.iter_windows(data.train_records, seq_length, seq_length), 1))  # 只取一个窗口，此后不再获取新批次。
+    x, y = batch["x"], batch["y"]  # 固定输入与向后错位一字的目标。
+    assert x.shape == y.shape == (1, seq_length) and np.array_equal(x[:, 1:], y[:, :-1]), "诊断窗口格式错误"  # 确认任务仍是下一字预测。
+    saved_x, saved_y = x.copy(), y.copy()  # 保存数据副本，检查三百步使用的是同一份样本。
+    model = network.TinyRNN(len(data.tokens), hidden_size=64, seed=42)  # 新建独立诊断模型，不修改上一课的两百步模型。
+    history = [measure_fit(model, x, y, 0)]  # 训练前记录同一窗口的基线。
+```
+
+next 只调用一次，循环里不再取新 batch。保存 x、y 副本只是检查数据没有被意外修改。当前窗口来源为 三国演义:010、起点 0，这个样本是训练集内容，不读取验证或测试数据用于更新。
+
+### 第三块：接在 main 内反复训练同一个窗口
+
+```python
+    for step in range(1, max_steps + 1):  # 每步仍然使用相同的 x 和 y。
+        loss, raw_grads = model.loss_and_grad(x, y)  # 在固定训练窗口上求完整梯度。
+        assert np.isfinite(loss), "训练损失异常"  # 无效数值不能继续用于更新。
+        grads, _, _ = network.clip_gradients(raw_grads, max_norm)  # 对全部共享参数梯度做一次全局裁剪。
+        for name in model.params:  # 完整反向结束后统一更新五组参数。
+            model.params[name] -= learning_rate * grads[name]  # 新参数继续用于下一次相同样本的学习。
+        assert all(np.isfinite(param).all() for param in model.params.values()), "参数更新异常"  # 确认拟合过程数值有限。
+        if step in (20, 100, 300):  # 在预先指定的步数测量同窗口更新后的结果。
+            history.append(measure_fit(model, x, y, step))  # 既记录损失，也记录正确位置数。
+    assert np.array_equal(x, saved_x) and np.array_equal(y, saved_y), "训练样本被意外改变"  # 防止误以为固定样本，实际却改了数据。
+    assert history[-1]["loss"] < history[0]["loss"] * 0.1 and history[-1]["correct"] == y.size, "本例单窗口拟合未达到预期"  # 对当前配置检查损失显著下降且三十二个位置全对。
+```
+
+固定目标为 L(θ)=-(1/32)Σ_t ln p_θ(y_t|x_≤t)，每一步在新的参数点计算同一数据目标的梯度。保持模型在循环外创建，完整反向后裁剪，再更新五组参数。指定步数的测量发生在该步更新后，前后都是同一组位置，能观察拟合进度，但不要求每一步损失必然单调下降。
+
+这里的显著下降、32/32 以及后面的生成完全匹配，是对本课固定数据与配置的具体诊断预期，不是声称任意窗口或任意超参数都能在 300 步达到相同水平。
+
+### 第四块：只给首字，检查能否复现训练片段
+
+```python
+    prompt = data.tokens[int(x[0, 0])]  # 只给这个训练窗口的第一个字符作为生成开头。
+    expected_text = prompt + "".join(data.tokens[int(index)] for index in y[0])  # 拼出该窗口对应的完整三十三字训练片段。
+    generated_text, _ = decoding.generate(model, data.vocab, prompt, new_tokens=seq_length, context_size=seq_length)  # 不提供后续正确字符，让模型贪心生成三十二步。
+    assert generated_text == expected_text, "本例尚不能从首字复现训练片段"  # 这只检查已训练片段的记忆，不证明泛化能力。
+    checkpoint_path = data.ROOT / "model" / "lesson31_single_window.npz"  # 用独立名称保存诊断权重，不覆盖全语料实验检查点。
+    training.save_checkpoint(checkpoint_path, model, data.vocab, max_steps)  # 保存只反复学过一个窗口的模型。
+    print("训练片段：", repr(expected_text))  # 保留换行与空格，便于逐字核对。
+    print("只给首字后的生成：", repr(generated_text))  # 当前例子应与训练片段相同。
+```
+
+prompt 是“第”；expected_text=首字符+32 个真实下一字目标，共 33 个字符。生成只接收首字符，不把后续目标喂给生成函数，输出仍需一步一步把自身预测加入上下文。本次生成 32 步、上下文上限 32，整个片段在当前窗口定义内。生成成功只证明可以复现已经反复见过的训练片段，不证明能写未见故事或掌握长距离语法。
+
+### 第五块：保存独立诊断记录与入口
+
+```python
+    result = {  # 保存诊断条件与观察，不把训练指标写成验证指标。
+        "config": {"steps": max_steps, "seq_length": seq_length, "batch_size": 1, "learning_rate": learning_rate, "max_norm": max_norm, "model_seed": 42},  # 记录固定训练设置。
+        "train_sha256": data.vocab["train_sha256"], "chapter_id": batch["chapter_ids"][0], "start": batch["starts"][0],  # 记录唯一训练窗口的来源。
+        "input_ids": x.tolist(), "target_ids": y.tolist(), "history": history,  # 保留输入、真实目标和同窗口拟合指标。
+        "prompt": prompt, "expected_training_text": expected_text, "generated_training_text": generated_text, "checkpoint": checkpoint_path.name,  # 标明生成结果对应的是已训练片段。
+    }  # 本次没有使用验证集或测试集进行拟合。
+    report_path = data.ROOT / "docs" / "training_runs" / "lesson31.json"  # 将本课诊断记录与之前实验分开。
+    report_path.parent.mkdir(parents=True, exist_ok=True)  # 创建记录目录，已有目录继续使用。
+    report_path.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")  # 保存中文可读的实验记录。
+    print("诊断权重：", checkpoint_path)  # 文件只用于单窗口记忆检查，不能作为泛化已达标的证据。
+    print("诊断记录：", report_path)  # 显示可复查的配置与指标文件。
+    print("单窗口拟合、数据固定与训练片段复现检查：通过")  # 说明当前小样本诊断通过。
+
+
+if __name__ == "__main__":  # 直接运行脚本时才执行单窗口实验。
+    main()  # 从头训练独立的小样本诊断模型。
+```
+
+权重文件名明确标为单窗口，避免误当成新全语料模型替换 lesson29_step200.npz。元数据中仍有完整固定词表，但本次更新只用了这个窗口。脚本重复运行仍是从新模型开始重复该实验，不是继续训练旧文件。
+
+### 老师预检观察与解释
+
+| 已完成更新步数 | 固定训练窗口损失 | 正确位置 |
+|---:|---:|---:|
+| 0 | 8.747080 | 0/32 |
+| 20 | 7.410583 | 7/32 |
+| 100 | 1.259116 | 32/32 |
+| 300 | 0.071682 | 32/32 |
+
+只给首字后能复现：
+
+```text
+'第十回\u3000勤王室马腾举义\u3000报父仇曹操兴师\n却说李、郭二贼欲杀献帝，张'
+```
+
+当前模型已经能记住这一小段。虽然这一结果支持当前小样本训练链路可以工作，但不能据此认为此前全语料训练已经充分或泛化达标。本课约 0.07168 是训练窗口损失，不能与上一课 1536 个验证位置上的约 7.67663 或基线约 6.89081 直接比较好坏；数据与模型训练任务范围都不同。
+
+每步 B 从之前的 16 变成 1，单步工作量和输出数组显著减少。主要计算约 O(300*T*(H²+HV))，单份 logits 为 (1,32,5547)，float32 数据区 710016 字节。没有增加模型参数；只保存最后一个诊断权重与小 JSON。完整窗口的充分训练仍是后续任务，这个检查不是通顺文本生成的最终目标。
+
+老师在临时目录运行全部代码，固定数据与拟合断言通过；另独立加载保存模型，重算 loss 和 32/32 正确数并再次生成，结果与训练记录一致，没有改写仓库中的旧权重。参考输出：
+
+```text
+step=0 固定训练窗口损失=8.747080 正确位置=0/32
+step=20 固定训练窗口损失=7.410583 正确位置=7/32
+step=100 固定训练窗口损失=1.259116 正确位置=32/32
+step=300 固定训练窗口损失=0.071682 正确位置=32/32
+训练片段： '第十回\u3000勤王室马腾举义\u3000报父仇曹操兴师\n却说李、郭二贼欲杀献帝，张'
+只给首字后的生成： '第十回\u3000勤王室马腾举义\u3000报父仇曹操兴师\n却说李、郭二贼欲杀献帝，张'
+诊断权重： D:\projects\playatry\model\lesson31_single_window.npz
+诊断记录： D:\projects\playatry\docs\training_runs\lesson31.json
+单窗口拟合、数据固定与训练片段复现检查：通过
+```
+
+### 实操与提交
+
+运行 python scripts/learn/15_overfit_one_window.py，提交四个步数的训练窗口损失、正确位置数和最终生成结果。代码将写入 model/lesson31_single_window.npz 与 docs/training_runs/lesson31.json。当前新权重默认被忽略；实操复查后将为本课诊断文件添加明确例外，连同代码、报告和笔记一起上传。CI 范围会在复查时记录清楚。
+
+回答：一、同一个窗口重复更新 300 次，独立训练窗口是 1 个还是 300 个？二、从首字复现这段训练文字，是否证明模型已经会写没有见过的新故事？本课实操待学习者完成，不提前记为已掌握。
