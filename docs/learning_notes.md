@@ -3904,3 +3904,254 @@ step=300 固定训练窗口损失=0.071682 正确位置=32/32
 本课代码、JSON 与诊断权重按完整上传约定纳入仓库；为该权重添加明确 .gitignore 例外并更新模型说明。文件大小 2686819 字节，SHA-256 为 4d0732b189ff55d3b349a1f07ee41543cba1211c1eb4052014ca7fce6c4b6c6f。旧检查点和训练数据未修改。
 
 CI 增加实际运行该单窗口 300 步诊断及复现检查，单步批大小为 1；第二十九课仍只读校验四份已保存检查点，不自动重跑两百步多批实验。第三十一课实操与问答均通过。下一阶段可回到四书语料，规划完整一轮训练与固定验证、日志、检查点记录，再与字频基线比较；这项完整训练尚未实施。
+
+## 第三十二课：四书完整一轮训练、尾批与同范围字频比较
+
+状态：老师已在临时目录完成整轮预跑及完整验证，待学习者新建 scripts/learn/16_train_one_epoch.py 并输入运行。未替学习者创建脚本，未在仓库保存本课新权重或报告。旧模型、单窗口诊断和之前课程文件保持不变。
+
+### 本课范围与控制条件
+
+从种子 42 的新模型开始，章节按种子 42 打乱一次，B=16、T=32、SGD 学习率 0.1、全局裁剪阈值 1，沿用第 29 课前两百步的训练顺序与结构。模型只创建一次，训练生成器不再用 islice 截断，直到自然耗尽。只有一个 epoch，不加载 lesson31_single_window.npz，也不把单样本记忆模型当作全语料起点。
+
+整轮窗口数 76584，更新步数 ceil(76584/16)=4787，最后一批 8 个窗口；共 2450688 个训练预测位置。尾批目标为 8*32=256 个，loss_and_grad 自动按实际 y.size 归一化，不固定除以 512。
+
+中途固定在 0、200、1000、3000 和最后一步评估原验证前三批（1536 个位置）并生成同样设置的文字；末尾用最终参数另外评估完整验证窗口集。完整验证窗口为 9905 个、620 批，最后一批 1 个窗口，目标位置总数 316960。原验证文本 317717 个字符，但按章首字和短尾规则，并非每个原文字都成为目标。
+
+### 第一块：新文件导入
+
+```python
+from importlib import import_module  # 复用已有数据、训练、生成和字频基线代码。
+from itertools import islice  # 只缓存中途评估用的固定验证前三批。
+from time import perf_counter  # 测量训练与周期检查点所需的实际时间。
+import json  # 保存本轮配置、覆盖统计和评估记录。
+import random  # 用固定种子打乱训练章节顺序。
+import numpy as np  # 累加目标计数，并检查训练数值。
+
+network = import_module("07_tiny_rnn")  # 复用完整 RNN 和全局梯度裁剪。
+training = import_module("11_train_steps")  # 复用固定参数评估与权重保存。
+decoding = import_module("12_generate_text")  # 复用相同开头下的贪心和采样生成。
+baseline = import_module("14_frequency_baseline")  # 复用加一平滑和字频损失，不执行旧诊断入口。
+```
+
+旧模块有 main 保护，导入不会重新执行它们的训练入口。第六课数据模块仍会先运行已有顶层数据检查。本课调用字频函数只是计算概率和损失，全部计数来自训练循环里的 y。
+
+### 第二块：添加检查点记录函数
+
+```python
+def record_checkpoint(model, vocab, batches, step, output_dir):  # 测量固定子集、生成样例并保存本步权重。
+    loss, positions = training.evaluate(model, batches, network)  # 参数固定，只评估此前同一份验证子集。
+    greedy, _ = decoding.generate(model, vocab, "春风", new_tokens=40, context_size=32)  # 固定开头与贪心设置。
+    sampled, _ = decoding.generate(model, vocab, "春风", new_tokens=40, context_size=32, temperature=1.0, seed=42)  # 固定采样温度和种子。
+    path = output_dir / f"lesson32_step{step:04d}.npz"  # 用本课独立名称保存，避免覆盖旧实验。
+    training.save_checkpoint(path, model, vocab, step)  # 保存完整五组参数和配套词表。
+    print(f"检查点 step={step} 固定验证子集损失={loss:.6f}", flush=True)  # 长训练时立即显示检查点进度。
+    print("贪心：", repr(greedy), flush=True)  # 原样记录生成质量，包括重复。
+    print("采样：", repr(sampled), flush=True)  # 不只挑选看起来好的样例。
+    return {"step": step, "validation_loss": loss, "validation_positions": positions, "greedy": greedy, "sampled": sampled, "checkpoint": path.name}  # 返回本次检查点记录。
+```
+
+五份文件名为 lesson32_step0000.npz、lesson32_step0200.npz、lesson32_step1000.npz、lesson32_step3000.npz、lesson32_step4787.npz。路径与之前实验不同，不覆盖旧模型。它们记录同一次训练轨迹上的参数，不是五次从头重训。没有验证效果必须逐次更好的断言，也不宣称最后一步必然是最优模型。
+
+### 第三块：main 中准备整轮窗口与固定验证子集
+
+```python
+def main():  # 从初始模型开始，完整遍历一次四书训练窗口集。
+    data = import_module("06_make_windows")  # 复用训练章节、词表与按章窗口，首次导入仍显示旧检查。
+    batch_size, seq_length = 16, 32  # 保持每批最多十六个窗口、每窗口三十二个预测位置。
+    learning_rate, max_norm = 0.1, 1.0  # 与两百步实验保持相同更新设置。
+    records = list(data.train_records)  # 复制章节列表，不改动磁盘数据。
+    random.Random(42).shuffle(records)  # 沿用相同的固定章节打乱顺序。
+    expected_windows = sum(max(0, (len(record["text"]) - seq_length - 1) // seq_length + 1) for record in records)  # 按相同窗口规则计算整轮样本数。
+    expected_steps = (expected_windows + batch_size - 1) // batch_size  # 向上取整，最后的小批次也更新一次。
+    with (data.ROOT / "data" / "splits" / "validation.jsonl").open(encoding="utf-8") as file:  # 读取独立验证章节，不用于参数更新。
+        validation_records = [json.loads(line) for line in file]  # 保留验证章节顺序。
+    subset = list(islice(data.iter_batches(data.iter_windows(validation_records, seq_length, seq_length), batch_size), 3))  # 中途仍只测同样的前三批。
+    assert len(subset) == 3, "固定验证子集不足三批"  # 不允许悄悄缩小原有比较范围。
+    model = network.TinyRNN(len(data.tokens), hidden_size=64, seed=42)  # 新建一次模型，从头训练完整一轮，不加载单窗口诊断权重。
+    output_dir = data.ROOT / "model"  # 本课检查点使用独立文件名保存。
+    history = [record_checkpoint(model, data.vocab, subset, 0, output_dir)]  # 记录尚未更新的零步基线。
+    checkpoints = {200, 1000, 3000, expected_steps}  # 按预先固定的步数记录参数快照。
+    chapter_to_book = {record["id"]: record["book"] for record in records}  # 用章节标识追踪四书训练覆盖。
+    book_windows = {record["book"]: 0 for record in records}  # 为每本书累计实际训练窗口数。
+    full_counts = np.zeros(len(data.tokens), dtype=np.int64)  # 只用本轮训练目标拟合全训练集字频基线。
+    seen_windows, seen_positions, completed_steps, last_batch_size = 0, 0, 0, 0  # 初始化整轮覆盖统计。
+    loss_sum = 0.0  # 累计各批更新前的损失总和。
+    batches = data.iter_batches(data.iter_windows(records, seq_length, seq_length), batch_size)  # 这次不再用 islice 截断训练批次流。
+    print("计划整轮窗口数与更新步数：", expected_windows, expected_steps, flush=True)  # 当前应为 76584 和 4787。
+    started = perf_counter()  # 开始计时，后续耗时包含周期检查点的评估、生成和保存。
+```
+
+expected_windows 使用已有章节内 L+1 编号构造规则计算；expected_steps 用向上取整保留尾批。中途只缓存三个验证批次，完整训练窗口仍按生成器逐批提供。
+
+### 第四块：main 内完整训练循环与覆盖核对
+
+```python
+    for step, batch in enumerate(batches, start=1):  # 直到训练窗口生成器自然结束，完整处理一次。
+        x, y = batch["x"], batch["y"]  # 读取本批实际行数，最后一批只有八行。
+        loss, raw_grads = model.loss_and_grad(x, y)  # 梯度按本批实际位置数平均，不假定始终有 512 个位置。
+        assert np.isfinite(loss), "训练损失异常"  # 出现无效数值时停止。
+        grads, raw_norm, scale = network.clip_gradients(raw_grads, max_norm)  # 完整反向后执行一次全局裁剪。
+        for name in model.params:  # 使用当前批次的完整梯度更新五组参数。
+            model.params[name] -= learning_rate * grads[name]  # 下一批沿用更新后的参数。
+        assert all(np.isfinite(param).all() for param in model.params.values()), "更新后的参数异常"  # 防止无效权重继续传播。
+        full_counts += np.bincount(y.reshape(-1), minlength=len(data.tokens))  # 同时累计全轮训练目标的真实字频。
+        seen_windows += x.shape[0]  # 尾批按实际八行统计，不补成十六行。
+        seen_positions += y.size  # 累计实际预测位置数。
+        loss_sum += loss * y.size  # 按位置数加权，避免尾批影响平均方式。
+        completed_steps, last_batch_size = step, x.shape[0]  # 记录最新步数与最后批次大小。
+        for chapter_id in batch["chapter_ids"]:  # 将每行训练窗口归入对应书籍。
+            book_windows[chapter_to_book[chapter_id]] += 1  # 累计四本书实际提供的数据量。
+        if step % 250 == 0 or step == expected_steps:  # 定期显示进度，最后一步也显示。
+            print(f"训练 step={step}/{expected_steps} 批次损失={loss:.6f} grad_norm={raw_norm:.6f} scale={scale:.6f}", flush=True)  # 不要求不同批次损失逐行下降。
+        if step in checkpoints:  # 在预定检查点记录同一固定验证子集。
+            history.append(record_checkpoint(model, data.vocab, subset, step, output_dir))  # 保存当前阶段结果，不用验证梯度训练。
+    elapsed = perf_counter() - started  # 结束本轮训练与周期检查点计时，尚未包含末尾完整验证。
+    assert completed_steps == expected_steps and seen_windows == expected_windows, "完整一轮覆盖不正确"  # 核对没有提前停止或错误多算窗口。
+    assert seen_positions == expected_windows * seq_length == int(full_counts.sum()), "训练目标计数不一致"  # 窗口统计与基线计数应覆盖相同位置。
+    assert sum(book_windows.values()) == seen_windows and all(count > 0 for count in book_windows.values()), "四书覆盖不正确"  # 确认所有书籍都实际参与训练。
+```
+
+把 islice 的训练截断去掉，不是把 max_steps 随意设成很大；生成器自然结束才是一轮。统计 actual windows、actual positions 和最后批大小，避免尾批被错误补计。全训练目标计数与 RNN 看到的 y 完全一致，因此末尾全训练字频与模型使用相同目标出现范围。
+
+每批先计算完整梯度，再裁剪并更新。每 250 步打印进度，flush=True 让长运行日志及时显示。训练批次不同，不要求日志 loss 单调下降。训练与周期检查点耗时包含中途验证、生成和文件保存，不包含初始零步检查点、数据准备及末尾完整验证，不称为纯矩阵运算速度。
+
+### 第五块：比较固定子集与完整验证窗口集
+
+```python
+    frequency_probs = baseline.smoothed_probabilities(full_counts, alpha=1.0)  # 只根据整轮训练目标估计字频，不使用验证答案。
+    subset_frequency, subset_positions = baseline.frequency_loss(frequency_probs, subset)  # 在原固定子集上重算对应的全训练集字频分数。
+    assert subset_positions == history[-1]["validation_positions"], "子集比较范围不一致"  # RNN 和字频必须比较同一位置集合。
+    print("开始完整验证窗口集评估（只前向，不更新参数）", flush=True)  # 提醒接下来还有完整验证计算。
+    validation_batches = data.iter_batches(data.iter_windows(validation_records, seq_length, seq_length), batch_size)  # 完整验证窗口按批流式提供，不全部放进内存。
+    full_rnn_loss, validation_positions = training.evaluate(model, validation_batches, network)  # 固定最终模型参数，遍历完整验证窗口集。
+    validation_batches = data.iter_batches(data.iter_windows(validation_records, seq_length, seq_length), batch_size)  # 新建生成器，避免复用已经耗尽的验证流。
+    full_frequency_loss, frequency_positions = baseline.frequency_loss(frequency_probs, validation_batches)  # 使用同一完整验证范围评估字频基线。
+    expected_validation_positions = sum(max(0, (len(record["text"]) - seq_length - 1) // seq_length + 1) for record in validation_records) * seq_length  # 按既定丢尾规则独立核对完整验证位置数。
+    assert validation_positions == frequency_positions == expected_validation_positions > 0, "完整验证范围不一致"  # 两种模型必须对相同目标评估。
+    print("固定验证子集 RNN/字频损失：", history[-1]["validation_loss"], subset_frequency, flush=True)  # 子集只与子集比较。
+    print("完整验证窗口集 RNN/字频损失：", full_rnn_loss, full_frequency_loss, flush=True)  # 完整范围只与完整范围比较。
+    print("完整验证窗口集预测位置数：", validation_positions, flush=True)  # 该数字不等于原文字符数，首字符和短尾未成为目标。
+```
+
+同一个最终模型测两个不同范围，必须分别与对应字频分数比较。不能拿完整验证 RNN 损失与旧固定子集字频损失比较，也不能把子集变成完整集合后的数值差当作模型又训练变好了。完整验证第二次使用新的批次生成器，因为第一次已经耗尽；不把 620 批全部缓存。
+
+training.evaluate 保持参数不变；frequency_probs 只用本轮训练目标拟合，验证答案只用于查概率计算损失。未知验证字符继续映射到保存词表的未知编号，不扩充词表。测试集不在本课使用。
+
+### 第六块：保存报告、显示统计与入口
+
+```python
+    report = {  # 记录本轮实际覆盖、固定子集历史与完整验证结果。
+        "config": {  # 固定完整一轮训练与生成比较条件。
+            "epochs": 1, "batch_size": batch_size, "seq_length": seq_length,  # 记录遍历轮数与批次尺寸。
+            "learning_rate": learning_rate, "max_norm": max_norm, "model_seed": 42, "chapter_shuffle_seed": 42,  # 记录更新规则和随机顺序。
+            "prompt": "春风", "new_tokens": 40, "temperature": 1.0, "sampling_seed": 42,  # 记录固定生成设置。
+            "validation_batches": 3, "frequency_alpha": 1.0,  # 标明中途子集范围和字频平滑。
+        },  # 完整配置记录结束。
+        "train_sha256": data.vocab["train_sha256"], "expected_steps": expected_steps, "completed_steps": completed_steps,  # 保存数据来源与整轮步数。
+        "seen_windows": seen_windows, "seen_positions": seen_positions, "last_batch_size": last_batch_size, "book_windows": book_windows,  # 保存真实覆盖和尾批统计。
+        "training_process_loss": loss_sum / seen_positions, "training_and_checkpoint_seconds": elapsed,  # 这是参数不断变化的训练过程均值及含检查点的耗时。
+        "history": history, "subset_frequency_loss": subset_frequency,  # 子集指标单独保存，不与完整验证混比。
+        "full_validation": {"positions": validation_positions, "rnn_loss": full_rnn_loss, "frequency_loss": full_frequency_loss},  # 两个模型的完整验证比较。
+    }  # 不加入验证损失必须下降或 RNN 必须胜出的断言。
+    report_path = data.ROOT / "docs" / "training_runs" / "lesson32.json"  # 保存独立报告，不覆盖以前课程记录。
+    report_path.parent.mkdir(parents=True, exist_ok=True)  # 确保报告目录存在。
+    report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")  # 完整训练与验证完成后保存报告。
+    print("四本书实际训练窗口数：", book_windows, flush=True)  # 显示本轮实际覆盖。
+    print("整轮步数/窗口数/预测位置数/尾批行数：", completed_steps, seen_windows, seen_positions, last_batch_size, flush=True)  # 当前应为 4787、76584、2450688、8。
+    print("训练过程按位置加权平均损失：", report["training_process_loss"], flush=True)  # 不把训练过程均值当作固定最终模型的训练集评估。
+    print("训练与周期检查点耗时秒：", elapsed, flush=True)  # 不包含末尾完整验证，也不是纯矩阵计算耗时。
+    print("报告路径：", report_path, flush=True)  # 保存的权重可独立加载，但当前脚本尚不自动断点续训。
+    print("四书完整一轮、尾批与同范围字频比较检查：通过", flush=True)  # 说明流程与覆盖正确，不保证文字质量达标。
+
+
+if __name__ == "__main__":  # 直接运行文件时才开始本课完整训练。
+    main()  # 从初始模型完整训练一轮并评估。
+```
+
+本课完整报告在训练和完整验证完成后写入，期间检查点已经按预定步数保存。当前脚本尚未实现自动断点续训；中断后重新启动仍从头开始，已有检查点可供单独加载评估。再次完整运行会覆盖同名本课产物，旧课程权重不受影响。
+
+### 老师整轮预跑结果
+
+固定验证前三批的损失：
+
+| 已完成 step | 固定子集 RNN 交叉熵 |
+|---:|---:|
+| 0 | 8.651848 |
+| 200 | 7.676629 |
+| 1000 | 6.939782 |
+| 3000 | 6.698560 |
+| 4787 | 6.465969 |
+
+最终模型与全训练字频基线的同范围比较：
+
+| 评估范围 | 目标位置数 | RNN 交叉熵 | 字频交叉熵 |
+|---|---:|---:|---:|
+| 原固定前三批 | 1536 | 6.465969 | 6.662431 |
+| 完整验证窗口集 | 316960 | 6.163158 | 6.360865 |
+
+当前参数在两种各自匹配的范围上都超过字频基线。这支持它在当前数据定义下取得了优于简单固定字频的预测表现，但不能据此宣称已经学会所有语法或可读性合格。最终贪心仍有“我不道”等重复，采样也不通顺，原样保留。
+
+训练过程按位置加权损失为 6.405641，它来自一路变化的参数，不是固定最终模型的训练集评估，不能用于直接计算泛化差距。完整验证和固定子集分数也不是同一数据上的两次训练结果。
+
+本环境训练与周期检查点约 224.9 秒，末尾完整验证另需时间，实际速度依 CPU 和 NumPy 而异。全轮仍流式处理，增加的是运行时间，不是将全部窗口展开成巨大内存张量。参数仍为 719723，单个 float32 模型裸参数数据区 2878892 字节。本课五份检查点合计 13418005 字节，各自仍远小于 1 GB；不需要在内存中同时持有五个模型。
+
+四书完整窗口数独立核对为：三国演义 14818、水浒全传 22415、红楼梦 21299、西游记 18052，合计 76584。老师另核对前两百步与第 29 课记录一致，并独立重载最终文件生成，与记录相同；只在临时目录保存，未改仓库旧权重。最终报告字典只做排版拆行，语法树与已跑代码一致，不重复运行数分钟训练来测试纯排版。
+
+完整参考输出：
+
+```text
+检查点 step=0 固定验证子集损失=8.651848
+贪心： '春风忏帐朝瑁抅螳赋舌捶樵语捣砌张喜班貔蘅舐缨墦降莩\n擢椁迤膻休腌将隙帘姓容喟楚豂拶骈'
+采样： '春风衽殆迎腹匿鱼蛮要哀汶旧隶糠贺永屉甩兼赓箔蚤摄鬃重袒姣浒保噎耻蔺骦拧料涕妆哔涸屁美'
+计划整轮窗口数与更新步数： 76584 4787
+检查点 step=200 固定验证子集损失=7.676629
+贪心： '春风，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，'
+采样： '春风袋朽锯花上，诵跋乞暮惙，筷道是匝爆。邙程诡待，髭趣僭朴。亲胭裸，岘悚来你了板南罽'
+训练 step=250/4787 批次损失=7.445200 grad_norm=0.450757 scale=1.000000
+训练 step=500/4787 批次损失=7.085508 grad_norm=0.400173 scale=1.000000
+训练 step=750/4787 批次损失=6.165971 grad_norm=0.541877 scale=1.000000
+训练 step=1000/4787 批次损失=6.769705 grad_norm=0.471205 scale=1.000000
+检查点 step=1000 固定验证子集损失=6.939782
+贪心： '春风，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，，'
+采样： '春风谢很霓缥上：西走中怎妄，甸道得入李。道玺要天，马责众懦。事等蝙，因如我令丹扎关神'
+训练 step=1250/4787 批次损失=6.895018 grad_norm=0.467664 scale=1.000000
+训练 step=1500/4787 批次损失=6.593189 grad_norm=0.491804 scale=1.000000
+训练 step=1750/4787 批次损失=6.526593 grad_norm=0.550840 scale=1.000000
+训练 step=2000/4787 批次损失=6.553858 grad_norm=0.724674 scale=1.000000
+训练 step=2250/4787 批次损失=6.158853 grad_norm=0.668995 scale=1.000000
+训练 step=2500/4787 批次损失=6.253382 grad_norm=1.016262 scale=0.983999
+训练 step=2750/4787 批次损失=6.255238 grad_norm=1.081175 scale=0.924919
+训练 step=3000/4787 批次损失=5.991628 grad_norm=0.741507 scale=1.000000
+检查点 step=3000 固定验证子集损失=6.698560
+贪心： '春风，，不不，，不了，，不不，，不不，，不不，，不不，，不不，，不不，，不不，，不不'
+采样： '春风鏊心，百个，累蒜了文子，此见尸元来。贾殿者基，那舜伪我。一甸罡，吕大心他之方何自'
+训练 step=3250/4787 批次损失=5.693136 grad_norm=0.803617 scale=1.000000
+训练 step=3500/4787 批次损失=5.986103 grad_norm=0.694355 scale=1.000000
+训练 step=3750/4787 批次损失=5.605667 grad_norm=0.523846 scale=1.000000
+训练 step=4000/4787 批次损失=6.232615 grad_norm=1.093694 scale=0.914332
+训练 step=4250/4787 批次损失=6.174207 grad_norm=0.782665 scale=1.000000
+训练 step=4500/4787 批次损失=6.215238 grad_norm=0.680970 scale=1.000000
+训练 step=4750/4787 批次损失=5.900957 grad_norm=0.582376 scale=1.000000
+训练 step=4787/4787 批次损失=6.676804 grad_norm=0.933366 scale=1.000000
+检查点 step=4787 固定验证子集损失=6.465969
+贪心： '春风，不不道：“我不道：“我不道：“我不道：“我不道：“我不道：“我不道：“我不道：'
+采样： '春风赐张面者三，绍脸人徒姐，此袭弟刚来。着樊羹天，这肯公怜。”爱笑鸳壕姓房你了时冉绁'
+开始完整验证窗口集评估（只前向，不更新参数）
+固定验证子集 RNN/字频损失： 6.465968608856201 6.662431022714794
+完整验证窗口集 RNN/字频损失： 6.1631579502612155 6.36086485508896
+完整验证窗口集预测位置数： 316960
+四本书实际训练窗口数： {'西游记.txt': 18052, '红楼梦.txt': 21299, '水浒全传.txt': 22415, '三国演义.txt': 14818}
+整轮步数/窗口数/预测位置数/尾批行数： 4787 76584 2450688 8
+训练过程按位置加权平均损失： 6.405640527395872
+训练与周期检查点耗时秒： 224.86163659999147
+报告路径： D:\projects\playatry\docs\training_runs\lesson32.json
+四书完整一轮、尾批与同范围字频比较检查：通过
+```
+
+### 实操与提交
+
+运行 python scripts/learn/16_train_one_epoch.py。先保持本课配置，不同时改学习率、模型维度、温度或顺序。可能需要几分钟，每 250 步可看到进度。结束后提交：五个检查点子集损失、最后生成样例、尾批与总覆盖统计、完整验证 RNN/字频损失及目标位置数。报告写 docs/training_runs/lesson32.json；新权重暂被默认忽略，复查后将添加明确例外并按每课完整上传约定一起提交。
+
+后续 CI 将优先加载已保存的检查点与报告核对，不在每次推送自动重跑整轮；具体检查范围在实操复查时记录。本课结果属于老师预跑，不提前记为学习者完成。
+
+回答：一、尾批只有 8 个窗口、每窗 32 个目标，分数梯度应除以 256 还是 512？二、能否把完整验证窗口集的 RNN 损失与旧前三批字频损失直接比较？为什么？
