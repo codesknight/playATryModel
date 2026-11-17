@@ -4548,3 +4548,123 @@ if __name__ == "__main__":  # 只有直接运行本脚本时才执行实验并�
 下一次概念确认只问一个具体问题：“如果输入改成‘秋风’，切断循环连接的副本在最后位置计算时，还能知道前面的‘秋’吗？”预期答案为不能；末位置只使用当前‘风’的向量及保留的固定参数。在固定权重、无随机前向的当前实现中，‘春风’与‘秋风’副本末位置分数相同。尚未收到该确认，不记录为已掌握。
 
 复查通过后将代码、正式报告、笔记与只读检查完整上传。`scripts/ci/check_lesson34.py` 调用 main 复算两个条件并核对报告，在浮点容差内比较；同时检查最佳权重文件 SHA-256 和正式报告字节未变。CI 不执行报告保存入口，不训练或新增权重。
+
+### 第三十四课后续理解确认
+
+学习者先误答切断循环后还能知道“秋风”中的“秋”；重新用公式解释仅保留 E[风]+b 后，对“春风”和“秋风”最后位置预测分数是否相同回答“相同”，该具体例子已答对。这里记录的是这一例子的理解确认，不等同于掌握所有循环网络概念。
+
+## 第三十五课：困惑度与逐字准确率
+
+本课只评估第三十三课最佳模型，继续对照相同完整验证范围的训练字频基线。学习者尚未完成本课，不预记验收。新增文件由学习者手输：scripts/learn/19_evaluation_metrics.py；结果写入 docs/training_runs/lesson35.json，不保存权重或使用测试集。
+
+交叉熵 L = -(1/N) Σ ln p_i，其中 p_i 是第 i 个位置正确答案的预测概率。困惑度 PPL = exp(L) = 1 / (Π p_i)^(1/N)，即正确答案概率几何平均值的倒数。均匀分布在 K 个候选上时 PPL=K，这提供直觉，但一般情况不表示模型真的在固定 K 个字中选择，也不等于错误字数。更不能用 1/PPL 作为准确率；它对应几何平均正确答案概率。对同一范围和编码方式，PPL 是 L 的单调变换，因此排序相同，不是新增独立证据。
+
+准确率 = 最高分编号与正确编号相同的位置数 / 总位置数。logits 和 softmax 概率的最大项编号相同，因此直接对 logits 最后一维 argmax。若 logits 为 (16,32,5547)，预测编号为 (16,32)，与 y 比较后为同形状布尔数组，count_nonzero 统计 True 的数量。
+
+举例：正确答案都是“风”，两次分布均以“风”为最高项，其概率分别0.6、0.9，则两次 top1 都命中，准确率均为100%，但第二次交叉熵更低。准确率只看最高项是否正确，交叉熵看给正确答案分配多少概率。预测仍使用真实前文的 teacher forcing，并非检验自由生成的一整段文字。全部编码位置包括标点、换行与 UNK，不能称为仅汉字准确率。
+
+统计规则：累加所有位置损失后除以总位置数，再取 exp；不能直接平均各批 PPL。准确率同样用总命中数除以总位置数，不能把大批和尾批的准确率等权平均。这里用 float64 累加已算出的逐位损失，和先对 float32 批内损失取均值的旧报告可能有微小舍入差，核对使用1e-6容差。
+
+按下面四块依次输入：第一块为顶层导入和汇总函数，第二块定义 main，第三块继续 main 保持四格缩进，第四块回到顶层入口。
+
+### 准备指标汇总函数
+
+```python
+from importlib import import_module  # 复用已有数据、模型和字频工具。
+from pathlib import Path  # 根据当前脚本位置找到项目目录。
+import json  # 读取上一课记录，并保存新的评估报告。
+import numpy as np  # 计算预测编号、自然指数和统计指标。
+
+ROOT = Path(__file__).resolve().parents[2]  # 本文件位于 scripts/learn，向上两级得到根目录。
+network = import_module("07_tiny_rnn")  # 使用已经完成的模型结构与交叉熵函数。
+training = import_module("11_train_steps")  # 复用检查点加载函数。
+baseline = import_module("14_frequency_baseline")  # 复用训练集计数的平滑概率函数。
+
+
+def summarize(loss_sum, correct, positions):  # 将全体位置的累计值转换为评估指标。
+    assert positions > 0 and 0 <= correct <= positions, "评估数量不合法"  # 避免空数据及错误命中数。
+    loss = loss_sum / positions  # 先求所有位置的平均交叉熵。
+    perplexity = float(np.exp(loss))  # 困惑度等于自然指数的平均交叉熵次方。
+    assert np.isfinite(loss) and loss >= 0 and np.isfinite(perplexity), "指标不是有效有限数"  # 发现无效计算时及时停止。
+    return {"loss": loss, "perplexity": perplexity, "correct": correct, "accuracy": correct / positions}  # 准确率保存为零到一之间的小数。
+```
+
+### 加载模型并重建训练字频基线
+
+```python
+def main():  # 在相同完整验证位置比较 RNN 和字频基线。
+    data = import_module("06_make_windows")  # 复用既有词表与窗口，首次导入会打印旧数据检查。
+    source = json.loads((ROOT / "docs/training_runs/lesson33.json").read_text(encoding="utf-8"))  # 读取验证选出的最佳检查点信息。
+    assert source["status"] == "completed" and source["train_sha256"] == data.vocab["train_sha256"], "起点或数据版本不正确"  # 防止不同实验数据混用。
+    model, vocab, step = training.load_checkpoint(ROOT / "model" / source["best_checkpoint"], network)  # 加载已完成训练的最佳模型。
+    assert vocab == data.vocab, "模型词表与窗口编码不一致"  # 相同编号必须对应相同字符。
+    saved = {name: value.copy() for name, value in model.params.items()}  # 评估结束后检查参数未变。
+    counts = np.zeros(model.vocab_size, dtype=np.int64)  # 给每个目标编号准备训练计数。
+    for batch in data.iter_batches(data.iter_windows(data.train_records, 32, 32), 16):  # 只从训练窗口统计目标字符。
+        counts += np.bincount(batch["y"].reshape(-1), minlength=model.vocab_size)  # 累加每个编号的实际出现次数。
+    assert int(counts.sum()) == 2450688, "训练目标计数范围不一致"  # 与之前字频基线使用相同目标集合。
+    probabilities = baseline.smoothed_probabilities(counts, alpha=1.0)  # 沿用预先固定的加一平滑。
+    log_probabilities = np.log(probabilities)  # 字频分布不随输入变化，只需计算一次对数。
+    frequency_prediction = int(np.argmax(probabilities))  # 字频基线在每个位置都选同一个最高频编号。
+    records = [json.loads(line) for line in (ROOT / "data/splits/validation.jsonl").read_text(encoding="utf-8").splitlines()]  # 验证文本只用于测量。
+    rnn_loss_sum, frequency_loss_sum = 0.0, 0.0  # 分别累计两个模型的逐位置损失。
+    rnn_correct, frequency_correct, positions = 0, 0, 0  # 命中数与位置数都按实际数量统计。
+```
+
+### 同一验证流上统计损失及命中数
+
+```python
+    for batch in data.iter_batches(data.iter_windows(records, 32, 32), 16):  # 两种预测在完全相同的批次上评估。
+        x, y = batch["x"], batch["y"]  # 读取输入及每个位置正确的下一字编号。
+        logits = model.forward(x)  # 只前向计算，不求梯度或更新参数。
+        _, position_losses = network.cross_entropy(logits, y)  # 保留每个预测位置的交叉熵。
+        predictions = np.argmax(logits, axis=-1)  # 对词表维度取最高分，得到与 y 相同的二维形状。
+        rnn_loss_sum += float(position_losses.sum(dtype=np.float64))  # 双精度累计逐位损失，避免把尾批等权处理。
+        frequency_loss_sum += float((-log_probabilities[y]).sum(dtype=np.float64))  # 同样统计字频基线正确答案的负对数概率。
+        rnn_correct += int(np.count_nonzero(predictions == y))  # 统计模型最高分编号等于正确答案的数量。
+        frequency_correct += int(np.count_nonzero(y == frequency_prediction))  # 统计字频基线的命中位置数量。
+        positions += y.size  # 尾批只有实际存在的位置参与评估。
+    assert positions == 316960, "完整验证位置数不正确"  # 本课仍使用相同完整验证窗口集。
+    rnn_metrics = summarize(rnn_loss_sum, rnn_correct, positions)  # 先汇总全部位置，再计算困惑度。
+    frequency_metrics = summarize(frequency_loss_sum, frequency_correct, positions)  # 对基线使用完全相同的公式。
+    assert np.isclose(rnn_metrics["loss"], source["best_validation_loss"], rtol=1e-6, atol=1e-6), "RNN 损失与旧记录不一致"  # 累计精度不同可能产生微小浮点差。
+    assert np.isclose(frequency_metrics["loss"], source["full_frequency_loss"], rtol=1e-6, atol=1e-6), "字频损失与旧记录不一致"  # 确认概率拟合和评估范围没有改变。
+    assert all(np.array_equal(value, saved[name]) for name, value in model.params.items()), "评估改变了参数"  # 本课全程固定模型。
+    report = {  # 保存可复查的评估条件、命中数及指标。
+        "checkpoint": source["best_checkpoint"], "completed_steps": step, "train_sha256": vocab["train_sha256"],  # 记录来源。
+        "config": {"batch_size": 16, "seq_length": 32, "frequency_alpha": 1.0, "log_base": "e", "accuracy": "top1_all_encoded_positions"},  # 明确自然对数及全部编码位置的准确率。
+        "positions": positions, "frequency_prediction_token": vocab["tokens"][frequency_prediction],  # 保留分母和基线恒定预测字符。
+        "rnn": rnn_metrics, "frequency": frequency_metrics,  # 两组结果使用相同词表和验证范围。
+    }  # 未知编号、标点和换行也计入本次全部位置评估。
+    for name in ("rnn", "frequency"):  # 逐项显示两个模型的结果。
+        metrics = report[name]  # 当前模型的一组指标。
+        print(f"{name} loss={metrics['loss']:.6f} perplexity={metrics['perplexity']:.3f} accuracy={metrics['accuracy']:.2%} correct={metrics['correct']}/{positions}", flush=True)  # 准确率仅在显示时转成百分比。
+    print("同范围损失、困惑度、准确率与参数保留检查：通过", flush=True)  # 指标正确不代表生成文字已经流畅。
+    return report  # 返回结果，便于检查工具只读复算。
+```
+
+### 运行并保存报告
+
+```python
+if __name__ == "__main__":  # 直接运行脚本时才保存本课报告。
+    result = main()  # 只评估已有模型，不重新训练。
+    path = ROOT / "docs/training_runs/lesson35.json"  # 本课使用独立的评估记录。
+    path.parent.mkdir(parents=True, exist_ok=True)  # 确保目标目录存在。
+    path.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")  # 保存 JSON，保留中文字符。
+    print("评估报告：", path)  # 输出结果文件位置。
+```
+
+### 实操任务
+
+运行 python scripts/learn/19_evaluation_metrics.py，贴出末尾两组 loss、perplexity、accuracy、correct/positions。思考一：交叉熵为 ln(4) 时，困惑度是多少？思考二：正确答案概率从0.6变为0.9且两次它都为最高项，准确率会变化吗？交叉熵会变化吗？完成检查后再完整上传代码及正式评估报告，CI只读复算。
+
+### 老师预跑结果
+
+只在内存执行参考代码，没有创建学习者练习脚本或正式报告。两个条件使用 316960 个完整验证位置，字频最高项为 '，'。
+
+| 模型 | 交叉熵 | 困惑度 | 命中数 | 准确率 |
+|---|---:|---:|---:|---:|
+| rnn | 6.011732811 | 408.190024 | 39502 | 12.462771% |
+| frequency | 6.360864855 | 578.746672 | 22927 | 7.233405% |
+
+参数保留、同范围旧损失对照检查均通过。模型优于全局字频，但上述指标都不能替代自由生成质量检查。
