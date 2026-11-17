@@ -1,0 +1,16 @@
+{
+  "checkpoint": "lesson33_best.npz",
+  "completed_steps": 14361,
+  "train_sha256": "0cee762b4832c3a1c37c84c245ca912c51a1c22fa8df4c37e811ec735e390a69",
+  "config": {
+    "batch_size": 16,
+    "seq_length": 32,
+    "intervention": "zero_recurrent_without_retraining"
+  },
+  "positions": 316960,
+  "original_loss": 6.011732826733577,
+  "ablated_loss": 6.1102805177591355,
+  "loss_increase": 0.09854769102555849,
+  "full_frequency_loss": 6.36086485508896,
+  "preview_later_max_logit_difference": 5.447765350341797
+}
