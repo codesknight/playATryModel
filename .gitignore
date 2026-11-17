@@ -37,4 +37,6 @@ model/*
 !model/lesson37_step3000.npz
 !model/lesson37_step4787.npz
 !model/lesson37_best.npz
+!model/lesson40_sgd.npz
+!model/lesson40_adam.npz
 !model/README.md

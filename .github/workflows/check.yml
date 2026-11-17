@@ -49,4 +49,5 @@ jobs: # 定义需要执行的任务。
           python scripts/ci/check_lesson37.py # 只读复算第四轮检查点、短实验前缀与最佳快照，不重训整轮。
           python scripts/ci/check_lesson38.py # 只读重放早停规则，检查等待次数、阈值和停止后不使用未来记录。
           python scripts/ci/check_lesson39.py # 只读核对生成样例、重复统计、候选约束与采样不变量，不训练。
+          python scripts/ci/check_lesson40.py # 核对Adam跨批历史并只读复算三份完整验证指标，不重训两个分支。
           git diff --exit-code -- data/corpus data/corpus_processed data/chapters data/splits data/vocab # 检查原文未变，且所有已完成的数据产物可复现。
