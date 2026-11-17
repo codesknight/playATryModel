@@ -1,0 +1,98 @@
+{
+  "config": {
+    "starting_epoch": 1,
+    "total_epochs": 3,
+    "batch_size": 16,
+    "seq_length": 32,
+    "learning_rate": 0.1,
+    "max_norm": 1.0,
+    "shuffle_seed_base": 42,
+    "prompt": "春风",
+    "new_tokens": 40,
+    "temperature": 1.0,
+    "sampling_seed": 42
+  },
+  "train_sha256": "0cee762b4832c3a1c37c84c245ca912c51a1c22fa8df4c37e811ec735e390a69",
+  "starting_checkpoint": "lesson32_step4787.npz",
+  "steps_per_epoch": 4787,
+  "history": [
+    {
+      "epoch": 1,
+      "global_step": 4787,
+      "validation_loss": 6.1631579502612155,
+      "validation_positions": 316960,
+      "checkpoint": "lesson32_step4787.npz",
+      "greedy": "春风，不不道：“我不道：“我不道：“我不道：“我不道：“我不道：“我不道：“我不道：",
+      "sampled": "春风赐张面者三，绍脸人徒姐，此袭弟刚来。着樊羹天，这肯公怜。”爱笑鸳壕姓房你了时冉绁"
+    },
+    {
+      "epoch": 2,
+      "global_step": 9574,
+      "validation_loss": 6.114649504065093,
+      "validation_positions": 316960,
+      "checkpoint": "lesson33_epoch02.npz",
+      "greedy": "春风，不曰：“我不道：“我不道：“我不道：“我不道：“我不道：“我不道：“我不道：“",
+      "sampled": "春风逡徐，物之，筛藏五径妹，梁行往别河。罢棒维奉，跷自元念。”犼秘，噇套恩使。十即火"
+    },
+    {
+      "epoch": 3,
+      "global_step": 14361,
+      "validation_loss": 6.011732826733577,
+      "validation_positions": 316960,
+      "checkpoint": "lesson33_epoch03.npz",
+      "greedy": "春风，不是道：“你不玉，一个，不是，一个，不是，一个，不是，一个，不是，一个，不是，",
+      "sampled": "春风都弄非虫。锋竟自二归姑，是要平出桌。玄植老头，贾红便得。”王着，只妇得住个我公自"
+    }
+  ],
+  "training_stats": [
+    {
+      "epoch": 2,
+      "shuffle_seed": 43,
+      "first_chapter_ids": [
+        "三国演义:034",
+        "水浒全传:062",
+        "西游记:067"
+      ],
+      "epoch_steps": 4787,
+      "seen_windows": 76584,
+      "seen_positions": 2450688,
+      "last_batch_size": 8,
+      "book_windows": {
+        "三国演义.txt": 14818,
+        "水浒全传.txt": 22415,
+        "西游记.txt": 18052,
+        "红楼梦.txt": 21299
+      },
+      "training_process_loss": 6.025166871915551,
+      "training_seconds": 334.366354900063
+    },
+    {
+      "epoch": 3,
+      "shuffle_seed": 44,
+      "first_chapter_ids": [
+        "三国演义:071",
+        "三国演义:066",
+        "三国演义:025"
+      ],
+      "epoch_steps": 4787,
+      "seen_windows": 76584,
+      "seen_positions": 2450688,
+      "last_batch_size": 8,
+      "book_windows": {
+        "三国演义.txt": 14818,
+        "水浒全传.txt": 22415,
+        "红楼梦.txt": 21299,
+        "西游记.txt": 18052
+      },
+      "training_process_loss": 5.9242909998900215,
+      "training_seconds": 215.30310649995226
+    }
+  ],
+  "completed_epochs": 3,
+  "status": "completed",
+  "best_epoch": 3,
+  "best_validation_loss": 6.011732826733577,
+  "best_checkpoint": "lesson33_best.npz",
+  "full_frequency_loss": 6.36086485508896,
+  "run_seconds": 594.3064656000352
+}
