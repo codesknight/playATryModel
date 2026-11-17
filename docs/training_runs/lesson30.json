@@ -1,0 +1,86 @@
+{
+  "alpha": 1.0,
+  "train_sha256": "0cee762b4832c3a1c37c84c245ca912c51a1c22fa8df4c37e811ec735e390a69",
+  "matched_steps": 200,
+  "matched_target_count": 102400,
+  "full_target_count": 2450688,
+  "validation_positions": 1536,
+  "reference_checkpoint": "lesson29_step200.npz",
+  "metrics": {
+    "uniform": 8.621012520055235,
+    "matched_frequency": 6.890807442455625,
+    "full_frequency": 6.662431022714794,
+    "rnn200": 7.676629384358724
+  },
+  "top_frequency": [
+    {
+      "token": "，",
+      "count": 180616,
+      "probability": 0.07353408773997602
+    },
+    {
+      "token": "。",
+      "count": 81208,
+      "probability": 0.033062390202891825
+    },
+    {
+      "token": "：",
+      "count": 37689,
+      "probability": 0.015344622969707703
+    },
+    {
+      "token": "“",
+      "count": 34183,
+      "probability": 0.013917235117975275
+    },
+    {
+      "token": "”",
+      "count": 34162,
+      "probability": 0.013908685447442936
+    }
+  ],
+  "context_observations": [
+    {
+      "input": "春风",
+      "top_token": "，",
+      "top_probability": 0.006938808131963015,
+      "comma_probability": 0.006938808131963015
+    },
+    {
+      "input": "秋风",
+      "top_token": "，",
+      "top_probability": 0.005781697109341621,
+      "comma_probability": 0.005781697109341621
+    },
+    {
+      "input": "唐僧",
+      "top_token": "，",
+      "top_probability": 0.006223213858902454,
+      "comma_probability": 0.006223213858902454
+    },
+    {
+      "input": "曹操",
+      "top_token": "，",
+      "top_probability": 0.007650451269000769,
+      "comma_probability": 0.007650451269000769
+    },
+    {
+      "input": "宝玉",
+      "top_token": "，",
+      "top_probability": 0.007244654465466738,
+      "comma_probability": 0.007244654465466738
+    },
+    {
+      "input": "春风，",
+      "top_token": "，",
+      "top_probability": 0.03484111651778221,
+      "comma_probability": 0.03484111651778221
+    },
+    {
+      "input": "春风，，",
+      "top_token": "，",
+      "top_probability": 0.05752348154783249,
+      "comma_probability": 0.05752348154783249
+    }
+  ]
+}
