@@ -40,4 +40,5 @@ jobs: # 定义需要执行的任务。
           python scripts/learn/12_generate_text.py # 独立加载权重，检查贪心、温度概率、固定种子采样与参数不变。
           python scripts/ci/check_lesson29.py # 只读检查四份实验权重、验证损失与生成流程，不重跑两百步训练。
           python scripts/learn/14_frequency_baseline.py # 只用训练目标拟合字频，核对同范围验证损失与重复逗号诊断。
+          python scripts/learn/15_overfit_one_window.py # 重复拟合一个窗口，检查训练损失、正确位置数与首字生成复现。
           git diff --exit-code -- data/corpus data/corpus_processed data/chapters data/splits data/vocab # 检查原文未变，且所有已完成的数据产物可复现。

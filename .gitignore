@@ -21,4 +21,5 @@ model/*
 !model/lesson29_step005.npz
 !model/lesson29_step050.npz
 !model/lesson29_step200.npz
+!model/lesson31_single_window.npz
 !model/README.md
