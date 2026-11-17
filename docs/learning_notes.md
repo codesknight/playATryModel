@@ -5061,3 +5061,118 @@ if __name__ == "__main__":  # 直接运行才训练和保存正式产物。
 概念确认只保留一道具体小题：起点14361步，本轮又训练200步，累计多少步？尚未收到回答，不提前记为理解。
 
 脚本语法树与已完整预跑参考代码一致，仅清理末尾空白，所有非空代码行仍有中文注释。只读CI新增check_lesson37.py：核对完整覆盖、五个候选的完整验证损失、局部200步与第36课低学习率分支参数一致、最佳文件与所选候选完全相同，不重训第四轮。按每课完整上传约定提交代码、报告、五份权重、说明和检查配置。
+
+### 第三十七课局部与累计步数确认
+
+学习者对“起点14361次，本轮再更新200次”的问题回答“14561次”正确。局部200与累计14561的这个例子已答对，不据此提前记录已理解全部检查点选择规则。
+
+## 第三十八课：早停、等待次数与最小改善量
+
+学习者尚未实操。本课新建scripts/learn/22_early_stopping_demo.py，只回放第37课的已保存完整验证记录，输出docs/training_runs/lesson38.json。不训练、不改权重，也没有真的节省已经执行的训练计算。模拟中每次只能访问当前及过去记录，达到停止规则即break，不再把后续记录用于该组选择。真实训练中早停应放在验证后、下一次参数更新前判断。
+
+patience表示允许连续多少次验证检查未达到明显改善条件，达到该次数触发停止。它的单位是验证检查次数，不是训练步数，也不自动表示轮数。本课检查位置0/200/1000/3000/4787并不等间隔，所以patience=2不代表固定多少更新预算。起点只初始化，不算一次失败。
+
+min_delta使用交叉熵的绝对改善量，本课显著改善定义为reference_loss−current_loss严格大于min_delta，相等不计为明显改善。“明显”仅指达到该预设阈值，不是统计显著性。有效改善时参考值更新并将bad_checks清零，否则bad_checks加一。参考值只在有效改善时更新，因此数次小改善可累计到超过参考值的阈值。
+
+两种职责分开：best记录已经看到的最低原始验证损失，任何严格更低都更新；reference_loss用于判断是否有足够进展以继续等待。比如5.939248到5.937875仅改善约0.001373，小于0.005，此时仍保存更低的最佳模型，但不清零未明显改善次数。某些框架会用同一min_delta决定最佳权重更新，本课明确采用分开管理的定义。
+
+早停不保证找到整个未来训练轨迹的最低点。第37课在1000步短暂变差、3000步又改善，patience=1会在1000步触发停止并恢复200步模型，从而错过后续更低分；真实训练无法预知未来，所以这是节省计算与容忍短暂波动之间的权衡。早停策略是事前约定的训练规则，本课三组仅作教学比较，不因已知未来结果宣称patience=2是普遍最优。继续留出测试集，不用测试分数决定何时停止。
+
+### 第一块：初始化早停状态
+
+```python
+from pathlib import Path  # 从当前脚本位置找到项目根目录。
+import json  # 读取旧验证记录，并保存本课模拟结果。
+import math  # 检查损失和阈值是否为有限数。
+
+ROOT = Path(__file__).resolve().parents[2]  # 本文件放在 scripts/learn。
+
+
+def simulate_early_stopping(history, patience, min_delta):  # 按时间顺序模拟早停，不训练模型。
+    assert isinstance(patience, int) and patience >= 1, "耐心次数至少为一"  # patience按验证检查次数计数。
+    assert math.isfinite(min_delta) and min_delta >= 0, "改善阈值不能为负"  # min_delta使用交叉熵的绝对差值。
+    assert len(history) >= 1, "没有验证记录"  # 至少需要一条起点记录。
+    best = dict(history[0])  # 起点也是已经观察过的最佳候选。
+    reference_loss = best["validation_loss"]  # 早停参考值只在改善足够明显时更新。
+    bad_checks = 0  # 连续没有明显改善的检查次数。
+    actions = []  # 记录每次实际访问的验证检查和决定。
+```
+
+### 第二块：逐次判断和返回结果
+
+```python
+    for row in history[1:]:  # 从起点之后的第一条验证记录开始逐条观察。
+        loss = row["validation_loss"]  # 此时只能看到当前分数，不能提前使用未来记录。
+        new_best = loss < best["validation_loss"]  # 任何严格更低的损失都值得保留快照。
+        if new_best:  # 更新用于最终模型选择的最低分记录。
+            best = dict(row)  # 复制普通记录，不修改原始历史。
+        significant = reference_loss - loss > min_delta  # 本课规定改善量必须严格大于阈值。
+        if significant:  # 相比上次有效参考值已有足够改善。
+            reference_loss = loss  # 更新早停参考值。
+            bad_checks = 0  # 有明显改善，连续未改善次数清零。
+        else:  # 变差、持平或改善不足阈值都计入等待。
+            bad_checks += 1  # 不是训练步数加一，而是验证检查次数加一。
+        should_stop = bad_checks >= patience  # 达到预先规定的等待次数就触发停止。
+        actions.append({"local_step": row["local_step"], "validation_loss": loss, "new_best": new_best, "significant": significant, "reference_loss": reference_loss, "bad_checks": bad_checks, "should_stop": should_stop})  # 记录判断依据。
+        if should_stop:  # 真实训练将在这里跳出训练过程。
+            break  # 本模拟也不再读取后面的验证分数。
+    last_seen = history[len(actions)]  # 起点不计入actions，因此此下标对应最后观察的位置。
+    return {  # 记录停止位置与选中模型，二者可以不同。
+        "patience": patience, "min_delta": min_delta,  # 保留本组规则。
+        "stop_triggered": bool(actions and actions[-1]["should_stop"]),  # 是否触发停止，而非宣称实际撤销了训练。
+        "last_seen_local_step": last_seen["local_step"], "best_local_step": best["local_step"],  # 区分停止位置和最低分位置。
+        "best_checkpoint": best["checkpoint"], "best_validation_loss": best["validation_loss"],  # 模拟中应恢复的最佳候选。
+        "reference_loss": reference_loss, "actions": actions,  # 同时保留早停参考值和逐次决定。
+    }  # 模型选择的最低分和早停的改善阈值分别管理。
+```
+
+### 第三块：读取第四轮记录并回放
+
+```python
+def main():  # 使用已经完成的第四轮报告回放三组早停规则。
+    source_path = ROOT / "docs/training_runs/lesson37.json"  # 只读取已有验证记录。
+    source_bytes = source_path.read_bytes()  # 保留原报告以检查文件未变。
+    source = json.loads(source_bytes)  # 将JSON还原成字典。
+    assert source["status"] == "completed", "上一课尚未完成"  # 本课分析已完成的轨迹。
+    history = source["history"]  # 沿用原来的验证时间顺序，不按损失排序。
+    assert history and history[0]["local_step"] == 0, "缺少起点"  # 第一条记录用于初始化参考值。
+    assert all(math.isfinite(row["validation_loss"]) and row["validation_loss"] >= 0 and row["validation_positions"] == 316960 for row in history), "验证记录无效"  # 所有分数来自同一完整验证范围。
+    assert all(left["local_step"] < right["local_step"] for left, right in zip(history, history[1:])), "记录不是时间顺序"  # 防止把未来最低分提前放到前面。
+    results = []  # 保存三种教学规则的模拟结果。
+    for patience, min_delta in ((1, 0.0), (2, 0.0), (2, 0.005)):  # 用不同规则理解等待次数和改善阈值，不据此宣称找到最佳策略。
+        result = simulate_early_stopping(history, patience, min_delta)  # 每组都从起点重新模拟。
+        results.append(result)  # 保留该组完整判断过程。
+        print(f"patience={patience} min_delta={min_delta}", flush=True)  # 显示本组规则。
+        for action in result["actions"]:  # 只打印这组实际观察过的记录。
+            print(f"  local_step={action['local_step']} loss={action['validation_loss']:.6f} new_best={action['new_best']} significant={action['significant']} bad_checks={action['bad_checks']} stop={action['should_stop']}", flush=True)  # 展示一次次决定，而非只看结论。
+        print("触发停止：", result["stop_triggered"], "最后观察位置：", result["last_seen_local_step"], "应加载最佳位置：", result["best_local_step"], flush=True)  # 停止时不一定使用最后观察到的模型。
+    assert source_path.read_bytes() == source_bytes, "旧报告被修改"  # 模拟不能覆盖真实训练记录。
+    return {"source_report": source_path.name, "train_sha256": source["train_sha256"], "mode": "replay_without_training", "results": results}  # 明确这只是回放，没有实际节省已发生的训练。
+```
+
+### 第四块：保存模拟报告
+
+```python
+if __name__ == "__main__":  # 直接运行时才模拟并保存本课结果。
+    report = main()  # 不加载模型、不更新参数、不写权重。
+    path = ROOT / "docs/training_runs/lesson38.json"  # 保存独立的教学模拟报告。
+    path.parent.mkdir(parents=True, exist_ok=True)  # 确保报告目录存在。
+    path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")  # 保存中文可读JSON。
+    print("早停模拟报告：", path)  # 输出本课报告路径。
+```
+
+### 实操与问题
+
+第一块顶层导入及函数定义；第二块继续simulate_early_stopping函数，保持四格缩进；第三块main回到顶层；第四块入口同样在顶层。运行python scripts/learn/22_early_stopping_demo.py，一般很快完成，不需要再次等待完整训练。请贴三组的“触发停止、最后观察位置、应加载最佳位置”。问题一：patience=2时仅连续一次没有明显改善，应该立即停止吗？问题二：若在1000步触发停止，但观察到的最低损失属于200步，应加载哪个位置的文件？完成后检查、记录并完整上传脚本及报告。
+
+### 老师预跑结果
+
+参考代码已在内存执行，没有创建学习者练习脚本或正式报告。
+
+| patience | min_delta | 是否触发停止 | 最后观察局部步数 | 应恢复最佳局部步数 |
+|---:|---:|---|---:|---:|
+| 1 | 0.0 | True | 1000 | 200 |
+| 2 | 0.0 | False | 4787 | 4787 |
+| 2 | 0.005 | False | 4787 | 4787 |
+
+第三组在最后一步new_best=True、significant=False、bad_checks=1；早停参考值仍是3000步损失，但最低分文件属于4787步。停止位置和恢复位置、参考值和原始最低分的分离检查均通过，旧第37课报告字节未变。
