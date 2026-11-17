@@ -5362,3 +5362,377 @@ if __name__ == "__main__":  # 直接运行时才生成诊断报告。
 本次诊断结论：解码方法能缓解明显循环，但没有解决主要语言组织问题。不能据repeat4为0认定普通采样最好，也不把同一模型换解码说成模型本身验证损失改善。下一步应回到训练优化和必要的结构改进，不继续只靠换种子或限制候选追求好看的单个输出。
 
 新增只读检查scripts/ci/check_lesson39.py：检查21个组合完整、编号与文本解码一致，独立用片段计数复算重复率及汇总；沿已保存轨迹核对贪心和top-k编号的排名约束，容许微小平台误差；重跑本机固定种子复现、旧贪心兼容、top-k=1退化为贪心及权重和报告未变检查。跨平台不将完整采样字符串作为黄金值。按每课完整上传约定提交代码、报告、笔记和CI配置，不新增权重。
+
+## 第四十课：实现Adam，并做实际续训对照
+
+用户明确要求从生成诊断回到训练优化。本课由学习者新建scripts/learn/24_adam_experiment.py，输出lesson40_sgd.npz、lesson40_adam.npz及docs/training_runs/lesson40.json；学习者尚未实操，不提前验收。模型仍为719723个参数，从第37课最佳权重累计19148步独立分出两组；相同种子46的前200批、相同裁剪阈值1，SGD学习率0.03、Adam学习率0.001。它比较两个预先指定的优化配置，并不是只更换优化器而保持学习率相同，也没有给两种方法分别做最优超参数搜索；不能推出Adam在所有任务中更好。
+
+原始算法核对来源：[Kingma与Ba，Adam: A Method for Stochastic Optimization，Algorithm 1](https://arxiv.org/pdf/1412.6980)。本课采用m_t=β1m_{t−1}+(1−β1)g_t，v_t=β2v_{t−1}+(1−β2)g_t²；m_hat=m_t/(1−β1^t)，v_hat=v_t/(1−β2^t)；θ←θ−ηm_hat/(sqrt(v_hat)+ε)。数组乘法、平方、开根和除法都是逐元素；v是平方的移动平均，不是减去均值后的方差。默认β1=0.9、β2=0.999、ε=1e−8，ε放在平方根外。
+
+m用于综合历史梯度方向，v用于描述历史平方尺度。零初始化的移动平均在早期偏小，因此使用1−β^t作偏差修正。第一步g=0.4时m=0.04、v=0.00016，修正后m_hat=0.4、v_hat=0.16，学习率0.001使参数1.0变为约0.999。Adam仍然需要选择学习率，不保证每步损失下降，也不保证更新总与当前单批负梯度同向，因为m包含历史。
+
+新建Adam时m=v=0且t=0，模型此前的19148次SGD更新不能冒充已有Adam状态。每个批次t只增加一次，五组参数共同使用这个t，不是在每组参数更新时各加一次。每组Adam仅在批次循环外创建一次，不能每批重建，否则梯度历史丢失。本次Adam历史最终t=200，而模型累计步数是19348。
+
+先求完整梯度，再做全局范数裁剪，最后交给Adam。SGD中的更新长度等于η乘裁剪后梯度长度，但Adam会用历史状态缩放每个分量，不能套用同一长度结论。额外m和v有2×719723个float32数，共5757784字节，约5.49MiB；不是模型新增可学习参数，也不代表整个训练进程内存。
+
+本课只保存用于加载评估的权重，报告明确optimizer_state_saved=False。精确恢复Adam续训还需要m、v、t和训练数据位置等状态，仅加载权重后新建Adam会重新开始优化器历史；当前文件不支持精确断点续训。生成设置固定为3个旧开头、贪心及top-k40/T=0.7/seed42、各60个续写编号，起点和两个分支各保留6段，总共18段，不能只看损失或挑一个好例子。
+
+### 第一块：导入及预先规定的配置
+
+```python
+from importlib import import_module  # 复用数据、模型、检查点和生成诊断。
+from itertools import islice  # 固定每组训练两百个批次。
+from pathlib import Path  # 定位项目文件及实验输出。
+import hashlib  # 检查共同起点权重没有变化。
+import json  # 读取旧报告并保存新实验。
+import random  # 固定训练章节顺序。
+import numpy as np  # 保存优化器状态并执行逐元素计算。
+
+ROOT = Path(__file__).resolve().parents[2]  # 当前脚本位于scripts/learn。
+network = import_module("07_tiny_rnn")  # 模型结构保持不变。
+training = import_module("11_train_steps")  # 复用权重加载和保存。
+epoch_tools = import_module("17_train_epochs")  # 复用完整验证函数。
+diag = import_module("23_generation_diagnostics")  # 保持上一课的生成和重复统计规则。
+STEPS = 200  # 每组预先固定两百次更新。
+CONFIGS = (("sgd", 0.03), ("adam", 0.001))  # 比较这两个指定配置，不宣称学习率已经分别调到最优。
+```
+
+### 第二块：Adam状态、更新和手算核对
+
+```python
+class Adam:  # 为五组参数分别保存梯度历史。
+    def __init__(self, params, learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8):  # 创建一次优化器，随后跨批次复用。
+        assert np.isfinite(learning_rate) and learning_rate > 0 and np.isfinite(epsilon) and epsilon > 0, "学习率或稳定项无效"  # 两个数都必须为有限正数。
+        assert 0 <= beta1 < 1 and 0 <= beta2 < 1, "历史保留系数无效"  # 系数控制指数移动平均。
+        self.lr, self.beta1, self.beta2, self.epsilon = learning_rate, beta1, beta2, epsilon  # 保存优化器超参数。
+        self.m = {name: np.zeros_like(value) for name, value in params.items()}  # m保存梯度的指数移动平均。
+        self.v = {name: np.zeros_like(value) for name, value in params.items()}  # v保存梯度平方的指数移动平均。
+        self.t = 0  # 新建Adam的历史从零开始，与模型累计训练步数分开。
+
+    def step(self, params, grads):  # 用本批完整梯度更新所有参数。
+        assert params.keys() == grads.keys() == self.m.keys(), "参数名称不一致"  # 每组参数必须有对应梯度和状态。
+        self.t += 1  # 每个批次只增加一次，不能在参数循环里增加。
+        for name in params:  # 每个状态数组与对应参数逐元素对齐。
+            g = grads[name]  # 本课传入已经完成全局裁剪的梯度。
+            assert g.shape == params[name].shape and np.isfinite(g).all(), "梯度形状或数值无效"  # 避免错误广播或无效更新。
+            self.m[name] *= self.beta1  # 保留过去梯度平均的一部分。
+            self.m[name] += (1 - self.beta1) * g  # 加入当前梯度。
+            self.v[name] *= self.beta2  # 保留过去梯度平方平均的一部分。
+            self.v[name] += (1 - self.beta2) * g * g  # 加入当前梯度的逐元素平方。
+            m_hat = self.m[name] / (1 - self.beta1 ** self.t)  # 修正从零初始化造成的偏小。
+            v_hat = self.v[name] / (1 - self.beta2 ** self.t)  # 对平方平均做同样的初始化偏差修正。
+            params[name] -= self.lr * m_hat / (np.sqrt(v_hat) + self.epsilon)  # 用历史方向和平方尺度调整每个参数的更新。
+
+
+def check_first_step():  # 用能手算的小例子验证公式和批次计数。
+    params = {"weight": np.array([1.0]), "zero": np.array([2.0])}  # 两组双精度参数便于核对。
+    optimizer = Adam(params)  # 默认学习率0.001，两组状态均从零开始。
+    optimizer.step(params, {"weight": np.array([0.4]), "zero": np.array([0.0])})  # 一次更新同时处理两个参数组。
+    expected = 1.0 - 0.001 * 0.4 / (0.4 + 1e-8)  # 第一步修正后m为0.4，v为0.16。
+    assert optimizer.t == 1 and np.isclose(params["weight"][0], expected, rtol=0, atol=1e-12) and params["zero"][0] == 2.0, "Adam首步公式或计数错误"  # t只增一次，零历史零梯度不移动。
+    print("Adam手算首步参数：", params["weight"][0], "优化器步数：", optimizer.t, flush=True)  # 预期约0.999和一步。
+```
+
+### 第三块：同一完整验证与固定生成样例
+
+```python
+def measure(model, vocab, label, data, validation):  # 对各候选使用同一验证和生成规则。
+    loss, positions = epoch_tools.evaluate_full(model, data, validation)  # 固定参数评估完整验证集。
+    assert positions == 316960, "验证范围不一致"  # 不混用部分验证结果。
+    print(f"{label} full_validation={loss:.6f}", flush=True)  # 完整验证损失用于候选选择。
+    samples = []  # 额外保留固定开头的实际文字。
+    for prompt in diag.PROMPTS:  # 沿用春风、唐僧道和宝玉听了三个开头。
+        for mode, temperature, top_k in (("greedy", None, None), ("topk40_t07", 0.7, 40)):  # 对每个候选都使用同两种解码设置。
+            text, ids = diag.generate_text(model, vocab, prompt, temperature, top_k, 42)  # 固定六十个续写编号和种子42。
+            samples.append({"prompt": prompt, "mode": mode, "seed": 42, "text": text, "generated_ids": ids, "repeat4": diag.repeat_rate(ids)})  # 全部保留，避免挑选好看的样例。
+            print(label, mode, repr(text), flush=True)  # 指标下降时也检查句子是否更容易读懂。
+    return {"validation_loss": loss, "validation_positions": positions, "samples": samples}  # 返回当前候选的完整评估记录。
+```
+
+### 第四块：共同起点与训练前缀
+
+```python
+def main(output_dir=None):  # 同起点、同数据、同更新预算比较两种优化配置。
+    check_first_step()  # 先确认Adam的基本公式无误。
+    data = import_module("06_make_windows")  # 复用已划分的数据和固定词表。
+    source = json.loads((ROOT / "docs/training_runs/lesson37.json").read_text(encoding="utf-8"))  # 从完整第四轮最佳模型开始。
+    assert source["status"] == "completed" and source["train_sha256"] == data.vocab["train_sha256"], "模型来源或数据版本不一致"  # 不使用其他实验起点。
+    source_path = ROOT / "model" / source["best_checkpoint"]  # 两组都加载同一最佳文件。
+    source_hash = hashlib.sha256(source_path.read_bytes()).hexdigest()  # 保留共同起点校验值。
+    initial, vocab, start_step = training.load_checkpoint(source_path, network)  # 用原模型作为共同起点和候选。
+    assert vocab == data.vocab and start_step == 19148, "起点配置不正确"  # 本次从已核验的第四轮结束位置出发。
+    output_dir = ROOT / "model" if output_dir is None else Path(output_dir)  # 老师预跑可把分支文件放入临时目录。
+    records = list(data.train_records)  # 从原始章节列表复制。
+    random.Random(46).shuffle(records)  # 预先固定本次短训练顺序。
+    batches = list(islice(data.iter_batches(data.iter_windows(records, 32, 32), 16), STEPS))  # 两组精确复用相同的两百批。
+    assert len(batches) == STEPS and sum(batch["y"].size for batch in batches) == 102400, "训练预算错误"  # 每组新增相同数量的目标预测。
+    for batch in batches:  # 缓存输入目标不允许被训练代码修改。
+        batch["x"].setflags(write=False)  # 保留输入数组。
+        batch["y"].setflags(write=False)  # 保留正确目标数组。
+    chapter_to_book = {record["id"]: record["book"] for record in records}  # 准备统计训练前缀实际覆盖。
+    book_windows = {record["book"]: 0 for record in records}  # 没覆盖到的书保留零计数。
+    for batch in batches:  # 每行对应一个章节内窗口。
+        for chapter_id in batch["chapter_ids"]:  # 按窗口来源统计。
+            book_windows[chapter_to_book[chapter_id]] += 1  # 不假定短前缀四书均衡。
+    validation = [json.loads(line) for line in (ROOT / "data/splits/validation.jsonl").read_text(encoding="utf-8").splitlines()]  # 两组使用同一完整验证集。
+    initial_row = measure(initial, vocab, "starting_model", data, validation)  # 起点也参加选优。
+    assert np.isclose(initial_row["validation_loss"], source["best_validation_loss"], rtol=1e-6, atol=1e-6), "起点指标不一致"  # 确认未加载错模型。
+    initial_row.update({"label": "starting_model", "checkpoint": source_path.name, "completed_steps": start_step})  # 加入来源信息。
+    history = [initial_row]  # 保留全部候选，避免两个分支都变差时丢掉旧模型。
+```
+
+### 第五块：两组独立训练、选优和报告入口
+
+```python
+    for label, learning_rate in CONFIGS:  # 每组是独立训练分支。
+        model, current_vocab, loaded_step = training.load_checkpoint(source_path, network)  # 每组重新加载共同起点。
+        assert current_vocab == vocab and loaded_step == start_step and all(np.array_equal(value, initial.params[name]) for name, value in model.params.items()), "分支起点不同"  # 第二组不能接着第一组训练。
+        optimizer = Adam(model.params, learning_rate) if label == "adam" else None  # Adam只创建一次，在组内所有批次间保留历史。
+        for local_step, batch in enumerate(batches, start=1):  # 本组连续完成两百次更新。
+            loss, raw_grads = model.loss_and_grad(batch["x"], batch["y"])  # 使用同一模型结构和反向公式。
+            assert np.isfinite(loss), "训练损失无效"  # 无效数值不继续更新。
+            grads, _, _ = network.clip_gradients(raw_grads, 1.0)  # 两组都先做同样的全局梯度裁剪。
+            if optimizer is None:  # SGD使用固定学习率乘当前梯度。
+                for name in model.params:  # 完整反向后统一更新。
+                    model.params[name] -= learning_rate * grads[name]  # 不保存梯度历史。
+            else:  # Adam使用过去和当前梯度形成的状态。
+                optimizer.step(model.params, grads)  # 同一个优化器对象持续累积m、v和t。
+            assert all(np.isfinite(value).all() for value in model.params.values()), "参数更新异常"  # 两组都检查数值稳定。
+            if local_step % 50 == 0:  # 每五十步显示训练进度。
+                print(f"{label} step={local_step}/{STEPS} batch_loss={loss:.6f}", flush=True)  # 当前批次损失不用于最终模型选择。
+        assert optimizer is None or optimizer.t == STEPS, "Adam历史计数错误"  # Adam本次历史为200步，模型累计步数是19348。
+        row = measure(model, vocab, label, data, validation)  # 训练结束后评估固定样例和完整验证。
+        path = output_dir / f"lesson40_{label}.npz"  # 两组保存独立模型文件。
+        training.save_checkpoint(path, model, vocab, start_step + STEPS)  # 本课只保存模型权重，不包含Adam状态。
+        state_bytes = 0 if optimizer is None else sum(value.nbytes for group in (optimizer.m, optimizer.v) for value in group.values())  # 统计额外m和v数组大小。
+        row.update({"label": label, "learning_rate": learning_rate, "checkpoint": path.name, "completed_steps": start_step + STEPS, "change_from_start": row["validation_loss"] - initial_row["validation_loss"], "optimizer_steps": STEPS, "adam_state_steps": None if optimizer is None else optimizer.t, "optimizer_state_bytes": state_bytes})  # 记录性能变化和优化器额外状态。
+        history.append(row)  # 无论结果好坏都保留。
+    assert hashlib.sha256(source_path.read_bytes()).hexdigest() == source_hash and all(np.array_equal(value, initial.params[name]) for name, value in training.load_checkpoint(source_path, network)[0].params.items()), "共同起点被修改"  # 文件和初始模型对象都应保持不变。
+    selected = min(history, key=lambda row: row["validation_loss"])  # 在起点和两组最终候选中选最低损失。
+    print("实际训练窗口覆盖：", book_windows, flush=True)  # 明确本次只是相同短前缀。
+    print("本次选中：", selected["label"], selected["validation_loss"], flush=True)  # 不预设Adam必须胜出。
+    return {"starting_checkpoint": source_path.name, "starting_sha256": source_hash, "train_sha256": vocab["train_sha256"], "config": {"steps_per_branch": STEPS, "sgd_lr": 0.03, "adam_lr": 0.001, "beta1": 0.9, "beta2": 0.999, "epsilon": 1e-8, "max_norm": 1.0, "batch_size": 16, "seq_length": 32, "chapter_shuffle_seed": 46}, "training_positions_per_branch": 102400, "book_windows": book_windows, "optimizer_state_saved": False, "history": history, "selected_label": selected["label"], "selected_checkpoint": selected["checkpoint"]}  # 保存对照条件，不声称权重文件支持精确恢复Adam训练。
+
+
+if __name__ == "__main__":  # 直接运行才训练并保存正式报告。
+    result = main()  # 默认把分支权重保存到model。
+    path = ROOT / "docs/training_runs/lesson40.json"  # 使用独立的实验记录。
+    path.parent.mkdir(parents=True, exist_ok=True)  # 确保报告目录存在。
+    path.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")  # 保存配置、指标和所有固定样例。
+    print("Adam对照报告：", path)  # 输出结果位置。
+```
+
+### 实操任务
+
+第一、二、三块都是顶层导入或类/函数；第四块定义main，第五块继续main四格缩进，末尾if入口回到顶层。运行python scripts/learn/24_adam_experiment.py。两组共400次更新，加上三次完整验证，可能需要一段时间。请提交起点与两个分支完整验证损失、最后选中项，以及固定生成样例是否更好读。问题一：能否每个批次重新创建Adam对象？问题二：本课只保存权重，没有m/v/t，能否用它精确恢复中断的Adam训练？学习者完成后再核验、添加两个权重明确例外并完整上传。
+
+### 老师完整预跑
+
+只在临时目录保存分支权重，完成后已清理，没有创建学习者练习脚本或正式实验报告。手算首步、跨批历史计数、共同起点不变检查通过。实际书籍窗口覆盖：{"三国演义.txt": 412, "西游记.txt": 1117, "水浒全传.txt": 611, "红楼梦.txt": 1060}。
+
+| 候选 | 完整验证损失 | 累计步数 |
+|---|---:|---:|
+| starting_model | 5.937874744 | 19148 |
+| sgd | 5.970440074 | 19348 |
+| adam | 5.980868139 | 19348 |
+
+本次选中starting_model；临时模型文件大小：{"lesson40_adam.npz": 2682590, "lesson40_sgd.npz": 2687831}字节。完整配置与所有固定文本预跑记录如下，不用单个样例保证模型已经流畅：
+
+```json
+{
+  "starting_checkpoint": "lesson37_best.npz",
+  "starting_sha256": "9d306c2bc19218748c19ccf96d2f97706f16c2e7180fa9013007661b732e97c6",
+  "train_sha256": "0cee762b4832c3a1c37c84c245ca912c51a1c22fa8df4c37e811ec735e390a69",
+  "config": {
+    "steps_per_branch": 200,
+    "sgd_lr": 0.03,
+    "adam_lr": 0.001,
+    "beta1": 0.9,
+    "beta2": 0.999,
+    "epsilon": 1e-08,
+    "max_norm": 1.0,
+    "batch_size": 16,
+    "seq_length": 32,
+    "chapter_shuffle_seed": 46
+  },
+  "training_positions_per_branch": 102400,
+  "book_windows": {
+    "三国演义.txt": 412,
+    "西游记.txt": 1117,
+    "水浒全传.txt": 611,
+    "红楼梦.txt": 1060
+  },
+  "optimizer_state_saved": false,
+  "history": [
+    {
+      "validation_loss": 5.937874743698944,
+      "validation_positions": 316960,
+      "samples": [
+        {
+          "prompt": "春风",
+          "mode": "greedy",
+          "seed": 42,
+          "text": "春风，只是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人",
+          "repeat4": 0.8771929824561404
+        },
+        {
+          "prompt": "春风",
+          "mode": "topk40_t07",
+          "seed": 42,
+          "text": "春风一个了。”如此了，我见也去了。”我人得有两个事？”那者道：“那好人人，不是道：“我要说：“老里，这个人人了。”贾见道：“",
+          "repeat4": 0.0
+        },
+        {
+          "prompt": "唐僧道：",
+          "mode": "greedy",
+          "seed": 42,
+          "text": "唐僧道：“你是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人",
+          "repeat4": 0.8771929824561404
+        },
+        {
+          "prompt": "唐僧道：",
+          "mode": "topk40_t07",
+          "seed": 42,
+          "text": "唐僧道：“我日有个好去。”一个家：“这个里，见个了人大家。”一个道：“哥里，一个人不是道：“不个那，便了道：“你了的子。”我是道",
+          "repeat4": 0.01754385964912286
+        },
+        {
+          "prompt": "宝玉听了",
+          "mode": "greedy",
+          "seed": 42,
+          "text": "宝玉听了。”那个道：“你是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我",
+          "repeat4": 0.7719298245614035
+        },
+        {
+          "prompt": "宝玉听了",
+          "mode": "topk40_t07",
+          "seed": 42,
+          "text": "宝玉听了，一个在个大上。”这个要上人。”说人见一个来头？”那人道：“那好人人，不是道：“我要说：“老里，这个人人了。”贾见道：“",
+          "repeat4": 0.0
+        }
+      ],
+      "label": "starting_model",
+      "checkpoint": "lesson37_best.npz",
+      "completed_steps": 19148
+    },
+    {
+      "validation_loss": 5.970440073894287,
+      "validation_positions": 316960,
+      "samples": [
+        {
+          "prompt": "春风",
+          "mode": "greedy",
+          "seed": 42,
+          "text": "春风，不是道：“我不是道：“我不是道：“我不是道：“我不是道：“我不是道：“我不是道：“我不是道：“我不是道：“我不是道：“",
+          "repeat4": 0.8771929824561404
+        },
+        {
+          "prompt": "春风",
+          "mode": "topk40_t07",
+          "seed": 42,
+          "text": "春风。”如王道：“将不不是那下去，一个一见，以了山日，只有一个人见马，便人，只见不里，就来，那来一个，不得道：“有了，都道：",
+          "repeat4": 0.0
+        },
+        {
+          "prompt": "唐僧道：",
+          "mode": "greedy",
+          "seed": 42,
+          "text": "唐僧道：“我不是道：“我不是道：“我不是道：“我不是道：“我不是道：“我不是道：“我不是道：“我不是道：“我不是道：“我不是道：",
+          "repeat4": 0.8947368421052632
+        },
+        {
+          "prompt": "唐僧道：",
+          "mode": "topk40_t07",
+          "seed": 42,
+          "text": "唐僧道：“吾此将，方着马，我了军大的，只在一人，大不中出之，也不是大得兵，便有道：“你只一知之来。\n今是那人，不听上。\n日说：“",
+          "repeat4": 0.0
+        },
+        {
+          "prompt": "宝玉听了",
+          "mode": "greedy",
+          "seed": 42,
+          "text": "宝玉听了，不是道：“我不是道：“我不是道：“我不是道：“我不是道：“我不是道：“我不是道：“我不是道：“我不是道：“我不是道：“",
+          "repeat4": 0.8771929824561404
+        },
+        {
+          "prompt": "宝玉听了",
+          "mode": "topk40_t07",
+          "seed": 42,
+          "text": "宝玉听了。”老明道：“若不人，与他日之，我不听不不去。\n老曰：“我下者也，一个，不知道：“却便一知之了，说：“我两见军得，将道：",
+          "repeat4": 0.0
+        }
+      ],
+      "label": "sgd",
+      "learning_rate": 0.03,
+      "checkpoint": "lesson40_sgd.npz",
+      "completed_steps": 19348,
+      "change_from_start": 0.03256533019534302,
+      "optimizer_steps": 200,
+      "optimizer_state_bytes": 0,
+      "adam_state_steps": null
+    },
+    {
+      "validation_loss": 5.980868139271782,
+      "validation_positions": 316960,
+      "samples": [
+        {
+          "prompt": "春风",
+          "mode": "greedy",
+          "seed": 42,
+          "text": "春风，只不道：“我不得，一个一个，不得道：“我不得，一个一个，不得道：“我不得，一个一个，不得道：“我不得，一个一个，不得道",
+          "repeat4": 0.7017543859649122
+        },
+        {
+          "prompt": "春风",
+          "mode": "topk40_t07",
+          "seed": 42,
+          "text": "春风之。我了一回，可道：“便将的不得，又然一里，即到说：“我是有下尚，便是一个一个不知。\n者兵大得，何道：“者人之着，如了一",
+          "repeat4": 0.0
+        },
+        {
+          "prompt": "唐僧道：",
+          "mode": "greedy",
+          "seed": 42,
+          "text": "唐僧道：“我不得，一个一个，不得道：“我不得，一个一个，不得道：“我不得，一个一个，不得道：“我不得，一个一个，不得道：“我不得",
+          "repeat4": 0.7543859649122807
+        },
+        {
+          "prompt": "唐僧道：",
+          "mode": "topk40_t07",
+          "seed": 42,
+          "text": "唐僧道：“你去。”正明道：“这又笑道：“不是大子，又叫他得，都道：“宝过，便道：“你见老了道：“众中，一道：“我在僧将之、，不是",
+          "repeat4": 0.0
+        },
+        {
+          "prompt": "宝玉听了",
+          "mode": "greedy",
+          "seed": 42,
+          "text": "宝玉听了，只不得道：“我不得道：“我不得，一个一个，不得道：“我不得，一个一个，不得道：“我不得，一个一个，不得道：“我不得，一",
+          "repeat4": 0.7017543859649122
+        },
+        {
+          "prompt": "宝玉听了",
+          "mode": "topk40_t07",
+          "seed": 42,
+          "text": "宝玉听了。”二明道：“者道：“小知马道：“我下的子，到此马，便是一个的都道：“我不玉道：“是又，把上不得道：“我宝，是上人一个，",
+          "repeat4": 0.03508771929824561
+        }
+      ],
+      "label": "adam",
+      "learning_rate": 0.001,
+      "checkpoint": "lesson40_adam.npz",
+      "completed_steps": 19348,
+      "change_from_start": 0.042993395572837656,
+      "optimizer_steps": 200,
+      "optimizer_state_bytes": 5757784,
+      "adam_state_steps": 200
+    }
+  ],
+  "selected_label": "starting_model",
+  "selected_checkpoint": "lesson37_best.npz"
+}
+```
+
+老师对18段固定生成样例的人工观察：SGD和Adam分支均未摆脱语义不清及长循环，Adam的top-k续写虽有“你去”等可读短片段，但后续人物与语句仍不连贯。本次两个分支完整验证损失都高于起点，因此保留starting_model。结论仅限这两个预设配置、同一200批前缀的短期续训，不证明Adam普遍不如SGD；下一次实验应另行预定更充分的数据覆盖和预算，不在看到结果后悄悄延长某一分支。
+
+额外用连续梯度0.4、0.2核对第二步历史状态：m2=0.056、v2=0.00019984，按第二步偏差修正得到的参数与Adam实现一致，t=2检查通过。报告元数据把optimizer_steps明确记为两组各200步，并单独记录adam_state_steps（SGD为null、Adam为200），避免将SGD未维护Adam状态误解为未训练。此处仅调整报告字段，不改变已执行的训练计算。
