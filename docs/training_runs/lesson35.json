@@ -1,0 +1,26 @@
+{
+  "checkpoint": "lesson33_best.npz",
+  "completed_steps": 14361,
+  "train_sha256": "0cee762b4832c3a1c37c84c245ca912c51a1c22fa8df4c37e811ec735e390a69",
+  "config": {
+    "batch_size": 16,
+    "seq_length": 32,
+    "frequency_alpha": 1.0,
+    "log_base": "e",
+    "accuracy": "top1_all_encoded_positions"
+  },
+  "positions": 316960,
+  "frequency_prediction_token": "，",
+  "rnn": {
+    "loss": 6.011732810694507,
+    "perplexity": 408.1900238440266,
+    "correct": 39502,
+    "accuracy": 0.12462771327612317
+  },
+  "frequency": {
+    "loss": 6.36086485508896,
+    "perplexity": 578.7466720167972,
+    "correct": 22927,
+    "accuracy": 0.07233404846037354
+  }
+}
