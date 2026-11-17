@@ -1,0 +1,71 @@
+{
+  "status": "completed",
+  "starting_checkpoint": "lesson33_best.npz",
+  "starting_sha256": "3eebe534171dbb7c660052763d00c4ecff705d2609da3dd33403a90fc9b8a919",
+  "train_sha256": "0cee762b4832c3a1c37c84c245ca912c51a1c22fa8df4c37e811ec735e390a69",
+  "config": {
+    "epoch": 4,
+    "learning_rate": 0.03,
+    "batch_size": 16,
+    "seq_length": 32,
+    "max_norm": 1.0,
+    "chapter_shuffle_seed": 45
+  },
+  "history": [
+    {
+      "local_step": 0,
+      "global_step": 14361,
+      "checkpoint": "lesson33_best.npz",
+      "validation_loss": 6.011732826733577,
+      "validation_positions": 316960
+    },
+    {
+      "local_step": 200,
+      "global_step": 14561,
+      "checkpoint": "lesson37_step0200.npz",
+      "validation_loss": 5.9600134563109055,
+      "validation_positions": 316960,
+      "greedy": "春风，只是这个，不是我，一个，不是我，一个，不是我，一个，不是我，一个，不是我，一个"
+    },
+    {
+      "local_step": 1000,
+      "global_step": 15361,
+      "checkpoint": "lesson37_step1000.npz",
+      "validation_loss": 5.97161985105604,
+      "validation_positions": 316960,
+      "greedy": "春风，只不是道：“我不道：“我不道：“我不道：“我不道：“我不道：“我不道：“我不道"
+    },
+    {
+      "local_step": 3000,
+      "global_step": 17361,
+      "checkpoint": "lesson37_step3000.npz",
+      "validation_loss": 5.939247507329302,
+      "validation_positions": 316960,
+      "greedy": "春风，只是一个，不是一个，不是一个，不是一个，不是一个，不是一个，不是一个，不是一个"
+    },
+    {
+      "local_step": 4787,
+      "global_step": 19148,
+      "checkpoint": "lesson37_step4787.npz",
+      "validation_loss": 5.937874743698944,
+      "validation_positions": 316960,
+      "greedy": "春风，只是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人，不是我人"
+    }
+  ],
+  "completed_local_steps": 4787,
+  "best_local_step": 4787,
+  "best_checkpoint": "lesson37_best.npz",
+  "best_validation_loss": 5.937874743698944,
+  "completed_global_steps": 19148,
+  "seen_windows": 76584,
+  "seen_positions": 2450688,
+  "last_batch_size": 8,
+  "book_windows": {
+    "西游记.txt": 18052,
+    "红楼梦.txt": 21299,
+    "三国演义.txt": 14818,
+    "水浒全传.txt": 22415
+  },
+  "training_process_loss": 5.878568746721584,
+  "run_seconds": 393.70377239992376
+}
