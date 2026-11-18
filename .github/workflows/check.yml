@@ -69,4 +69,6 @@ jobs: # 定义需要执行的任务。
           python -m pip install numpy==2.3.5 # 固定实际数据排列使用的NumPy版本。
           python -m pip install torch==2.11.0 --index-url https://download.pytorch.org/whl/cpu # 只安装CPU轮子。
       - name: Check bounded recurrent experiment # 只读核对指标、预算和恢复能力。
-        run: python scripts/ci/check_lesson42.py # 不调用真实训练入口。
+        run: | # 只读核验两课产物，不调用真实训练入口。
+          python scripts/ci/check_lesson42.py # 核验起点与结构对照。
+          python scripts/ci/check_lesson43.py # 核验续训预算和保留的Adam历史。

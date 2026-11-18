@@ -155,3 +155,7 @@ Adam额外m/v状态数组占5757784字节，本次历史t=200，区别于模型�
 | `lesson42/lesson42_rnn_last.pt` | 18604968 | `d03dcfdd82db57d352666f23918ef6d551e82e3e75b82b243379a20390d7ce8f` |
 
 四份检查点均包含模型、Adam历史、随机状态及数据游标，不兼容旧NumPy加载器，使用scripts/experiments/bounded_recurrent.py的restore_checkpoint。每组best与last本次内容相同，Git按内容去重；单份不超过21MB。GPU下一批恢复差为0，CPU只读检查会重算完整验证及微型恢复测试。按完整课程产物约定纳入Git，不新增外部语料到旧训练划分。
+
+## 第四十三课续训状态
+
+`lesson43/lesson43_best.pt` 和 `lesson43/lesson43_last.pt` 保存从第四十二课最佳RNN延续的完整模型、Adam、随机状态和数据游标。本次两者均位于累计4788更新，完整验证交叉熵4.588138；旧权重保留。两份各约18.6MB。生成命令和预算见 `docs/lesson43_continued_training.md`。
