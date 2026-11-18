@@ -159,3 +159,7 @@ Adam额外m/v状态数组占5757784字节，本次历史t=200，区别于模型�
 ## 第四十三课续训状态
 
 `lesson43/lesson43_best.pt` 和 `lesson43/lesson43_last.pt` 保存从第四十二课最佳RNN延续的完整模型、Adam、随机状态和数据游标。本次两者均位于累计4788更新，完整验证交叉熵4.588138；旧权重保留。两份各约18.6MB。生成命令和预算见 `docs/lesson43_continued_training.md`。
+
+## 第四十四课八轮续训
+
+`lesson44/lesson44_best.pt` 和 `lesson44/lesson44_last.pt` 均位于累计14364更新，完整验证交叉熵4.444933，包含Adam与恢复游标。由第四十三课最佳状态增加8轮、9576更新而来；旧模型保留。详细预算和生成命令见 `docs/lesson44_more_epochs.md`。

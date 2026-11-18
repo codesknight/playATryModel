@@ -57,3 +57,8 @@ model/lesson42/*
 model/lesson43/*
 !model/lesson43/lesson43_best.pt
 !model/lesson43/lesson43_last.pt
+
+!model/lesson44/
+model/lesson44/*
+!model/lesson44/lesson44_best.pt
+!model/lesson44/lesson44_last.pt

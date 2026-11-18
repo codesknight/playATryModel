@@ -11,6 +11,10 @@ def main():  # 延续最佳RNN，不重新初始化Adam。
     parser.add_argument("--max-steps", type=int, default=2394)  # 本阶段额外更新上限。
     parser.add_argument("--max-epochs", type=int, default=2)  # 最多继续两个轮次，首轮从游标开始。
     parser.add_argument("--max-seconds", type=float, default=360)  # 批次边界截止，收尾核验另计。
+    parser.add_argument("--source", type=base.Path, default=ROOT / "model/lesson42/lesson42_rnn_best.pt")  # 明确从哪份完整状态继续。
+    parser.add_argument("--output-dir", type=base.Path, default=ROOT / "model/lesson43")  # 不同实验使用独立目录。
+    parser.add_argument("--report", type=base.Path, default=ROOT / "docs/training_runs/lesson43.json")  # 不覆盖其他课程的原始记录。
+    parser.add_argument("--evaluate-each-epoch", action="store_true")  # 长训练时每轮完整验证并保留固定样例。
     args = parser.parse_args()  # 在看到本次指标前确定配置。
     assert min(args.max_steps, args.max_epochs, args.max_seconds) > 0, "预算必须为正"  # 禁止无限训练。
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # 使用现有环境的可用设备。
@@ -19,7 +23,7 @@ def main():  # 延续最佳RNN，不重新初始化Adam。
     torch.backends.cudnn.benchmark = False  # 固定循环层计算路径。
     torch.backends.cudnn.deterministic = True  # CUDA循环层也使用确定性设置。
     torch.backends.cuda.matmul.allow_tf32 = False  # 保持上一课float32精度设置。
-    source = ROOT / "model/lesson42/lesson42_rnn_best.pt"  # 从上一课实际最佳候选继续。
+    source = args.source.resolve()  # 从上一课实际最佳候选继续。
     model, optimizer, original = base.restore_checkpoint(source, device)  # 恢复参数、Adam动量和随机状态。
     vocab, train, validation = base.load_data(device)  # 数据划分、词表、32字窗口均不变。
     assert vocab == original["vocab"], "恢复时词表改变"  # 编号含义必须一致。
@@ -29,11 +33,11 @@ def main():  # 延续最佳RNN，不重新初始化Adam。
     cursor = dict(original["cursor"])  # 下一批位置不能从首轮重新开始。
     order_epoch, order = original["order_epoch"], original["epoch_order"].numpy().copy()  # 恢复尚未完成的排列。
     first_epoch, batch_size = cursor["next_epoch"], original["batch_size"]  # 跨轮边界时按下一轮种子重新排列。
-    output = ROOT / "model/lesson43"  # 旧课产物保留。
+    output = args.output_dir.resolve()  # 旧课产物保留。
     output.mkdir(parents=True, exist_ok=True)  # 创建本阶段输出目录。
-    last_path, best_path = output / "lesson43_last.pt", output / "lesson43_best.pt"  # 最后状态与最佳状态分开保存。
-    report_path = ROOT / "docs/training_runs/lesson43.json"  # 所有固定样例写入原始报告。
-    report = {"status": "running", "config": vars(args), "source": source.relative_to(ROOT).as_posix(), "source_sha256": hashlib.sha256(source.read_bytes()).hexdigest(), "initial_step": step, "initial_seen_positions": seen, "learning_rate": optimizer.param_groups[0]["lr"], "device": str(device), "torch_version": str(torch.__version__), "numpy_version": np.__version__, "train_sha256": vocab["train_sha256"], "history": []}  # 保留本阶段可追溯条件。
+    last_path, best_path = output / f"{output.name}_last.pt", output / f"{output.name}_best.pt"  # 最后状态与最佳状态分开保存。
+    report_path = args.report.resolve()  # 所有固定样例写入原始报告。
+    report = {"status": "running", "config": {key: str(value) if isinstance(value, base.Path) else value for key, value in vars(args).items()}, "source": source.relative_to(ROOT).as_posix(), "source_sha256": hashlib.sha256(source.read_bytes()).hexdigest(), "initial_step": step, "initial_seen_positions": seen, "learning_rate": optimizer.param_groups[0]["lr"], "device": str(device), "torch_version": str(torch.__version__), "numpy_version": np.__version__, "train_sha256": vocab["train_sha256"], "history": []}  # 保留本阶段可追溯条件。
     best_loss, started, exposure = float("inf"), perf_counter(), hashlib.sha256()  # 起点也参加最佳选择。
 
     def capture():  # 完整验证后保存同一位置的参数和优化器。
@@ -78,8 +82,10 @@ def main():  # 延续最佳RNN，不重新初始化Adam。
             cursor = {"next_epoch": epoch + int(end == len(x)), "next_start": 0 if end == len(x) else end}  # 整轮结束后推进轮号。
             if (step - initial_step) % 200 == 0:  # 定期展示真实训练进度。
                 print(f"additional={step-initial_step} batch_loss={loss.item():.6f}", flush=True)  # 不把单批下降当成泛化改善。
-            if step - initial_step == 1000:  # 固定的中途完整验证候选。
+            if not args.evaluate_each_epoch and step - initial_step == 1000:  # 固定的中途完整验证候选。
                 capture()  # 不中断优化器历史。
+        if args.evaluate_each_epoch and report["history"][-1]["step"] != step:  # 轮末或预算停止处验证，避免重复候选。
+            capture()  # 周期保存最佳状态，最后状态可继续恢复。
         if reason != "epochs":  # 任一预算到达后退出全部训练循环。
             break  # 不自动重试更大预算。
     if report["history"][-1]["step"] != step:  # 最后更新后补做完整验证。
