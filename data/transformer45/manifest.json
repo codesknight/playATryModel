@@ -1,0 +1,46 @@
+{
+  "dataset": "joe-chiu/TinyChineseStories",
+  "revision": "ad789c9d622bfbdeecdc90df2041b3ba458e0368",
+  "source_url": "https://huggingface.co/datasets/joe-chiu/TinyChineseStories/resolve/ad789c9d622bfbdeecdc90df2041b3ba458e0368/stories.csv",
+  "card_url": "https://huggingface.co/datasets/joe-chiu/TinyChineseStories/blob/ad789c9d622bfbdeecdc90df2041b3ba458e0368/README.md",
+  "credit": "joe-chiu, TinyChineseStories",
+  "license_declared_in_readme": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "synthetic_source": "GPT-3.5, as declared by author",
+  "raw_sha256": "7ee24009ff4e0a12256d0458b345b725ff611bb2481c7f6a8f8f29adec562374",
+  "raw_bytes": 3045940,
+  "duplicates_removed": 0,
+  "retained_stories": 2277,
+  "split_seed": 45,
+  "split_unit": "theme group; names and genre variants kept together",
+  "near_duplicate_check": "not performed; normalized exact duplicates only",
+  "new_corpus_splits": {
+    "train": {
+      "documents": 1801,
+      "characters": 746116,
+      "groups": 208
+    },
+    "validation": {
+      "documents": 231,
+      "characters": 93460,
+      "groups": 26
+    },
+    "test": {
+      "documents": 245,
+      "characters": 103809,
+      "groups": 26
+    }
+  },
+  "files": {
+    "train.jsonl": "9c685c19c934ea91af0ca5ae8fa2cbdb72c0e7d51652338affe91c1cb309727c",
+    "validation.jsonl": "cbbee10286258c5bf2c2e4c34867ae98e767b2a36717cee54a63d6ff5cc2b39f",
+    "test.jsonl": "0b19829f0e721b440717a4b7fd7ad4300f5830cfe38b4f7ad09143cdef4fb1b4",
+    "vocab.json": "4871891ea10b1232a45d2165aa9f893a7e85d9417036b9868a9343ac6d02148a"
+  },
+  "vocab_size": 6799,
+  "combined_train_characters": 3202702,
+  "old_split_sha256": {
+    "train": "0cee762b4832c3a1c37c84c245ca912c51a1c22fa8df4c37e811ec735e390a69",
+    "validation": "6c2b342b2964d65d780f8a487285855dfaff4502bf3bb8fbf7bba1896e46e0fe"
+  }
+}

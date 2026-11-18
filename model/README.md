@@ -163,3 +163,7 @@ Adam额外m/v状态数组占5757784字节，本次历史t=200，区别于模型�
 ## 第四十四课八轮续训
 
 `lesson44/lesson44_best.pt` 和 `lesson44/lesson44_last.pt` 均位于累计14364更新，完整验证交叉熵4.444933，包含Adam与恢复游标。由第四十三课最佳状态增加8轮、9576更新而来；旧模型保留。详细预算和生成命令见 `docs/lesson44_more_epochs.md`。
+
+## 第四十五课小型Transformer
+
+`lesson45/lesson45_best.pt` 与 `lesson45/lesson45_last.pt`：4层4头、隐藏128、上下文128、词表6799，共1680000参数；完整状态各20523055字节。六轮4896更新，混合完整验证4.132147，新故事3.492973。仅适配data/transformer45的新词表，不能用旧RNN词表加载。新数据、新尾段及EOS目标使本次分数不能直接当作旧模型同口径对照。用 `scripts/experiments/generate_transformer.py` 独立续写。方法见docs/lesson45_tiny_transformer.md。

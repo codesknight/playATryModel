@@ -11,3 +11,5 @@
 # 权重作为二进制文件保存，不做文本转换。
 *.npz binary
 *.pt binary
+
+data/transformer45/stories.csv -text

@@ -73,3 +73,4 @@ jobs: # 定义需要执行的任务。
           python scripts/ci/check_lesson42.py # 核验起点与结构对照。
           python scripts/ci/check_lesson43.py # 核验续训预算和保留的Adam历史。
           python scripts/ci/check_lesson44.py # 核验八轮续训、逐轮验证和最佳状态。
+          python scripts/ci/check_lesson45.py # 核验新语料、因果遮罩和小型Transformer。

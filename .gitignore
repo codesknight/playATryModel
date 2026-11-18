@@ -62,3 +62,8 @@ model/lesson43/*
 model/lesson44/*
 !model/lesson44/lesson44_best.pt
 !model/lesson44/lesson44_last.pt
+
+!model/lesson45/
+model/lesson45/*
+!model/lesson45/lesson45_best.pt
+!model/lesson45/lesson45_last.pt
