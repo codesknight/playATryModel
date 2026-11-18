@@ -46,3 +46,7 @@ python scripts/example/generate.py --model model/my_rnn.npz --prompt "你的开�
 这是教学用的微型语言模型，不是问答助手。示例语料非常少，训练后的输出主要是学过句子的复现和组合，可能重复、不连贯或出现错字搭配。训练损失只反映对训练语料的拟合，没有独立评测集，不能代表通用语言能力。它没有预训练知识，也不能可靠回答问题。想增加表达范围，需要更丰富的语料并重新训练；增大模型本身不能替代数据。
 
 可通过 `python scripts/example/train.py --help` 和 `python scripts/example/generate.py --help` 查看参数。
+
+## 当前学习进展与聊天路线
+
+本页前述默认命令对应早期NumPy示例。最新Transformer及分块数学讲解见[第四十五课](lesson45_tiny_transformer.md)，这轮真实问答和纠错见[问答复盘](lesson45_qa_review.md)。小于1GB聊天模型的MiniMind参考、硬件预算和分阶段计划见[聊天训练路线](chat_training_roadmap.md)。30M/64M仍为计划，当前模型尚无可用chat能力。

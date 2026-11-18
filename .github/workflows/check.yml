@@ -26,6 +26,9 @@ jobs: # 定义需要执行的任务。
           python scripts/example/generate.py --model "$RUNNER_TEMP/smoke.npz" --prompt "小猫" --length 10 # 重新加载新权重并生成文字。
       - name: Check completed lessons # 运行已完成的数据、模型与训练练习。
         run: | # 按顺序检查数据可复现性、模型计算与短训练流程。
+          python scripts/learn/26_chat_sft_format.py # 核对聊天角色和仅助手目标的教学演示。
+          python scripts/ci/check_chat_preparation.py # 核对SFT首字对齐、多轮及无效会话拒绝。
+          python scripts/experiments/estimate_chat_budget.py # 仅核算候选参数和1GB权重预算，不训练。
           python scripts/learn/01_inspect_data.py # 验证四份原始文本都可以读取。
           python scripts/learn/02_clean_data.py # 重新生成清洗结果，并执行脚本内的断言。
           python scripts/learn/03_split_chapters.py # 运行章节识别、无损切分、JSONL 保存及重载检查。

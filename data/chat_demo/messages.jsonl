@@ -1,0 +1,2 @@
+{"id": "format_demo:001", "purpose": "format_demo_only_not_training_or_evaluation", "messages": [{"role": "user", "content": "你好"}, {"role": "assistant", "content": "你好！有什么可以帮你？"}, {"role": "user", "content": "刚才我说了什么？"}, {"role": "assistant", "content": "你刚才说了“你好”。"}]}
+{"id": "format_demo:002", "purpose": "format_demo_only_not_training_or_evaluation", "messages": [{"role": "system", "content": "请简洁回答。"}, {"role": "user", "content": "什么是梯度？"}, {"role": "assistant", "content": "梯度描述损失随参数变化的局部变化率。"}]}

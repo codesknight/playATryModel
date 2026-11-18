@@ -1,0 +1,60 @@
+{
+  "status": "planned_not_implemented_or_trained",
+  "reference_repo": "https://github.com/jingyaogong/minimind",
+  "reference_revision": "2de2308d71750b44d56fd28cd8756239eee18957",
+  "reference_architecture": "dense tied embeddings; GQA; SwiGLU; RMSNorm including Q/K norms; no linear biases",
+  "weight_limit_bytes": 1000000000,
+  "limit_scope": "exported inference model weights, not total environment, corpus or training VRAM",
+  "hardware": "RTX 3080 10240 MiB; no actual profile of these candidates yet",
+  "candidates": [
+    {
+      "width": 512,
+      "layers": 8,
+      "vocab_size": 6400,
+      "heads": 8,
+      "kv_heads": 4,
+      "head_dim": 64,
+      "intermediate_size": 1664,
+      "parameters": 30025216,
+      "weights_fp32_bytes": 120100864,
+      "weights_fp16_bytes": 60050432,
+      "approx_fp32_weights_and_two_adam_moments_bytes": 360302592,
+      "approx_fp32_weights_gradients_and_two_adam_moments_bytes": 480403456
+    },
+    {
+      "width": 768,
+      "layers": 8,
+      "vocab_size": 6400,
+      "heads": 8,
+      "kv_heads": 4,
+      "head_dim": 96,
+      "intermediate_size": 2432,
+      "parameters": 63912192,
+      "weights_fp32_bytes": 255648768,
+      "weights_fp16_bytes": 127824384,
+      "approx_fp32_weights_and_two_adam_moments_bytes": 766946304,
+      "approx_fp32_weights_gradients_and_two_adam_moments_bytes": 1022595072
+    }
+  ],
+  "initial_profile_proposal": {
+    "micro_batch_size": 1,
+    "context_tokens": 256,
+    "gradient_accumulation_steps": 8,
+    "max_optimizer_steps": 20,
+    "max_seconds": 300,
+    "precision": "autocast float16 with GradScaler; FP32 master parameters; verify on device",
+    "note": "proposed only; count optimizer updates separately from micro-batches; measure peak VRAM and valid tokens/sec before long training"
+  },
+  "first_training_pilot_proposal": {
+    "max_optimizer_steps": 1000,
+    "max_seconds": 1800,
+    "note": "after new tokenizer, reviewed data, split checks and profile; stop at first reached limit; no claim that this creates useful general chat"
+  },
+  "acceptance": [
+    "assistant-only validation loss on fixed grouped holdout",
+    "held-out questions and multi-turn follow-up",
+    "stop at assistant message end marker",
+    "all fixed responses recorded including failures",
+    "actual inference artifact bytes < 1000000000"
+  ]
+}
