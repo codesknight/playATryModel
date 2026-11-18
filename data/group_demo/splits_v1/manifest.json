@@ -1,0 +1,35 @@
+{
+  "files": {
+    "group_to_split.json": "782451fe885981c485803ee7bf3b342019bf1706e184dd614ac5896ac291dc40",
+    "test.jsonl": "b333f80b84fcb7c4a4cdd3b253ac05271967b8e39b738742157fd3c737c87ed5",
+    "train.jsonl": "90fd5df61543e84f0cf539c0f7168591adc347e34344e864a0ae376d166ba876",
+    "validation.jsonl": "b9211972522967945110bebd54385f9f9b324eadc05fba770bf2f9180c6bcc8d"
+  },
+  "format": "chat_group_split_v1",
+  "purpose": "format_demo_not_real_training",
+  "ratios_by_group": [
+    0.8,
+    0.1,
+    0.1
+  ],
+  "seed": 42,
+  "source_sha256": "2dee312b077bf34ad9e2031ca052b3e35971cc242033c366c684be50afda1fd4",
+  "stats": {
+    "test": {
+      "characters": 11,
+      "groups": 1,
+      "samples": 1
+    },
+    "train": {
+      "characters": 100,
+      "groups": 8,
+      "samples": 8
+    },
+    "validation": {
+      "characters": 81,
+      "groups": 1,
+      "samples": 3
+    }
+  },
+  "unit": "group_id"
+}

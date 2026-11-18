@@ -1,0 +1,3 @@
+{"group_id": "g00", "id": "group_demo:000", "messages": [{"content": "小明有2个苹果，又买3个，一共有几个？", "role": "user"}, {"content": "一共有5个苹果。", "role": "assistant"}], "purpose": "split_format_demo_only_not_training_or_evaluation"}
+{"group_id": "g00", "id": "group_demo:001", "messages": [{"content": "小红有2个苹果，又买3个，一共有几个？", "role": "user"}, {"content": "一共有5个苹果。", "role": "assistant"}], "purpose": "split_format_demo_only_not_training_or_evaluation"}
+{"group_id": "g00", "id": "group_demo:002", "messages": [{"content": "小刚有2个苹果，又买3个，一共有几个？", "role": "user"}, {"content": "一共有5个苹果。", "role": "assistant"}], "purpose": "split_format_demo_only_not_training_or_evaluation"}

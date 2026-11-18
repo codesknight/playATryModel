@@ -1,0 +1,8 @@
+{"group_id": "g02", "id": "group_demo:004", "messages": [{"content": "1加1等于几？", "role": "user"}, {"content": "2", "role": "assistant"}], "purpose": "split_format_demo_only_not_training_or_evaluation"}
+{"group_id": "g03", "id": "group_demo:005", "messages": [{"content": "请写出一个颜色。", "role": "user"}, {"content": "蓝色。", "role": "assistant"}], "purpose": "split_format_demo_only_not_training_or_evaluation"}
+{"group_id": "g04", "id": "group_demo:006", "messages": [{"content": "什么是梯度？", "role": "user"}, {"content": "梯度描述函数对参数的局部变化率。", "role": "assistant"}], "purpose": "split_format_demo_only_not_training_or_evaluation"}
+{"group_id": "g05", "id": "group_demo:007", "messages": [{"content": "请回复一个水果名字。", "role": "user"}, {"content": "苹果。", "role": "assistant"}], "purpose": "split_format_demo_only_not_training_or_evaluation"}
+{"group_id": "g06", "id": "group_demo:008", "messages": [{"content": "用一个字表示同意。", "role": "user"}, {"content": "好", "role": "assistant"}], "purpose": "split_format_demo_only_not_training_or_evaluation"}
+{"group_id": "g07", "id": "group_demo:009", "messages": [{"content": "请写出一周中的一天。", "role": "user"}, {"content": "星期一。", "role": "assistant"}], "purpose": "split_format_demo_only_not_training_or_evaluation"}
+{"group_id": "g08", "id": "group_demo:010", "messages": [{"content": "“大”的反义词是什么？", "role": "user"}, {"content": "小。", "role": "assistant"}], "purpose": "split_format_demo_only_not_training_or_evaluation"}
+{"group_id": "g09", "id": "group_demo:011", "messages": [{"content": "请只回复数字3。", "role": "user"}, {"content": "3", "role": "assistant"}], "purpose": "split_format_demo_only_not_training_or_evaluation"}

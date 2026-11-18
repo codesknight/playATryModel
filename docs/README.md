@@ -50,3 +50,5 @@ python scripts/example/generate.py --model model/my_rnn.npz --prompt "你的开�
 ## 当前学习进展与聊天路线
 
 本页前述默认命令对应早期NumPy示例。最新Transformer及分块数学讲解见[第四十五课](lesson45_tiny_transformer.md)，这轮真实问答和纠错见[问答复盘](lesson45_qa_review.md)。小于1GB聊天模型的MiniMind参考、硬件预算和分阶段计划见[聊天训练路线](chat_training_roadmap.md)。30M/64M仍为计划，当前模型尚无可用chat能力。
+
+当前实操：[第四十七课：分组划分与冻结版本](lesson47_group_split.md)，包含进入30M聊天模型训练的具体实操安排。

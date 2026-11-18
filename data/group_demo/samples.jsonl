@@ -1,0 +1,12 @@
+{"id": "group_demo:000", "group_id": "g00", "purpose": "split_format_demo_only_not_training_or_evaluation", "messages": [{"role": "user", "content": "小明有2个苹果，又买3个，一共有几个？"}, {"role": "assistant", "content": "一共有5个苹果。"}]}
+{"id": "group_demo:001", "group_id": "g00", "purpose": "split_format_demo_only_not_training_or_evaluation", "messages": [{"role": "user", "content": "小红有2个苹果，又买3个，一共有几个？"}, {"role": "assistant", "content": "一共有5个苹果。"}]}
+{"id": "group_demo:002", "group_id": "g00", "purpose": "split_format_demo_only_not_training_or_evaluation", "messages": [{"role": "user", "content": "小刚有2个苹果，又买3个，一共有几个？"}, {"role": "assistant", "content": "一共有5个苹果。"}]}
+{"id": "group_demo:003", "group_id": "g01", "purpose": "split_format_demo_only_not_training_or_evaluation", "messages": [{"role": "user", "content": "请只回复“你好”。"}, {"role": "assistant", "content": "你好"}]}
+{"id": "group_demo:004", "group_id": "g02", "purpose": "split_format_demo_only_not_training_or_evaluation", "messages": [{"role": "user", "content": "1加1等于几？"}, {"role": "assistant", "content": "2"}]}
+{"id": "group_demo:005", "group_id": "g03", "purpose": "split_format_demo_only_not_training_or_evaluation", "messages": [{"role": "user", "content": "请写出一个颜色。"}, {"role": "assistant", "content": "蓝色。"}]}
+{"id": "group_demo:006", "group_id": "g04", "purpose": "split_format_demo_only_not_training_or_evaluation", "messages": [{"role": "user", "content": "什么是梯度？"}, {"role": "assistant", "content": "梯度描述函数对参数的局部变化率。"}]}
+{"id": "group_demo:007", "group_id": "g05", "purpose": "split_format_demo_only_not_training_or_evaluation", "messages": [{"role": "user", "content": "请回复一个水果名字。"}, {"role": "assistant", "content": "苹果。"}]}
+{"id": "group_demo:008", "group_id": "g06", "purpose": "split_format_demo_only_not_training_or_evaluation", "messages": [{"role": "user", "content": "用一个字表示同意。"}, {"role": "assistant", "content": "好"}]}
+{"id": "group_demo:009", "group_id": "g07", "purpose": "split_format_demo_only_not_training_or_evaluation", "messages": [{"role": "user", "content": "请写出一周中的一天。"}, {"role": "assistant", "content": "星期一。"}]}
+{"id": "group_demo:010", "group_id": "g08", "purpose": "split_format_demo_only_not_training_or_evaluation", "messages": [{"role": "user", "content": "“大”的反义词是什么？"}, {"role": "assistant", "content": "小。"}]}
+{"id": "group_demo:011", "group_id": "g09", "purpose": "split_format_demo_only_not_training_or_evaluation", "messages": [{"role": "user", "content": "请只回复数字3。"}, {"role": "assistant", "content": "3"}]}
