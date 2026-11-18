@@ -40,7 +40,9 @@ loss.backward()  # 自动求导走完全部注意力层。
 assert all(p.grad is not None and torch.isfinite(p.grad).all() for p in small.parameters()), "存在缺失或非有限梯度"  # 不只检查前向形状。
 assert report["status"] == "completed" and 0 < report["completed_steps"] <= report["config"]["max_steps"], "更新预算错误"  # 实际训练遵守上限。
 assert report["best_loss"] == min(row["loss"] for row in report["history"]), "最佳候选选错"  # 初始化起点也参与选择。
-assert hashlib.sha256((DIRECTORY / "manifest.json").read_bytes()).hexdigest() == report["data_manifest_sha256"], "训练数据版本不同"  # 保留训练来源证据。
+manifest_lf = (DIRECTORY / "manifest.json").read_text(encoding="utf-8").encode("utf-8")  # 文本读取统一换行，Git检出在Linux使用LF。
+manifest_hashes = {hashlib.sha256(payload).hexdigest() for payload in (manifest_lf, manifest_lf.replace(b"\n", b"\r\n"))}  # 历史Windows记录按CRLF哈希，仅容许换行差异。
+assert report["data_manifest_sha256"] in manifest_hashes, "训练数据版本不同"  # 保留训练来源证据。
 exposure, remaining, positions = hashlib.sha256(), report["completed_steps"], 0  # 独立重建实际窗口前缀。
 for epoch in range(report["config"]["max_epochs"]):  # 不能超过预定轮数。
     order = np.random.default_rng(report["data_seed"] + epoch).permutation(len(train[0])).astype(np.int64)  # 每轮复现同一打乱。

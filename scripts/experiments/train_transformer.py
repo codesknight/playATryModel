@@ -41,7 +41,7 @@ def main():  # 本课从零训练新结构，不能直接载入RNN权重。
         targets = validation[1][selection]  # 包含尾段和EOS，不含被忽略的补齐。
         targets = targets[targets != -100]  # 真实目标参与分母。
         frequency[source] = {"loss": float(-log_probabilities[targets].mean()), "positions": len(targets)}  # 与模型的分来源口径一致。
-    report = {"status": "running", "config": vars(args), "model_config": model.spec, "parameter_count": sum(p.numel() for p in model.parameters()), "batch_size": batch_size, "learning_rate": 0.0003, "data_seed": data_seed, "torch_version": str(torch.__version__), "device": str(device), "data_manifest_sha256": hashlib.sha256((DIRECTORY / "manifest.json").read_bytes()).hexdigest(), "train_windows": len(train[0]), "train_positions_per_epoch": int((train[1] != -100).sum()), "frequency_baseline": frequency, "history": []}  # 新数据新目标不能直接和旧RNN数值做严格对照。
+    report = {"status": "running", "config": vars(args), "model_config": model.spec, "parameter_count": sum(p.numel() for p in model.parameters()), "batch_size": batch_size, "learning_rate": 0.0003, "data_seed": data_seed, "torch_version": str(torch.__version__), "device": str(device), "data_manifest_sha256": hashlib.sha256((DIRECTORY / "manifest.json").read_text(encoding="utf-8").encode("utf-8")).hexdigest(), "train_windows": len(train[0]), "train_positions_per_epoch": int((train[1] != -100).sum()), "frequency_baseline": frequency, "history": []}  # 新数据新目标不能直接和旧RNN数值做严格对照。
     step, seen, best_loss, started = 0, 0, float("inf"), perf_counter()  # 计时包含本阶段周期验证和保存。
     order_epoch, order = 0, np.random.default_rng(data_seed).permutation(len(train[0])).astype(np.int64)  # 起点就保存下一批真实排列。
     cursor, exposure = {"next_epoch": 0, "next_start": 0}, hashlib.sha256()  # 恢复游标和实际数据顺序证据。
