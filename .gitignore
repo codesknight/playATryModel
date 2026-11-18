@@ -39,4 +39,9 @@ model/*
 !model/lesson37_best.npz
 !model/lesson40_sgd.npz
 !model/lesson40_adam.npz
+!model/lesson41_step0200.npz
+!model/lesson41_step1000.npz
+!model/lesson41_step3000.npz
+!model/lesson41_step4787.npz
+!model/lesson41_best.npz
 !model/README.md
