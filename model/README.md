@@ -144,3 +144,14 @@ Adam额外m/v状态数组占5757784字节，本次历史t=200，区别于模型�
 `lesson41_best.npz`：`808df397e1f9ff69722513bcfc54596fb68dd2e466b6cb66610ab2e6d4648f15`。
 
 `python scripts/ci/check_lesson41.py` 只读核对整轮覆盖、五个完整验证指标、固定样例、短实验前缀和独立最佳快照，不重训4787步。
+
+第四十二课增加独立PyTorch RNN/GRU实验，使用原四书划分、同宽度128、两层、Adam0.001、相同窗口排列和公共初始化，各从随机循环层训练两整轮2394步。RNN参数1491627，GRU参数1623723；原NumPy模型未覆盖。RNN完整验证4.774707，GRU5.200225，旧参考5.118321，当前优选新RNN，但固定样例仍未流畅。详见[实验说明](../docs/lesson42_bounded_training.md)和[完整报告](../docs/training_runs/lesson42.json)。
+
+| 文件 | 字节数 | 内容SHA-256 |
+|---|---:|---|
+| `lesson42/lesson42_gru_best.pt` | 20190184 | `3af7b473e36f3baa69c9f7026e0c2ef702f3b783aab48ff59c3159f9a2637ca3` |
+| `lesson42/lesson42_gru_last.pt` | 20190184 | `3af7b473e36f3baa69c9f7026e0c2ef702f3b783aab48ff59c3159f9a2637ca3` |
+| `lesson42/lesson42_rnn_best.pt` | 18604968 | `d03dcfdd82db57d352666f23918ef6d551e82e3e75b82b243379a20390d7ce8f` |
+| `lesson42/lesson42_rnn_last.pt` | 18604968 | `d03dcfdd82db57d352666f23918ef6d551e82e3e75b82b243379a20390d7ce8f` |
+
+四份检查点均包含模型、Adam历史、随机状态及数据游标，不兼容旧NumPy加载器，使用scripts/experiments/bounded_recurrent.py的restore_checkpoint。每组best与last本次内容相同，Git按内容去重；单份不超过21MB。GPU下一批恢复差为0，CPU只读检查会重算完整验证及微型恢复测试。按完整课程产物约定纳入Git，不新增外部语料到旧训练划分。

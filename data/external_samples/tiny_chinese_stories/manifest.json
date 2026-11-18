@@ -1,0 +1,16 @@
+{
+  "dataset": "joe-chiu/TinyChineseStories",
+  "revision": "ad789c9d622bfbdeecdc90df2041b3ba458e0368",
+  "source_url": "https://huggingface.co/datasets/joe-chiu/TinyChineseStories/resolve/ad789c9d622bfbdeecdc90df2041b3ba458e0368/stories.csv",
+  "card_url": "https://huggingface.co/datasets/joe-chiu/TinyChineseStories/blob/ad789c9d622bfbdeecdc90df2041b3ba458e0368/README.md",
+  "credit": "joe-chiu, TinyChineseStories",
+  "license_declared_in_readme": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "synthetic_source_declared": "GPT-3.5",
+  "rows": 50,
+  "download_limit_bytes": 1048576,
+  "downloaded_prefix_bytes": 1048576,
+  "sample_sha256": "cf5ae665be3207b07d8224d35c28bff7ce868ef03a9c6331e90ec424c672551f",
+  "sampling": "first_50_source_rows",
+  "used_in_lesson42_training": false
+}

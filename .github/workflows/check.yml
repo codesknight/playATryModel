@@ -52,3 +52,21 @@ jobs: # 定义需要执行的任务。
           python scripts/ci/check_lesson40.py # 核对Adam跨批历史并只读复算三份完整验证指标，不重训两个分支。
           python scripts/ci/check_lesson41.py # 只读复算Adam整轮候选、短实验前缀与最佳快照，不重新训练。
           git diff --exit-code -- data/corpus data/corpus_processed data/chapters data/splits data/vocab # 检查原文未变，且所有已完成的数据产物可复现。
+  recurrent_models: # 独立检查PyTorch产物，保留原NumPy课程的依赖范围。
+    runs-on: ubuntu-latest # 使用CPU验证GPU保存的模型。
+    timeout-minutes: 10 # 不在CI中重新运行两轮训练。
+    env: # 中文输出保持可读。
+      PYTHONIOENCODING: utf-8 # 统一日志编码。
+    steps: # 下载代码、安装CPU依赖并只读核验。
+      - uses: actions/checkout@v4 # 获取已提交模型和报告。
+      - uses: actions/setup-python@v5 # 使用与原任务相同的Python主次版本。
+        with: # 配置独立CPU检查环境。
+          python-version: '3.13' # 支持本次固定的PyTorch版本。
+          cache: pip # 缓存依赖以减少重复下载。
+          cache-dependency-path: requirements-torch.txt # PyTorch实验使用单独依赖清单。
+      - name: Install CPU dependencies # 不下载CUDA运行库。
+        run: | # 明确从官方CPU索引安装PyTorch。
+          python -m pip install numpy==2.3.5 # 固定实际数据排列使用的NumPy版本。
+          python -m pip install torch==2.11.0 --index-url https://download.pytorch.org/whl/cpu # 只安装CPU轮子。
+      - name: Check bounded recurrent experiment # 只读核对指标、预算和恢复能力。
+        run: python scripts/ci/check_lesson42.py # 不调用真实训练入口。

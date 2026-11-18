@@ -44,4 +44,11 @@ model/*
 !model/lesson41_step3000.npz
 !model/lesson41_step4787.npz
 !model/lesson41_best.npz
+!model/lesson42/
+model/lesson42/*
+!model/lesson42/lesson42_rnn_best.pt
+!model/lesson42/lesson42_rnn_last.pt
+!model/lesson42/lesson42_gru_best.pt
+!model/lesson42/lesson42_gru_last.pt
 !model/README.md
+.venv-gru/
