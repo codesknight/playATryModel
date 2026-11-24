@@ -99,4 +99,5 @@ jobs: # 定义需要执行的任务。
         run: | # 所有操作只读。
           python scripts/learn/28_inspect_chat_corpus.py # 核对六份划分、组交集和BPE往返。
           python scripts/ci/check_chat48.py # 核对预算、因果梯度和明确八窗范围的CPU指标。
+          python scripts/ci/check_chat50.py # 核对完整状态续训、跨轮游标和独立新导出。
           python scripts/learn/29_gradient_accumulation.py # 短CPU实验，核对梯度与一次参数更新等价，不改已保存模型。

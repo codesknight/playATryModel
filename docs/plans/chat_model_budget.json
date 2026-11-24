@@ -66,5 +66,13 @@
     "inference_bytes": 60079189,
     "stage": "pretrain_only_not_sft_chat",
     "full_state_delivery": "GitHub Release lesson48-pretrain-pilot"
+  },
+  "actual_30m_continuation": {
+    "report": "docs/training_runs/lesson50.json",
+    "completed_updates": 2020,
+    "additional_updates": 1000,
+    "best_pretrain_validation_loss": 4.4307035971427355,
+    "stage": "pretrain_only_not_sft",
+    "full_state_delivery": "GitHub Release lesson50-pretrain-pilot"
   }
 }

@@ -171,3 +171,7 @@ Adam额外m/v状态数组占5757784字节，本次历史t=200，区别于模型�
 ## 第四十八课30M预训练试验
 
 `lesson48/pretrain_fp16.pt`是6400词新BPE对应的约30M推理文件，60079189字节；累计20+1000=1020次预训练更新，完整验证5.336842，FP16导出后5.336845。未进行SFT，不能作为可用聊天助手。原生实现见scripts/experiments/chat_model.py；独立续写用generate_chat_pilot.py。完整FP32+AdamW+Scaler+随机状态+数据游标约360MB，超过GitHub普通Git单文件100MB，通过Release标签lesson48-pretrain-pilot保存。最佳与最后本次相同，具体指纹、附件状态见docs/training_runs/lesson48_assets.json；推理文件不能代替完整续训状态。
+
+## 第五十课30M完整恢复续训
+
+`lesson50/pretrain_fp16.pt`独立保存累计2020更新的预训练最佳模型，完整验证4.430704，大小60079189字节。来源是第四十八课1020步的完整状态，保留AdamW、Scaler与游标；未进行SFT。新的完整best/last状态均为360411579字节，内容相同，Release标签lesson50-pretrain-pilot中复用一个附件。实际发布状态与SHA以docs/training_runs/lesson50_assets.json为准。使用旧生成器时显式指定--model model/lesson50/pretrain_fp16.pt；不能拿FP16推理文件代替完整续训状态。

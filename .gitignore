@@ -71,3 +71,7 @@ model/lesson45/*
 !model/lesson48/
 model/lesson48/*
 !model/lesson48/pretrain_fp16.pt
+
+!model/lesson50/
+model/lesson50/*
+!model/lesson50/pretrain_fp16.pt

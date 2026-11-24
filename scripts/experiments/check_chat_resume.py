@@ -1,3 +1,4 @@
+import argparse  # 选择核验的完整状态和独立报告路径。
 import json  # 保存恢复检查的证据。
 from pathlib import Path  # 使用临时目录保存核验副本。
 import tempfile  # 不覆盖正式训练检查点。
@@ -52,10 +53,17 @@ def update(model, optimizer, scaler, cursor, stream, seed):  # 只对核验副�
 
 
 def main():  # 真实30M加载、再保存和下一批轨迹比较。
+    parser = argparse.ArgumentParser()  # 默认仍核验第四十八课。
+    parser.add_argument("--checkpoint", type=Path, default=ROOT / "model/lesson48/last_train.pt")  # 也可指定后续课程完整状态。
+    parser.add_argument("--report", type=Path)  # 默认由检查点课程目录决定，避免覆盖旧课证据。
+    args = parser.parse_args()  # 开始前明确本次范围。
+    if args.report is None:  # 同课默认报告可直接复现，外部路径需要显式指定。
+        assert args.checkpoint.parent.name in ("lesson48", "lesson50"), "其他目录请明确指定--report"  # 不将新课结果误写回第四十八课。
+        args.report = ROOT / "docs/training_runs" / f"{args.checkpoint.parent.name}_resume.json"  # 依据来源课程选择独立文件。
     torch.set_num_threads(4)  # 不占满CPU。
     torch.use_deterministic_algorithms(True)  # 比较相同数值路径。
     torch.backends.cuda.matmul.allow_tf32 = False  # 与训练设置一致。
-    path = ROOT / "model/lesson48/last_train.pt"  # 正式文件只读。
+    path = args.checkpoint  # 正式文件只读。
     reference, reference_optimizer, reference_scaler, state = restore(path)  # 从实际完整状态开始。
     stream = np.load(DIRECTORY / "tokenizer/pretrain_train.npy", mmap_mode="r", allow_pickle=False)  # 同一训练流。
     cursor, valid = update(reference, reference_optimizer, reference_scaler, state["cursor"], stream, state["data_seed"])  # 在副本先更新一次建立待保存状态。
@@ -72,7 +80,8 @@ def main():  # 真实30M加载、再保存和下一批轨迹比较。
             assert all(torch.allclose(left[key], right[key], atol=1e-6, rtol=1e-6) for key in ("step", "exp_avg", "exp_avg_sq")), "恢复后的优化器状态不同"  # m、v、t均应相符。
         assert reference_scaler.state_dict() == recovered_scaler.state_dict(), "恢复后的Scaler不同"  # 混合精度历史也要延续。
     result = {"formal_checkpoint_step": state["step"], "verification_only_updates": 3, "max_parameter_abs_diff": difference, "adamw_and_scaler_equal": True, "scope": "actual checkpoint -> one copy update -> temporary save -> same next update against uninterrupted copy; formal checkpoint unchanged"}  # 三次副本更新不计入正式训练预算。
-    (ROOT / "docs/training_runs/lesson48_resume.json").write_bytes(dump(result))  # 单独记录核验，不修改原训练报告。
+    args.report.parent.mkdir(parents=True, exist_ok=True)  # 确保独立报告目录存在。
+    args.report.write_bytes(dump(result))  # 单独记录核验，不修改原训练报告。
     print(json.dumps(result, ensure_ascii=False, indent=2))  # 展示真实最大误差。
 
 

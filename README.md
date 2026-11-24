@@ -2,7 +2,7 @@
 
 从零学习中文语言模型：从 NumPy 字符级 RNN，逐步实现 PyTorch RNN/GRU 和小型因果 Transformer，学习数据处理、训练、评估与优化。下一阶段目标是小于1GB的中文聊天模型。
 
-当前最新模型为 **30025216参数的RoPE/GQA/SwiGLU Transformer**，已从随机权重完成20次试跑和1000次继续预训练，推理文件约60.08MB；仍未进行SFT，不是可用聊天助手。正式采样语料、6400词BPE、显存与训练结果见[第四十八课](docs/lesson48_data_tokenizer_pilot.md)。此前168万参数模型保留在[第四十五课](docs/lesson45_tiny_transformer.md)。
+当前最新模型为 **30025216参数的RoPE/GQA/SwiGLU Transformer**，已从随机权重累计完成2020次预训练更新（含最初20次试跑），推理文件约60.08MB；仍未进行SFT，不是可用聊天助手。正式采样语料与6400词BPE见[第四十八课](docs/lesson48_data_tokenizer_pilot.md)，完整状态续训及当前最佳见[第五十课](docs/lesson50_resume_pretraining.md)。此前168万参数模型保留在[第四十五课](docs/lesson45_tiny_transformer.md)。
 
 聊天训练从[MiniMind参考路线与预算](docs/chat_training_roadmap.md)及[对话格式练习](scripts/learn/26_chat_sft_format.py)开始，30M已完成首段预训练试验，64M仍为候选；聊天能力尚待SFT和严格评估。本轮[问答复盘](docs/lesson45_qa_review.md)保留真实错答与纠正过程。
 
