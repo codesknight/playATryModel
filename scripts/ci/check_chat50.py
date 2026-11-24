@@ -53,5 +53,11 @@ metrics = evaluate(model, xs, ys, limit=8)  # CI明确只复算八窗，不冒�
 assert metrics["positions"] == report["export_ci_subset"]["positions"] and np.isclose(metrics["loss"], report["export_ci_subset"]["loss"], atol=0.003), "新导出指标复核失败"  # 允许FP16与FP32平台误差。
 resume = json.loads((ROOT / "docs/training_runs/lesson50_resume.json").read_text(encoding="utf-8"))  # 正式文件不参与副本更新。
 assert resume["formal_checkpoint_step"] == report["completed_steps"] and resume["max_parameter_abs_diff"] <= 1e-6 and resume["adamw_and_scaler_equal"], "新完整状态恢复失败"  # m、v、t与Scaler均验证。
+release = json.loads((ROOT / "docs/training_runs/lesson50_assets.json").read_text(encoding="utf-8"))  # 已发布附件的远端回执。
+assert release["draft"] is False and release["tag"] == "lesson50-pretrain-pilot", "完整状态尚未发布"  # 克隆Git之外还应有可下载断点。
+for asset in release["assets"]:  # 最佳与最后相同时允许内容别名。
+    assert asset["sha256"] == report["artifacts"][asset["local_name"]]["sha256"] and asset["bytes"] == report["artifacts"][asset["local_name"]]["bytes"], "附件与报告不一致"  # 核对逻辑文件证据。
+    if "same_as" not in asset:  # 实际上传的文件有服务器摘要。
+        assert asset["remote_digest"] == "sha256:" + asset["sha256"] and "/download/lesson50-pretrain-pilot/" in asset["url"], "远端摘要或永久链接错误"  # 不保留草稿临时链接。
 print("续训CPU八窗复核：", metrics)  # 显示实际范围。
 print("来源、1020步起点、跨轮游标、累计预算、独立导出及恢复核验：通过")  # 不在CI重新训练。

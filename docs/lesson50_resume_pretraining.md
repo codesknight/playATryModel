@@ -95,6 +95,8 @@ step = state["step"]  # 累计更新1020，不在新阶段清零。
 
 完整训练状态发布位置：[第五十课Release](https://github.com/codesknight/playATryModel/releases/tag/lesson50-pretrain-pilot)，实际发布状态与远端SHA以lesson50_assets.json为准。
 
+交付核验：Release已公开发布，360411579字节的last_train.pt远端SHA-256与本地报告一致；best_train.pt与它内容相同，下载后可使用同一份文件。推理权重、代码和报告已经推送仓库，完整状态不依赖Git大文件存储。
+
 ### 全部最终固定续写
 
 **春风 / greedy**
