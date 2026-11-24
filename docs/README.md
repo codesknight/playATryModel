@@ -54,3 +54,5 @@ python scripts/example/generate.py --model model/my_rnn.npz --prompt "你的开�
 当前实操：[第四十七课：分组划分与冻结版本](lesson47_group_split.md)，包含进入30M聊天模型训练的具体实操安排。
 
 2026-11-24新增：[第四十八课：正式语料、BPE、30M实测试跑与预训练](lesson48_data_tokenizer_pilot.md)。30M已经实际训练1020次更新，当前仍是预训练续写阶段，未完成SFT。
+
+当前实操：[第四十九课：有效目标加权的梯度累积](lesson49_gradient_accumulation.md)，直接对应30M训练的八微批一次更新。

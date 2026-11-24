@@ -1,0 +1,23 @@
+{
+  "scope": "tiny CPU FP64 linear-head demo; no extra 30M training",
+  "valid_counts": [
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    1
+  ],
+  "total_valid": 22,
+  "large_batch_loss": 1.156774077048029,
+  "weighted_micro_loss": 1.156774077048029,
+  "correct_gradient_max_error": 1.1102230246251565e-16,
+  "naive_gradient_max_error": 0.10910396213851517,
+  "correct_parameter_max_error": 5.551115123125783e-17,
+  "naive_parameter_max_error": 0.010910396213851536,
+  "backward_calls_large": 1,
+  "backward_calls_accumulated": 8,
+  "optimizer_updates_per_branch": 1
+}
