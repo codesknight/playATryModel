@@ -13,6 +13,9 @@ torch.set_num_threads(2)  # CI只用小子集复核，不重跑大模型训练�
 manifest = json.loads((DIRECTORY / "manifest.json").read_text(encoding="utf-8"))  # 本次来源与划分。
 token_manifest = json.loads((DIRECTORY / "tokenizer/manifest.json").read_text(encoding="utf-8"))  # 分词器和编号版本。
 report = json.loads((ROOT / "docs/training_runs/lesson48.json").read_text(encoding="utf-8"))  # 实际两段训练结果。
+for block in manifest["blocks"]:  # 原始来源块也要随仓库保持完整。
+    path = DIRECTORY / "raw" / f"{block['kind']}_{block['block']:02d}.bin"  # 与固定范围采集文件对应。
+    assert path.stat().st_size == block["bytes"] and sha(path.read_bytes()) == block["sha256"], "来源字节块改变"  # 不只检查清洗后的文件。
 assert sha((DIRECTORY / "manifest.json").read_bytes()) == token_manifest["corpus_manifest_sha256"] == report["corpus_manifest_sha256"], "数据版本不匹配"  # LF字节清单不随平台改变。
 for name, expected in manifest["files"].items():  # 检查三个集合和映射的字节。
     assert sha((DIRECTORY / name).read_bytes()) == expected, "语料被修改"  # 不会偷偷重划分。
@@ -45,6 +48,14 @@ profile, pilot = report["phases"]  # 本次先试跑，再继续首段预训练�
 assert profile["updates"] == 20 and 0 < pilot["updates"] <= 1000 and pilot["start_step"] == 20, "两段更新预算错误"  # 不能把微批当step。
 assert report["completed_steps"] == profile["updates"] + pilot["updates"], "累计更新错误"  # 优化器跨阶段保留。
 assert report["best_loss"] == min(row["loss"] for row in report["history"]), "最佳位置错误"  # 起点也参加选优。
+assets = json.loads((ROOT / "docs/training_runs/lesson48_assets.json").read_text(encoding="utf-8"))  # 大训练状态在Release，不强行放入普通Git。
+assert assets["draft"] is False and assets["tag"] == "lesson48-pretrain-pilot", "完整训练状态尚未发布"  # 草稿上传不能算作已交付。
+for item in assets["assets"]:  # 最佳与最后相同时允许复用附件。
+    assert item["sha256"] == report["artifacts"][item["local_name"]]["sha256"], "附件与真实训练状态不对应"  # 指纹与原训练报告一致。
+    if "remote_digest" in item:  # 本次GitHub返回了服务器端SHA-256。
+        assert item["remote_digest"] == "sha256:" + item["sha256"] and "/untagged-" not in item["url"], "附件指纹或下载地址不正确"  # 不保留草稿临时地址。
+resume = json.loads((ROOT / "docs/training_runs/lesson48_resume.json").read_text(encoding="utf-8"))  # GPU实测的恢复副本比较。
+assert resume["formal_checkpoint_step"] == report["completed_steps"] and resume["max_parameter_abs_diff"] <= 1e-6 and resume["adamw_and_scaler_equal"], "完整恢复核验不匹配"  # 核验副本更新不计训练预算。
 stream = np.load(DIRECTORY / "tokenizer/pretrain_train.npy", mmap_mode="r", allow_pickle=False)  # 按实际流重建训练前缀。
 positions, exposure, offset = 0, hashlib.sha256(), 0  # 检查真实目标数与样本顺序。
 windows, epoch = report["windows_per_epoch"], 0  # 本次未假定必须完成一整轮。
