@@ -1,0 +1,22 @@
+{
+  "assets": [
+    {
+      "asset_id": 786306443,
+      "bytes": 360411451,
+      "local_name": "last_train.pt",
+      "remote_digest": "sha256:65db287bd1cbb31f0b206d40a1143723d87717aaf9fdfcafe8d7025113166907",
+      "sha256": "65db287bd1cbb31f0b206d40a1143723d87717aaf9fdfcafe8d7025113166907",
+      "url": "https://github.com/codesknight/playATryModel/releases/download/untagged-6e2fd0d87289fdab1e45/last_train.pt"
+    },
+    {
+      "bytes": 360411451,
+      "local_name": "best_train.pt",
+      "same_as": "last_train.pt",
+      "sha256": "65db287bd1cbb31f0b206d40a1143723d87717aaf9fdfcafe8d7025113166907"
+    }
+  ],
+  "draft": true,
+  "release_id": 456472795,
+  "tag": "lesson48-pretrain-pilot",
+  "url": "https://github.com/codesknight/playATryModel/releases/tag/lesson48-pretrain-pilot"
+}

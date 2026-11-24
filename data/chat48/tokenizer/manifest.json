@@ -1,0 +1,36 @@
+{
+  "body_tokens_per_character": 0.6304391915343102,
+  "corpus_manifest_sha256": "3864d9166e7b173e260d24859dcf3646ff1726915e4d688e0c09950fbdf8482c",
+  "files": {
+    "pretrain_train.npy": "36a4301d29cac8ac883dae70e17daf0ee4a1d05f002aba4f1d5e16f4342e56d1",
+    "pretrain_validation_x.npy": "d331a3231436fb9941dfc77e17a856a888f9ff876f501d0e511edca132da7b34",
+    "pretrain_validation_y.npy": "104fe89c17c43126178567b1aa3dd333e3fead2a9e00a8ad417885391e735dc6",
+    "tokenizer.json": "dea04ccce16908be18e12410bf44d94b8d636e097491e40fc6283fba3a8ed24a"
+  },
+  "format": "chat_tokenizer48_v1",
+  "pretrain_train_characters": 4782788,
+  "pretrain_train_tokens_with_boundaries": 3034409,
+  "roundtrip_probes": [
+    "春风又起。",
+    "你好！Hello 2026",
+    "繁體中文與简体中文",
+    "生僻字𠮷和表情🙂\n第二行"
+  ],
+  "special_tokens": {
+    "<|assistant|>": 5,
+    "<|bos|>": 1,
+    "<|end|>": 6,
+    "<|eos|>": 2,
+    "<|pad|>": 0,
+    "<|system|>": 3,
+    "<|unk|>": 7,
+    "<|user|>": 4
+  },
+  "tokenizer_sha256": "dea04ccce16908be18e12410bf44d94b8d636e097491e40fc6283fba3a8ed24a",
+  "tokenizers_version": "0.22.2",
+  "train_source": "pretrain_train and sft_train only",
+  "validation_positions": 388180,
+  "validation_unknown_tokens": 0,
+  "validation_windows": 2120,
+  "vocab_size": 6400
+}

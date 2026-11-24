@@ -13,3 +13,6 @@
 *.pt binary
 
 data/transformer45/stories.csv -text
+
+*.npy binary
+data/chat48/raw/* binary

@@ -1,5 +1,5 @@
 {
-  "status": "planned_not_implemented_or_trained",
+  "status": "30m_pretraining_pilot_completed_64m_still_planned",
   "reference_repo": "https://github.com/jingyaogong/minimind",
   "reference_revision": "2de2308d71750b44d56fd28cd8756239eee18957",
   "reference_architecture": "dense tied embeddings; GQA; SwiGLU; RMSNorm including Q/K norms; no linear biases",
@@ -56,5 +56,15 @@
     "stop at assistant message end marker",
     "all fixed responses recorded including failures",
     "actual inference artifact bytes < 1000000000"
-  ]
+  ],
+  "actual_30m": {
+    "report": "docs/training_runs/lesson48.json",
+    "parameters": 30025216,
+    "completed_updates": 1020,
+    "seen_positions": 2088744,
+    "best_pretrain_validation_loss": 5.336841586671796,
+    "inference_bytes": 60079189,
+    "stage": "pretrain_only_not_sft_chat",
+    "full_state_delivery": "GitHub Release lesson48-pretrain-pilot"
+  }
 }

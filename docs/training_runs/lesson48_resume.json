@@ -1,0 +1,7 @@
+{
+  "adamw_and_scaler_equal": true,
+  "formal_checkpoint_step": 1020,
+  "max_parameter_abs_diff": 0.0,
+  "scope": "actual checkpoint -> one copy update -> temporary save -> same next update against uninterrupted copy; formal checkpoint unchanged",
+  "verification_only_updates": 3
+}

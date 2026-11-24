@@ -79,3 +79,23 @@ jobs: # 定义需要执行的任务。
           python scripts/ci/check_lesson43.py # 核验续训预算和保留的Adam历史。
           python scripts/ci/check_lesson44.py # 核验八轮续训、逐轮验证和最佳状态。
           python scripts/ci/check_lesson45.py # 核验新语料、因果遮罩和小型Transformer。
+  chat_pilot: # 单独核对本课新数据与30M推理文件，不在CI训练。
+    runs-on: ubuntu-latest # CPU复核GPU保存结果。
+    timeout-minutes: 12 # 仅检查小子集与文件版本。
+    env: # 日志中文保持一致。
+      PYTHONIOENCODING: utf-8 # UTF-8输出。
+    steps: # 原有课程保持独立。
+      - uses: actions/checkout@v4 # 下载本课语料、编号与推理权重。
+      - uses: actions/setup-python@v5 # 固定Python主次版本。
+        with: # 使用与旧课程一致的版本。
+          python-version: '3.13' # 本地已验证主次版本。
+          cache: pip # 缓存已有依赖。
+          cache-dependency-path: requirements-chat.txt # 本课新增tokenizers版本。
+      - name: Install CPU chat dependencies # 不下载CUDA运行时。
+        run: | # 从官方CPU索引安装PyTorch。
+          python -m pip install numpy==2.3.5 tokenizers==0.22.2 # 与本次训练的分词和排列版本一致。
+          python -m pip install torch==2.11.0 --index-url https://download.pytorch.org/whl/cpu # 只复核无需显卡。
+      - name: Check corpus tokenizer and pilot export # 不启动采集或长训练入口。
+        run: | # 所有操作只读。
+          python scripts/learn/28_inspect_chat_corpus.py # 核对六份划分、组交集和BPE往返。
+          python scripts/ci/check_chat48.py # 核对预算、因果梯度和明确八窗范围的CPU指标。

@@ -1,0 +1,2 @@
+-r requirements-torch.txt # 沿用已验证的PyTorch和NumPy版本。
+tokenizers==0.22.2 # 本次实际训练ByteLevel BPE使用的版本。

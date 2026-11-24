@@ -1,0 +1,210 @@
+{
+  "blocks": [
+    {
+      "block": 0,
+      "bytes": 2097152,
+      "end": 79662379,
+      "file": "pretrain_t2t_mini.jsonl",
+      "kind": "pretrain",
+      "sha256": "6bad2eedb03021c51d2664b05fbdcfc590cd46b265dd3b04001b228da0f43808",
+      "start": 77565228
+    },
+    {
+      "block": 1,
+      "bytes": 2097152,
+      "end": 234792836,
+      "file": "pretrain_t2t_mini.jsonl",
+      "kind": "pretrain",
+      "sha256": "dbea15b88c10099e69fcd2b537b7192d9eb25f91937ca850b6e9c7bd4f49718a",
+      "start": 232695685
+    },
+    {
+      "block": 2,
+      "bytes": 2097152,
+      "end": 389923293,
+      "file": "pretrain_t2t_mini.jsonl",
+      "kind": "pretrain",
+      "sha256": "4d2838e4c8cca0af346fbe3ea4d819347a2727692950909c12a14ff769201dc5",
+      "start": 387826142
+    },
+    {
+      "block": 3,
+      "bytes": 2097152,
+      "end": 545053750,
+      "file": "pretrain_t2t_mini.jsonl",
+      "kind": "pretrain",
+      "sha256": "a9db30803e1105290c538cb86ffec37cecdf7cec03e5ceca56076b85e59ea587",
+      "start": 542956599
+    },
+    {
+      "block": 4,
+      "bytes": 2097152,
+      "end": 700184207,
+      "file": "pretrain_t2t_mini.jsonl",
+      "kind": "pretrain",
+      "sha256": "23592d76b7ca7f27f6b995dcf537b63c71d3d5ae35228445e28e84955a46a407",
+      "start": 698087056
+    },
+    {
+      "block": 5,
+      "bytes": 2097152,
+      "end": 855314664,
+      "file": "pretrain_t2t_mini.jsonl",
+      "kind": "pretrain",
+      "sha256": "78211dc5f1deb63d5d6d8ebba4ad1f0da14c98710c9edae05872bf5066c9b470",
+      "start": 853217513
+    },
+    {
+      "block": 6,
+      "bytes": 2097152,
+      "end": 1010445121,
+      "file": "pretrain_t2t_mini.jsonl",
+      "kind": "pretrain",
+      "sha256": "c55d29225e098b46545671a7e951d817d7d80fc57b0f8e5645f986c0fe812a7b",
+      "start": 1008347970
+    },
+    {
+      "block": 7,
+      "bytes": 2097152,
+      "end": 1165575578,
+      "file": "pretrain_t2t_mini.jsonl",
+      "kind": "pretrain",
+      "sha256": "29a0e7c095ba9fa5d4c120b6f9ba7b9d9d25cc88bb1872fbc9fe1e1d16c5536a",
+      "start": 1163478427
+    },
+    {
+      "block": 0,
+      "bytes": 1048576,
+      "end": 109748648,
+      "file": "sft_t2t_mini.jsonl",
+      "kind": "sft",
+      "sha256": "142db29968e18032f9de3fb199e06afb053cb6b770ad55901eac1e105163d0c7",
+      "start": 108700073
+    },
+    {
+      "block": 1,
+      "bytes": 1048576,
+      "end": 327148794,
+      "file": "sft_t2t_mini.jsonl",
+      "kind": "sft",
+      "sha256": "cba10c15885fbb98fa3c39d2ffc7408a11bd5207dec7c5829d3ff80428dea522",
+      "start": 326100219
+    },
+    {
+      "block": 2,
+      "bytes": 1048576,
+      "end": 544548940,
+      "file": "sft_t2t_mini.jsonl",
+      "kind": "sft",
+      "sha256": "fde4c5737153d6cbb7c04b23aff0efd806e68cbd1edff797591903b42b2b84b5",
+      "start": 543500365
+    },
+    {
+      "block": 3,
+      "bytes": 1048576,
+      "end": 761949086,
+      "file": "sft_t2t_mini.jsonl",
+      "kind": "sft",
+      "sha256": "e99c53fc47c55ac5fcac9b84336afe0308614507918ca24a013c01002d645700",
+      "start": 760900511
+    },
+    {
+      "block": 4,
+      "bytes": 1048576,
+      "end": 979349233,
+      "file": "sft_t2t_mini.jsonl",
+      "kind": "sft",
+      "sha256": "ec933118dbe632b29d8339cd0f0f2714aba347e25c767e19d7a1e92185cf7478",
+      "start": 978300658
+    },
+    {
+      "block": 5,
+      "bytes": 1048576,
+      "end": 1196749379,
+      "file": "sft_t2t_mini.jsonl",
+      "kind": "sft",
+      "sha256": "43f880d982e9e7f3355bb61027bbd08998ea5a42f5aad4a0fad84716c23c36fd",
+      "start": 1195700804
+    },
+    {
+      "block": 6,
+      "bytes": 1048576,
+      "end": 1414149525,
+      "file": "sft_t2t_mini.jsonl",
+      "kind": "sft",
+      "sha256": "27b6241fe8582463e34b7b2c7fc2373ed2a0dce4adb14cbcca0683d9468d66ab",
+      "start": 1413100950
+    },
+    {
+      "block": 7,
+      "bytes": 1048576,
+      "end": 1631549671,
+      "file": "sft_t2t_mini.jsonl",
+      "kind": "sft",
+      "sha256": "bbb791d29b071702b1d77cb56914d68aecd58d0fb422dcb0c0bb70ffbba15052",
+      "start": 1630501096
+    }
+  ],
+  "credit": "jingyaogong and upstream contributors named in dataset card",
+  "dataset": "jingyaogong/minimind_dataset",
+  "downloaded_range_bytes": 25165824,
+  "duplicates_removed": 4,
+  "files": {
+    "group_to_split.json": "8f57d90d6434be1c915b6ebaee9707cf5ac24f005d87769fa0f2b4469d0d0024",
+    "pretrain_test.jsonl": "e67fd03a1c04e82c06ed954613d650a750ef18f117814cb88c978a3c6630de47",
+    "pretrain_train.jsonl": "085c52e7165aa5f9ffa1503b13157620707fa7f0d382f2bae906c40c569d8fc6",
+    "pretrain_validation.jsonl": "3cd389a05015e9f9f756c1bb7abb59db90a8c651fd6e3088af2f1383da46a690",
+    "sft_test.jsonl": "75c7735bef1737a54bb3b2a5c9955006b29aee0bddcea730cefff14041686f00",
+    "sft_train.jsonl": "3fe60a08e77ba7022e94458ad718b55753f439eb0d7c30b9573903e78069b670",
+    "sft_validation.jsonl": "15f05a1c1a38fb8e6638f3cc01645beffcc28c3a6fc4b0a3548757a7cfe44d32"
+  },
+  "filtered": {
+    "control_character": 8,
+    "identity_or_reserved_format": 53,
+    "length": 2,
+    "tools_or_role": 927
+  },
+  "format": "chat_corpus48_v1",
+  "group_method": "joint first-question/numeric-template key and sampled character SimHash Hamming<=3; incomplete semantic dedup heuristic",
+  "licenses_declared": [
+    "Apache-2.0",
+    "CC-BY-NC-2.0"
+  ],
+  "revision": "312afb4f76391145c6902f765bb51691c09a12f5",
+  "sampling": "eight fixed byte-block midpoints per file, not representative random sampling",
+  "scope": "educational noncommercial pilot; mixed upstream terms retained",
+  "seed": 48,
+  "source_card": "https://huggingface.co/datasets/jingyaogong/minimind_dataset/blob/312afb4f76391145c6902f765bb51691c09a12f5/README.md",
+  "stats": {
+    "pretrain_test": {
+      "characters": 625658,
+      "groups": 1172,
+      "records": 1184
+    },
+    "pretrain_train": {
+      "characters": 4782788,
+      "groups": 9397,
+      "records": 9576
+    },
+    "pretrain_validation": {
+      "characters": 611677,
+      "groups": 1171,
+      "records": 1192
+    },
+    "sft_test": {
+      "characters": 228544,
+      "groups": 335,
+      "records": 342
+    },
+    "sft_train": {
+      "characters": 1803483,
+      "groups": 2659,
+      "records": 2842
+    },
+    "sft_validation": {
+      "characters": 233641,
+      "groups": 337,
+      "records": 364
+    }
+  }
+}

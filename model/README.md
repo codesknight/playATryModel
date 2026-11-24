@@ -167,3 +167,7 @@ Adam额外m/v状态数组占5757784字节，本次历史t=200，区别于模型�
 ## 第四十五课小型Transformer
 
 `lesson45/lesson45_best.pt` 与 `lesson45/lesson45_last.pt`：4层4头、隐藏128、上下文128、词表6799，共1680000参数；完整状态各20523055字节。六轮4896更新，混合完整验证4.132147，新故事3.492973。仅适配data/transformer45的新词表，不能用旧RNN词表加载。新数据、新尾段及EOS目标使本次分数不能直接当作旧模型同口径对照。用 `scripts/experiments/generate_transformer.py` 独立续写。方法见docs/lesson45_tiny_transformer.md。
+
+## 第四十八课30M预训练试验
+
+`lesson48/pretrain_fp16.pt`是6400词新BPE对应的约30M推理文件，60079189字节；累计20+1000=1020次预训练更新，完整验证5.336842，FP16导出后5.336845。未进行SFT，不能作为可用聊天助手。原生实现见scripts/experiments/chat_model.py；独立续写用generate_chat_pilot.py。完整FP32+AdamW+Scaler+随机状态+数据游标约360MB，超过GitHub普通Git单文件100MB，通过Release标签lesson48-pretrain-pilot保存。最佳与最后本次相同，具体指纹、附件状态见docs/training_runs/lesson48_assets.json；推理文件不能代替完整续训状态。
