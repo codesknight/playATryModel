@@ -1,0 +1,967 @@
+{
+  "format": "chat_sft53_reviews_v1",
+  "queue_sha256": "7c2d050053aabe41a3c991153ce489db7f3861c4507b72930a6fc12683c2f250",
+  "reviewer": "assistant full-message review; not independent human or expert verification",
+  "reviews": [
+    {
+      "decision": "accept",
+      "id": "alpaca53:17398",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "def442fa983641e2ddc96bcc8150a3083e22b67af4e95f3bfb07421698e19315"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:30400",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "7f0b45ba7fc3191697810b77d02ac699072ab1463d17df22535147bf5ec751d4"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:37845",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "1e81acb0a0ca09b6f9d9aa6ef02e3d43d20ef4641a9d86a71917bc80c6c297cb"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:09594",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "18b75bdfcb6f427a759a00b60d668e460c7c061fb7d09006f7c7d065ec627889"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:33657",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "45afe5e06905c7be468eb6607868eace36bf55f982badf6eed6fd5a566de7a27"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:28622",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "4cd48a8529af0c7fd0e215013ddd9930fa88f9fe1001983ab96011d04816c2ce"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:39955",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "227a66de2331ba03a0f575a4964fc926605b9f9a0ce981e8a2cd526f08cadb94"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:30585",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "ba4e047c28cc18b0d10ee1f06f04c1e9c72c671da9cdeb040169a44a1bdacb4d"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:23793",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "c04d8a1ebb196953caf1c3451e7bdd6d1506169fb57655798751fe5a7fc75027"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:02297",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "30f33a2ad77bbca5717f79409e1758cc5b55ea5b9e61157e4f0b302af2b04904"
+    },
+    {
+      "decision": "reject",
+      "id": "alpaca53:08406",
+      "reason": "输出没有改成被动语态，只调整了并列人物顺序。",
+      "source_record_sha256": "235d99156b08b9f7432063072196b14fa10a101067ce4f54fd8f9c996acfd66c"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:01060",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "01917fdc927b4f19ae20b3d3b597b036777881223fed9dbd068fe50e1afcc0c6"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:28666",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "b7f9e1e9daf653a8036e74314854031ae7349b3e5aea2b97f551558b4c4be001"
+    },
+    {
+      "decision": "reject",
+      "id": "alpaca53:32488",
+      "reason": "原文仅说仍在赶路，答案额外断言正在加快速度以弥补延误。",
+      "source_record_sha256": "a3adefabdd60a44b951086045ec660cdfd041664a4b0b7232bc163697ce2dd9c"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:18774",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "6e82672eb6929407ee1f1f54029c8d8ceb7e4efca42e70fe229368b01f094178"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:47024",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "53b16c4d080c8a83ec4d7117cfe0f82c778a55658e27c32006ffefc1345ed2cb"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:30648",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "912d1e8395a44ca6da5e42ba96aa308ed643bbd2012b9ec0f8833d1acf72c84b"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:05850",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "d433fb347fa4c89b07d49354b798b4208bba91f967f996ea9b40842284436e80"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:10782",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "2a604dc41526fc98c4eb676bdaba2c24f9ee5af26684d889597f3f255124c78f"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:07129",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "8e500c6739672c4fe4656a373831ed402eba0350dbb2de58d395b79aebaba833"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:24214",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "0d46c7b7e3557fd4c5bc9449438a6c59dc6ac6dcf56430213ecf2a3f26f19229"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:41097",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "b8af1f4a898877a4c20cbf70e6bf2105372cfa0ccce2acb606193e85c9022b08"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:11026",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "197e55a14a91d5eb1d5c098da6dfc125d4536c9681cc1063862efc7468c2f785"
+    },
+    {
+      "decision": "reject",
+      "id": "alpaca53:03576",
+      "reason": "将线粒体直接归为细胞层次不够准确，未区分细胞器。",
+      "source_record_sha256": "361ffaa3a81e4ac4fa4a37d65cee9fdfda4300447de58760d724aa52f1d16cec"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:27942",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "ec4e755e4004f7cd0cd717449bc98b2dfbc64b670bfaae73e02b7cb6e457f37a"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:45620",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "b54ab78bf830d1a0354be0c6d35b35d709dcf2ae71efb8531836a1ee58ef9103"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:33076",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "ce7562e29d61a87b733d90963b78429be709326f5296ad9be393b4ce1199115e"
+    },
+    {
+      "decision": "reject",
+      "id": "alpaca53:22797",
+      "reason": "仅有图像占位符，回答却断言实际看到了三角形。",
+      "source_record_sha256": "01c6767ba42f08eb79f7fd6170d03d37f87acc7e108d0df1ae095587683d6d1c"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:09034",
+      "reason": "用Python datetime核对2020-03-06为星期五。",
+      "source_record_sha256": "276a4f65b23c57cbf6696c530588575c3ef940e397cc6107794d66882218948f"
+    },
+    {
+      "decision": "reject",
+      "id": "alpaca53:22709",
+      "reason": "要求押韵，输出两个句子的末字茵与深不构成明确押韵。",
+      "source_record_sha256": "7047bbb72bc723de6fa66b36e10ae320b431e432c250471e69d6257edbccf33a"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:02657",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "4a8261e56ce06aed5837d9553e4f0b56c3584d28e3357ecdb9c72e90ef19ff56"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:00095",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "9a52daf835ae45a2f8bd063d842bf383f17766f85c15d82a5f1331acc7ad58c2"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:31621",
+      "reason": "按空格拆分I want to go for a walk，核对为7词。",
+      "source_record_sha256": "318698137bb8da53c49890e0b6bc4c3397a68733f112ca72dcd4f512c95ba85e"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:11115",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "16f9783874c4fa6f21fbbe836162ea3a18b5f498c58f54426f91d602978853d0"
+    },
+    {
+      "decision": "reject",
+      "id": "alpaca53:13081",
+      "reason": "stream被截成stre，未完整保留要排序的单词。",
+      "source_record_sha256": "35d37a531514f988841cdab206f3e6083c27fd1516e010dfd8f4ad97fc31ad0c"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:16345",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "f0389d0d19c8d094651cd313a3c0ef19ff4d128bcd9dd0d1fb893a69b46ee6af"
+    },
+    {
+      "decision": "reject",
+      "id": "alpaca53:43671",
+      "reason": "把去错误称为代词。",
+      "source_record_sha256": "3d4c8f8cc74f0f40f942f74a054f46654f7b4e7f4ea8d08d48b66fd4fe126b84"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:41810",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "2f6d266a19ce4258887878c6fcb0a2cb3f1bba7ff4ec6ae7c5111ddcd1c62f44"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:07957",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "0938ae32d1228acb40153f681db4859430bfb3876b06422396139844bbb6d276"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:19010",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "0838693206eb123060fe18be4f7f63ef49e083c3d00098eb1cdef51537204a78"
+    },
+    {
+      "decision": "reject",
+      "id": "alpaca53:35546",
+      "reason": "原句已是主动语态，改写把森林中的位置关系从追逐事件移到熊，存在语义偏移。",
+      "source_record_sha256": "77a8deb4f79c165bc421ee1a4d832b75c4f33fdffae829c79032107461cede09"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:31107",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "961d54bc9f4db96d8ac580bac59760accb735618411b3c1fa4728cbb3de61ffb"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:31186",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "4629959f0568105ea79e0ba9f886bb89ca4b7af8872a2953fdceece43fe26ec3"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:30804",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "976ad7f2bf3a2892853df4ee5f4695c8878c245e93ac09254d3c4b194962dc2b"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:01427",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "73755842cc0788e5e03b8e145bdc3a8bb0cf8fe5938d6daebf9cb4e5504223d0"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:35302",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "2169a25b9812906c689c54c47a671e552272e26344d907f5dd57a29fa6e7276e"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:14229",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "9ee1f109f23e5de3dc69ce0ce792c8988080eb2cc4967572457e8a0f4a6f4f01"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:14347",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "d5f959dc3ba73cfeefe831385d4f27bc9479a164f89234553309be3a7a0fb5a9"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:48494",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "178e3f91b13896156674ef3183281c6c77f8e92641d0983d0cbd977b4d863e2a"
+    },
+    {
+      "decision": "reject",
+      "id": "alpaca53:19467",
+      "reason": "字母排序错误；正确顺序应为storm、sun、sunny。",
+      "source_record_sha256": "d924eec97f8c273c29508dae841f37930d2a3a3ca434878e395fab174e88de3c"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:37097",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "ea1af9b8d315079dcedf1340a4c7c8d6870c212835b91fa912e0c0d1cc33b4f8"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:20754",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "45821f55947f13da2eb4408f397e1a2aff44b4ddd41f11274294b071cf09f8bf"
+    },
+    {
+      "decision": "reject",
+      "id": "alpaca53:18534",
+      "reason": "无文本却声称将使用自己的程序分析，超出当前无工具聊天入口的实际能力。",
+      "source_record_sha256": "499f27688d23088a9b3f41f467db622023b472aabac355855e738712887432dc"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:15628",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "8c049b2d190ae29507f462425c127dbe0f898b21707e1281a202153d81cf8018"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:36939",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "cd216b8d5129f52f3bf7f79afe26228334b15a7ccd0b273330dc1ba337926619"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:11618",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "0ccd01289220f8234f35b57ca14f25ba755ebc291efcb2e1d446801396308f6a"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:33647",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "6cb0c8230898eba60af8e0abbb655c083ac0412cfafd584691f2267b59d25125"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:16116",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "818e959eafb7733b86fcd675929e43ee26d7eef52b44dd8ecee1f0b9f236f18c"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:27079",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "097509e667670bdd449c3303271573e5135c920c49cd85613f4a58fe24f88326"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:34329",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "d1d97ebcbe2c30beb8c35926292c931bd726544f0971482c9375daec5d82f2d5"
+    },
+    {
+      "decision": "reject",
+      "id": "alpaca53:10941",
+      "reason": "答案在深度学处中断，明显不完整。",
+      "source_record_sha256": "37169099fdc65c7863c85856fea4bd5acacf6307cf6fb1ed68ccfb0db9f730c2"
+    },
+    {
+      "decision": "reject",
+      "id": "alpaca53:48651",
+      "reason": "没有提供待判断的句子却直接断言完整。",
+      "source_record_sha256": "746932aff175ae900c857344f1180dd2cc34f1b39c6419c4c472fd78a5e6ade5"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:33975",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "6b1eff3748d9495eed384a2fb019ecba478aba13bd4ffea5ecebf78a8953c669"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:08435",
+      "reason": "逐项核对升序2、3、4、5、6、8。",
+      "source_record_sha256": "04427d7e0ee500039045e825dfd3aaa28401f8b88761e0b725fdbff0f5b9c534"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:32770",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "533a3642abf3568a8b3c571e84286a60a371e1c0fae19faec83928d2955d0c3c"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:15716",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "1d6eafc56f1771874a4f2933d865fd24b657e9694a8578428ffe5982174bc264"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:12595",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "4e494ed5e7c676f5e504b5bc91feb3db2944080f7315a8dbf8d74430624ce5e6"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:20966",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "6ad96bd672b4bd2b857ff2541110fddc396524947771b4b131b7985e8eb38f90"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:01131",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "5405cae9f698db26a8ec60239f8db7c53f23fdba12c15d9fb59576e04456b37d"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:09514",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "242ba3b3a1e4bc0398bb363eb929dbe3672637e4f7cac7a7ec71c7a95379a49d"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:12625",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "b16a9520e19d6598f6083a03746a5d036bb866d5a8250683778baa9686df7bb5"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:02306",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "b97e5b38c365a8170152863d6c4e698ba3d5499e3bb628c5163a782c34a86ee1"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:41266",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "b4cef14d1f8ed026bff1f4cec4e7ab71c72ac6a91ab4eb2f8a90e612f5136dad"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:09436",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "bb18219f396d9e93a615a684f404d0fc13f76a76bf5896243bffb13eb4b77d6d"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:28243",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "7332f344ef5188953cb0cf37d4082ebe67c0c0c3a18759ea7712dfaf8054cb6e"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:04699",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "ba11d3cac0a3ad2b67734596b9a38fe4f3c257e1d9900cfcfd4957f30264e7e2"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:18568",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "1d9d428ba48bc4859403c383b8df96165e6833357ad10124ad594488badf3c40"
+    },
+    {
+      "decision": "reject",
+      "id": "alpaca53:11986",
+      "reason": "应将所给催办消息改为正式措辞，答案转成助手索取任务信息，未完成改写。",
+      "source_record_sha256": "f4f1432914f507683f33ebd3d3cc2b2ed75528fdf78a134d0f7cdf87efe8418b"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:36897",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "5b46e18dcc7c08f965698df1e8db1985b05b5935c3b37dec1fe53be752b2d2bc"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:11963",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "bd0b3d44eb11153465461b53b2cf94744f216421ade56cf911eabea96edbac90"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:08018",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "093ea74f119513f828cd46c7af46501c47e25658999adfae86fae58facbed3ac"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:08937",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "2aa74971f247b5e78a69cd299076350a191ae72e9b0f08214b6c259144a30695"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:12949",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "4e0375ebecd819b892ece654026619e49f4159ff8f5488cf1aef465b67e77c8f"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:20848",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "ea5406bf1824306d9550f2b0edbd4675f561c70c2cd3a0ff765728690b46acb7"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:07026",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "2884585aa2e4403ffbc55a4f72a9fdf87245b6b7c59468bc46bbe287d08fdfec"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:08717",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "2f2c6d3579ebcecba721fa5b194b9fada3f437a554a287f94b565153561f57e0"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:37640",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "b9855c75dacacb108d4112702dcba29892b0ecfa444a30cf84f4a5bac0fe6a51"
+    },
+    {
+      "decision": "reject",
+      "id": "alpaca53:21464",
+      "reason": "把中文动词跳按英语规则动词划分，任务与解释不匹配。",
+      "source_record_sha256": "13a9b2964ebab66e91c73c99877d307eb9676febef8295965b30f723c644dd4e"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:14177",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "7a86f499a08619c48193b47246f623fb4d0cdce31105f33baa39f3d6773a89f7"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:00686",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "6175daca9c445e90ace0133fdd35deea31ee4382e8b66adf11a91c6c3e372558"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:26335",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "8f7536d21591ef468e00f05601a53d7057bb8a37cfc8858ad1e9e828e085dfff"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:32355",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "6b44c89c1d1341baa0ceb9eb9f5b07965c7d7a590f9afbd57faded1ed8e0a7f1"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:32684",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "b0ea233a5ffadd1de17e3dc1354f7284b16d37ea5e5bab1c1151a9ec26c6ab58"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:42040",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "bf4cb6d7d677e62be668f72eb4a6846b71ad9127aabc01daa91c4175bfacad3a"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:23926",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "91caf93890239c36f323ecc6f05ccde36946da5ae8f0b1835d313e4bc092a508"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:48698",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "0a88fd975ae7de3cae0bcd7b1506015aa711987c6c9e437d9461952970bdc608"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:28006",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "3f5338adfecf740abbbf786fb47d429dd83b710ae9cf36823a7dc2ebff23f4bd"
+    },
+    {
+      "decision": "reject",
+      "id": "alpaca53:40643",
+      "reason": "把可塑性当成弹性的同义词，混淆卸载恢复与永久变形等含义。",
+      "source_record_sha256": "682a93a0240092eeebd7781bfb8725fe93b874859efadb475a96437281efc47f"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:09126",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "0a5dc5fda1d0221fbd55110ef50c45227c7534d19d4ddce1528d5861bffe3b9f"
+    },
+    {
+      "decision": "reject",
+      "id": "alpaca53:06970",
+      "reason": "原输入只给中文陈述，答案擅自切换为英文翻译，任务依据不清。",
+      "source_record_sha256": "1c4b2c7ebd288bd74ccf4d1aaa3cdfa9474f29cd1b43e34b5ff4bc93a326d1e0"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:16708",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "c4fec15eb814955026353f12da4eaac2107cbeb2082e23d5845f19641ca36f97"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:22930",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "9a8cfab01eaefd1125966ada99589959ba867081195f12cf90a88a65bc2c1f7d"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:14709",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "e2c1e0289d69fa7af9a735d27d3baba6e3d29855088e15cee4fff48aeae56493"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:14236",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "eb6f924f0bef19bd46ac4dd75ae6549fc3554703e495b974e63c0bb4228dedc9"
+    },
+    {
+      "decision": "reject",
+      "id": "alpaca53:39315",
+      "reason": "as soon单独不是完整连接词as soon as，答案忽略缺失部分。",
+      "source_record_sha256": "4ad73213c30092d1006e5c715167211e177be3142eaa1f9ce49b343b31c3346f"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:33219",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "2af6e57724fdcb34a07eb44dd8332e7bf3b7690dd7826391810d43fb973ed417"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:02579",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "9f6eb9c996661c2145593fb5a7e980800962632a236449c582c6c5a46f1ea0ce"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:42693",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "1c11252716ee7cdc560111729d764c7a9c5c0766ac65839518ae23bd73c49f03"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:19009",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "1ca844dcfb339f4e8065a26e065f13add8dcc0d0b230344e4a69aa69a92df7ae"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:08553",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "4b99b541624efca6a064f058d131e07a3daa9f14a4c4dc06a824c78b0333fbec"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:47573",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "837b62e4fd7c09863085d3757c9abddc795b6bcedfe1bc9da31b1f59a51d89ed"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:01212",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "7b353bab0e564f2be3277bd045c1196d2c63bd6199a5798e223060ecc50e9e06"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:26639",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "970396f29e10e455cb95e2f0ca0aab0df6886289143043e6014371dddd1b6997"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:37172",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "eff3e3056beae7dc5a5678ba969814cded0be4a69b9bf8030aabcead04005774"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:34808",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "3761fe2c75b46f8c192fbb11437428eea18342ce02d3351b6533714d0309f3b4"
+    },
+    {
+      "decision": "reject",
+      "id": "alpaca53:03964",
+      "reason": "改写遗漏了原句尽力帮助别人的信息，未保持原内容。",
+      "source_record_sha256": "ef5f08cc213ee834290038dd17079a4cf1f3f9de95d627d4b0097164a82e6ce0"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:07340",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "8b93164cb883c955bf46493eed5490207b5a5eed20afaccdb840a6065acbc105"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:24412",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "eb206896069bc1558cff8dcb87ca1b079e837a89172fd4c660a792ee890744b7"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:18308",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "92495a42738f23e750a1c2e0e86d3b170639505418e8d7da5e4f89d2c0188494"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:33920",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "2814c0dede4c8feb2de45741f952bb584942a926c28cbd9bb4b6139748d05631"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:28527",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "f0d60d357c811bfdc1d7af397f264cec458aa96f0eb5e51964937af7acfb0878"
+    },
+    {
+      "decision": "reject",
+      "id": "alpaca53:22407",
+      "reason": "要求两个副词和两个形容词，答案没有满足明确数量与词类要求。",
+      "source_record_sha256": "f5dd3e5da842faba8f78909e5ea553a0bb2b66aa8a715077460d5c9ce997f676"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:32147",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "a9a3e24a212c372e4df12b670afbb284e843c9b00524b28c69c2ca0e44ac5be8"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:21725",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "12abd7c78c92384b176401ad1ab2756c3ba383a551b14c164e7930648ef0a70c"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:47162",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "42ffdba94cdf905a521531a10e1c840cbbc8cc9b7f0ecbec02fe11a21a96179a"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:08821",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "4c206a5c7b5086cc89b83e82df5f41d5157889f9d7de7d6a4001f07706c43052"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:32523",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "8c01d63722b698121c7ddd0aad6fb566fd404cabf07d97c807aac9cf0f2101ab"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:21710",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "48328341ab3b865ce4ee39632c550a1371df0d85c959de6dccfce5713f5b1a67"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:04354",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "288b5cbc57f35742a8f1dbead441b80dfeaeb47fb6962c1544038ff3f2fea15a"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:19826",
+      "reason": "逐项核对降序9、6、5、4、2。",
+      "source_record_sha256": "a4d4babb424f82ee3a84b2824aacb6a71e42f437a36519ed3c2d46110074c653"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:18987",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "715def54cabfa46f99d53bc3e4aabd07d875c570202331ddd9b887c713c36a67"
+    },
+    {
+      "decision": "reject",
+      "id": "alpaca53:26434",
+      "reason": "没有实际高亮名词，答案仍保留替换内容占位符，未完成替换。",
+      "source_record_sha256": "d9e3e579e0364a17c024ddcb123cbe8f91c11a26cd321c7bd6604cc5ee3a27c5"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:46865",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "8c20f9d27f83b8c3a19529894415616bf37cd495efa64576778ca77531c06f93"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:43062",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "a7f281bab109113837c383dc6aba4f9af9835036940930cd202dca7016ae8afb"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:34045",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "b7b4b077867cb418b3296ee0e90436b036b3ba435bb441a05cfb278e5a85b619"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:38234",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "763efa5c7ce36ccba97b509fb5b21ff13efe45885d88dd1f9843c96b08c1bfd0"
+    },
+    {
+      "decision": "reject",
+      "id": "alpaca53:20902",
+      "reason": "未给出待标注句子却直接编造标签。",
+      "source_record_sha256": "226749f8d80ce3103b872f47f2778b098147e878d7f7120d58a9f7a7809f0756"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:30671",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "6eb637e0efe2af08df8cf3a3008ed87123fe6c0669a7ff8d1de86bd76308f858"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:18771",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "7b2753aae31778a312068cf142c681ac8b8c7b87916a9fd926f9f28f7f4098e0"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:04544",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "0931bb2d2a288442a239955e2962d85b1866f13f6f1b1630cfbd740a1368e460"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:41069",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "20db0ce01319e68ba722aef638ab55de68395fbf42161c807325b14f9ce7f047"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:35674",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "2de13c0ddd6d9f6fd725d4f7c723e41f64b9eece77083bb2586bb0321bc7c0a9"
+    },
+    {
+      "decision": "reject",
+      "id": "alpaca53:37479",
+      "reason": "要求删除所有非字母字符，输出仍保留空格。",
+      "source_record_sha256": "4d5c99cb3a315f7658c6e6a20ec36f53a965af027477c69f9736895855ca7e87"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:32735",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "6caadce25dc486812c7bc7f823379a9a7c2ee7ac745eab92b859044c107baca3"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:06785",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "b8555829508ea0c40def2906ff5965aee9cac00416efad624c34cbbf43c78476"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:14410",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "f197bf0deb0465c5c01178e58331acc8938656b9130b3faa529e533bb33b5ef4"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:30446",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "17ec7b111722b75330ae831c8db65adc5a270e979e39d4bd82c355b8279d0ad3"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:02435",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "bf57ec7a3b4f94f1637f6d4304115de46aad415722faf531d1bcfbb174814ec9"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:22073",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "48f061d567626d9b993b5bc0cd75d88e81170a86779db6c4d338e3b4120ac0f9"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:16983",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "af30fadb06d2294dd59ccb08340475297eaa0150f86a1f40e3185e877d4cf62d"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:41276",
+      "reason": "核对22:45对应晚上10:45或差15分11点。",
+      "source_record_sha256": "9e448c652c50e9ae19bd953eeed06b5303f4326e5178e416b6732d530bbc95d8"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:41271",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "a5c3bcb25434df8e59e519579e7f7e6ed24df89358d0eaa8e8483acdd03f54cd"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:19436",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "68ce89d41422303985ae7f628d96e0a916e7168ffb5b551d526518c430baea6c"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:04645",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "88a2dd7f6151a304463e91695c887ad4294b3dc6895fa6c7f643df1d401d4811"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:46204",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "afa9b4d796db237e8e437ab6b7e58105a42a293752cca68faaea39a809da5298"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:19484",
+      "reason": "核对22+34+10=66。",
+      "source_record_sha256": "e819e4e11473f8a4b31da9cbcda17c8bae0f578a251232c3601c573b5f83b0fb"
+    },
+    {
+      "decision": "hold",
+      "id": "alpaca53:22041",
+      "reason": "本轮不批准：存在术语或事实需核实、上下文不充分、任务符合性或格式要求需进一步确认的局限；未擅自改写后放行。",
+      "source_record_sha256": "5a3395082d6c249f8d383967e0a5e369ba639bb1e99895690af130d028423749"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:11099",
+      "reason": "核对gcd(10,25)=5。",
+      "source_record_sha256": "46d7779a81f1f9b9a18e383145034d430476a5ec20d4fb1415e3085f3b7aa522"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:44120",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "916b5b55bf4cebc3661102b2cc8b78bb519be00fbbdcc354106290f8143b41e5"
+    },
+    {
+      "decision": "accept",
+      "id": "alpaca53:14428",
+      "reason": "已逐条读完问题、任务输入及完整答案；在本题给定前提下，回答匹配任务，未发现本轮明确的计算、语法或指令遵循错误。",
+      "source_record_sha256": "5d50ad8d2e98721c4762c30d375a03e7b857f7cfd939e9d5fe9723f0fb541e0a"
+    }
+  ]
+}

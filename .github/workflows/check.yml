@@ -105,3 +105,5 @@ jobs: # 定义需要执行的任务。
           python scripts/ci/check_chat51.py # CPU核对掩码数学及一次GPU诊断报告，不追加30M训练。
           python scripts/learn/32_inspect_sft_review.py # 只读核对26条内容审核、冻结子集及尚未满足的训练条件。
           python scripts/ci/check_chat52.py # 拒绝漏审、重复及过期审核，不训练模型。
+          python scripts/learn/33_inspect_sft_run.py # 只读查看正式SFT数据、预算及最佳权重。
+          python scripts/ci/check_chat53.py # CPU核对来源及八条验证会话，不重复训练。

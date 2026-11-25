@@ -74,5 +74,18 @@
     "best_pretrain_validation_loss": 4.4307035971427355,
     "stage": "pretrain_only_not_sft",
     "full_state_delivery": "GitHub Release lesson50-pretrain-pilot"
+  },
+  "actual_30m_sft": {
+    "report": "docs/training_runs/lesson53.json",
+    "pretrain_updates": 2020,
+    "sft_completed_updates": 500,
+    "sft_best_update": 100,
+    "sft_best_validation_loss": 5.122031859286377,
+    "sft_last_validation_loss": 6.098375064124196,
+    "sft_seen_assistant_positions": 85388,
+    "stage_seconds": 105.7244957999792,
+    "inference_bytes": 60079061,
+    "stage": "bounded_formal_sft_pilot_not_usable_chat",
+    "full_state_delivery": "GitHub Release lesson53-sft-pilot; verified 32MiB parts"
   }
 }

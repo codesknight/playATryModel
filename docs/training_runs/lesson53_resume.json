@@ -1,0 +1,8 @@
+{
+  "adamw_scaler_cursor_equal": true,
+  "formal_checkpoint_sha256_unchanged": "fa745452d59cadbf5a56d6eb6171dec4c45dcf3d5ed264550ca5d4681ffb35c6",
+  "formal_checkpoint_step": 500,
+  "max_parameter_abs_diff": 0.0,
+  "pretrain_step": 2020,
+  "verification_copy_updates": 2
+}

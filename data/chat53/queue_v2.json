@@ -1,0 +1,3228 @@
+{
+  "eligible_short_records": 7211,
+  "filters": {
+    "duplicate_prompt_or_answer": 56,
+    "insufficient_cjk": 225,
+    "known_pretrain_exact_substring": 23,
+    "outside_short_review_budget": 30187,
+    "topic_or_short_prompt": 11116
+  },
+  "format": "chat_sft53_queue_v2",
+  "items": [
+    {
+      "group_id": "1ad1ff19cada8e239cc1aa5acc6741326e7092f06238748061c11b11ebb42db4",
+      "id": "alpaca53:17398",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "添加两个形容词来描述一个人的性格。",
+          "role": "user"
+        },
+        {
+          "content": "善良和坚毅。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 17398,
+      "source_record_sha256": "def442fa983641e2ddc96bcc8150a3083e22b67af4e95f3bfb07421698e19315"
+    },
+    {
+      "group_id": "c12cf06e3d1006ea6623feae0ab25f62c0924730c04e5e7d2ecea802fd241234",
+      "id": "alpaca53:30400",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "氖元素中有多少个质子？",
+          "role": "user"
+        },
+        {
+          "content": "氖（Neon，Ne）是一种化学元素，它的原子序数为10，所以它的原子核中有10个质子。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 30400,
+      "source_record_sha256": "7f0b45ba7fc3191697810b77d02ac699072ab1463d17df22535147bf5ec751d4"
+    },
+    {
+      "group_id": "5434a7d5d612cc375248cd3456e2f31c37fbedc61f25e9a98dfa4e709222a258",
+      "id": "alpaca53:37845",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "HTML是什么，用一句话概括。",
+          "role": "user"
+        },
+        {
+          "content": "HTML是一种标记语言，用于描述和布局网页上的文本和图像内容。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 37845,
+      "source_record_sha256": "1e81acb0a0ca09b6f9d9aa6ef02e3d43d20ef4641a9d86a71917bc80c6c297cb"
+    },
+    {
+      "group_id": "307afc702bfffcfa7622524766bcf6cd4857b90d99b837ba9a3427cd6feb2fc2",
+      "id": "alpaca53:09594",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "用另一个动词改写这个句子：她从面包店取走了糕点。",
+          "role": "user"
+        },
+        {
+          "content": "她从面包店领取了糕点。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 9594,
+      "source_record_sha256": "18b75bdfcb6f427a759a00b60d668e460c7c061fb7d09006f7c7d065ec627889"
+    },
+    {
+      "group_id": "5fa902d0681029204700b5f658533196d55f3535d46d850496e248722d5daf00",
+      "id": "alpaca53:33657",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "为即将上映的电影《神奇女侠1984》创建一个标签。",
+          "role": "user"
+        },
+        {
+          "content": "“超级女英雄#神奇女侠1984-重返威力的时刻”",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 33657,
+      "source_record_sha256": "45afe5e06905c7be468eb6607868eace36bf55f982badf6eed6fd5a566de7a27"
+    },
+    {
+      "group_id": "b8fdfd824adebcb781809cd7fc0d763a114873575f4d12591ceea817bfdb33ff",
+      "id": "alpaca53:28622",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "分析提供的文本并提供一句话的摘要。",
+          "role": "user"
+        },
+        {
+          "content": "好的，请提供需要分析的文本。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 28622,
+      "source_record_sha256": "4cd48a8529af0c7fd0e215013ddd9930fa88f9fe1001983ab96011d04816c2ce"
+    },
+    {
+      "group_id": "1d422a37aad8632d9e7f259b6abb4abec3d460ab4e70bc79157ee37f36ced976",
+      "id": "alpaca53:39955",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "指定每个给定单词的最接近匹配词。\n\n输入：\n单词1：玩\n单词2：笑",
+          "role": "user"
+        },
+        {
+          "content": "输出：\n最接近匹配词1： 游戏\n最接近匹配词2： 微笑",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 39955,
+      "source_record_sha256": "227a66de2331ba03a0f575a4964fc926605b9f9a0ce981e8a2cd526f08cadb94"
+    },
+    {
+      "group_id": "5558be724bb182d3c69d2aca320361192955c38c221e9d3f3e28f15bb894bae5",
+      "id": "alpaca53:30585",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "确定以下句子的动词时态：她在春天种了一棵玫瑰花。",
+          "role": "user"
+        },
+        {
+          "content": "这个句子中的动词是“种”，动词时态是一般过去时。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 30585,
+      "source_record_sha256": "ba4e047c28cc18b0d10ee1f06f04c1e9c72c671da9cdeb040169a44a1bdacb4d"
+    },
+    {
+      "group_id": "bff0e444441e9bf43b368075d4c358c85a883c66616d725599672fef0e5a608d",
+      "id": "alpaca53:23793",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "用“快乐”、“学习”和“旅程”这三个词造一个句子。",
+          "role": "user"
+        },
+        {
+          "content": "\"学习不仅仅是一段快乐的旅程，它也是成长和不断提升自我能力的过程。\"",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 23793,
+      "source_record_sha256": "c04d8a1ebb196953caf1c3451e7bdd6d1506169fb57655798751fe5a7fc75027"
+    },
+    {
+      "group_id": "3a9099a6c720c390b5155d93aacf56362ecf015d3a7d8580b13b65a4176b85f3",
+      "id": "alpaca53:02297",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "我买了面包和苹果，请在句子中适当位置插入逗号。",
+          "role": "user"
+        },
+        {
+          "content": "我买了面包和苹果。这句话不需要加逗号。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 2297,
+      "source_record_sha256": "30f33a2ad77bbca5717f79409e1758cc5b55ea5b9e61157e4f0b302af2b04904"
+    },
+    {
+      "group_id": "d66d8e8e8a07524998f7ca1379a5c5daf48dfd0b4b391274e34c6a040ae74559",
+      "id": "alpaca53:08406",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "把句子“Bob和他的家人住在一起”改写成被动语态。",
+          "role": "user"
+        },
+        {
+          "content": "被动语态句子为：“Bob的家人和他一起住”。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 8406,
+      "source_record_sha256": "235d99156b08b9f7432063072196b14fa10a101067ce4f54fd8f9c996acfd66c"
+    },
+    {
+      "group_id": "583086bf1716a10aedf6333e38e111daf0d397d216afb0de82231d09bcf2a1c5",
+      "id": "alpaca53:01060",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "用四句话或更少的话概括这段文字。",
+          "role": "user"
+        },
+        {
+          "content": "您好！麻烦提供文字内容以便我能帮您概括。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 1060,
+      "source_record_sha256": "01917fdc927b4f19ae20b3d3b597b036777881223fed9dbd068fe50e1afcc0c6"
+    },
+    {
+      "group_id": "3a9c46ccfaa4c9c093c37ab8a2393de4a733cb9b3f0884dc9b305d5c6412290b",
+      "id": "alpaca53:28666",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "写一首关于快乐的俳句。",
+          "role": "user"
+        },
+        {
+          "content": "阳光灿烂，\n绿叶轻抖，\n欢笑不止。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 28666,
+      "source_record_sha256": "b7f9e1e9daf653a8036e74314854031ae7349b3e5aea2b97f551558b4c4be001"
+    },
+    {
+      "group_id": "7793ef398c2dc9824f117f81ba5756811b9e950eb7c064694fcba2002b9aff4e",
+      "id": "alpaca53:32488",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "他有点晚了，但他还在赶路。",
+          "role": "user"
+        },
+        {
+          "content": "它表明他已经迟到了，但他正在加快速度赶路以尽量弥补延误时间。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 32488,
+      "source_record_sha256": "a3adefabdd60a44b951086045ec660cdfd041664a4b0b7232bc163697ce2dd9c"
+    },
+    {
+      "group_id": "b0a8f9d406da41cd3c36966f49a07ef530421e4923a7b88c9a1056f5321279ef",
+      "id": "alpaca53:18774",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "找一句适合这种情况的谚语。",
+          "role": "user"
+        },
+        {
+          "content": "请提供更具体的情境描述，这样我可以为您挑选一句最适合的谚语。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 18774,
+      "source_record_sha256": "6e82672eb6929407ee1f1f54029c8d8ceb7e4efca42e70fe229368b01f094178"
+    },
+    {
+      "group_id": "b4052d335d100ed7e949d386548cd4a53c029fcaa1b78594d7bead3b20e89500",
+      "id": "alpaca53:47024",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "请您现在给我您的答案。",
+          "role": "user"
+        },
+        {
+          "content": "您需要提供一个问题或情境，我才能回答您。请问您需要问什么？",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 47024,
+      "source_record_sha256": "53b16c4d080c8a83ec4d7117cfe0f82c778a55658e27c32006ffefc1345ed2cb"
+    },
+    {
+      "group_id": "01ca91af89c8f9606054f999d7ed62ce0a82218f1f58feed93a9f8ab946874bd",
+      "id": "alpaca53:30648",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "乌龟，小麦，狗，苹果树\n\n分类为：动物，植物，动物，植物",
+          "role": "user"
+        },
+        {
+          "content": "是的，您给出的分类结果是正确的。乌龟和狗都属于动物，而小麦和苹果树则属于植物。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 30648,
+      "source_record_sha256": "912d1e8395a44ca6da5e42ba96aa308ed643bbd2012b9ec0f8833d1acf72c84b"
+    },
+    {
+      "group_id": "3258ed557be73889fda520bb97ccf70cde1834bd49e53f7ea4e151bac58d9e49",
+      "id": "alpaca53:05850",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "根据给定信息生成一个假设。",
+          "role": "user"
+        },
+        {
+          "content": "非常抱歉，但是这个请求中没有提供足够的信息和背景来产生一个假设。如果您可以提供更多详细信息，我将尽力为您生成一个合理的假设。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 5850,
+      "source_record_sha256": "d433fb347fa4c89b07d49354b798b4208bba91f967f996ea9b40842284436e80"
+    },
+    {
+      "group_id": "123e56b0108b39dd931348acf490ecc2d6302aac043f41c62616eb22b2c2880f",
+      "id": "alpaca53:10782",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "找出情感得分最高的词。\n\n输入：环境的破坏是一场悲剧，每个物种都很脆弱。",
+          "role": "user"
+        },
+        {
+          "content": "词语：悲剧 \n情感得分：较高负情感得分",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 10782,
+      "source_record_sha256": "2a604dc41526fc98c4eb676bdaba2c24f9ee5af26684d889597f3f255124c78f"
+    },
+    {
+      "group_id": "4c9fb723dd820cbbfea2c7ad52450466bdd7e92291583f01e94c03f44e9f9bc4",
+      "id": "alpaca53:07129",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "添加至少2个更多的例子到这个列表中：飞行，鹰，鹰。",
+          "role": "user"
+        },
+        {
+          "content": "飞行，鹰，鹰，翱翔，猎鹰。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 7129,
+      "source_record_sha256": "8e500c6739672c4fe4656a373831ed402eba0350dbb2de58d395b79aebaba833"
+    },
+    {
+      "group_id": "873a3d19afdec9f475dd515ff654b1e390099c6c8729773882459783c30d1d21",
+      "id": "alpaca53:24214",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "编制与关键词“图书馆”相关的五个词的清单。",
+          "role": "user"
+        },
+        {
+          "content": "1. 阅读\n2. 借阅\n3. 馆藏\n4. 参考资料\n5. 阅览室",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 24214,
+      "source_record_sha256": "0d46c7b7e3557fd4c5bc9449438a6c59dc6ac6dcf56430213ecf2a3f26f19229"
+    },
+    {
+      "group_id": "a65ca150677156a29d7c3b982549cdbfd6cfdb7b2a468bc5efdabe61f8e380ab",
+      "id": "alpaca53:41097",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "这段文字是否自相矛盾？",
+          "role": "user"
+        },
+        {
+          "content": "我无法判断，因为您提供的并不是一段文本。如果您能提供要评估的文本，我将更好地为您服务。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 41097,
+      "source_record_sha256": "b8af1f4a898877a4c20cbf70e6bf2105372cfa0ccce2acb606193e85c9022b08"
+    },
+    {
+      "group_id": "4112a8d2dc4561f3a21369dc51016fdea4ac3f9979156b5f0de11845d4328144",
+      "id": "alpaca53:11026",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "编辑以下句子：狐狸们被赶出了树林。",
+          "role": "user"
+        },
+        {
+          "content": "修改后的句子：狐狸们被驱逐出了树林。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 11026,
+      "source_record_sha256": "197e55a14a91d5eb1d5c098da6dfc125d4536c9681cc1063862efc7468c2f785"
+    },
+    {
+      "group_id": "0d339aaf0554210e060298db8271655ea6145c6227d9691192c29945d28bbd77",
+      "id": "alpaca53:03576",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "将以下观察结果分类为生物组织的主要层次。\n\n线粒体是细胞的动力源。",
+          "role": "user"
+        },
+        {
+          "content": "线粒体属于细胞层次。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 3576,
+      "source_record_sha256": "361ffaa3a81e4ac4fa4a37d65cee9fdfda4300447de58760d724aa52f1d16cec"
+    },
+    {
+      "group_id": "8613b74a98277260edc2af33a340a131b99f630d900d5fad551b14a45f01baee",
+      "id": "alpaca53:27942",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "用一句话解释量子计算。",
+          "role": "user"
+        },
+        {
+          "content": "量子计算是一种利用量子比特进行运算和存储信息的计算方式，可在多个可能的解决方案中同时进行搜索并提供更快的运算速度。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 27942,
+      "source_record_sha256": "ec4e755e4004f7cd0cd717449bc98b2dfbc64b670bfaae73e02b7cb6e457f37a"
+    },
+    {
+      "group_id": "e43cf8252501178ad237e9ad3e97d18c491d26f9421145b6e647460a94d6c42c",
+      "id": "alpaca53:45620",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "找到这段文字中最重要的短语。",
+          "role": "user"
+        },
+        {
+          "content": "由于您未提供段落，我无法执行此操作。 请将所需分析的文本提供给我，我将尽力为您找到最重要的短语。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 45620,
+      "source_record_sha256": "b54ab78bf830d1a0354be0c6d35b35d709dcf2ae71efb8531836a1ee58ef9103"
+    },
+    {
+      "group_id": "74a5ae575386fd18148cb1ec106243a2dbf3c802c72d04d309e0ab6de891d626",
+      "id": "alpaca53:33076",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "欧盟由多少个国家组成？",
+          "role": "user"
+        },
+        {
+          "content": "欧盟（欧洲联盟，简称EU）目前由27个成员国组成。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 33076,
+      "source_record_sha256": "ce7562e29d61a87b733d90963b78429be709326f5296ad9be393b4ce1199115e"
+    },
+    {
+      "group_id": "1245c6e9ca329131fb5fbf3cfaae987489727935e88904fee0eb05f8b317d998",
+      "id": "alpaca53:22797",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "选择下面的图形类型。\n\n[插入三角形图像]",
+          "role": "user"
+        },
+        {
+          "content": "您要选择的图形是三角形。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 22797,
+      "source_record_sha256": "01c6767ba42f08eb79f7fd6170d03d37f87acc7e108d0df1ae095587683d6d1c"
+    },
+    {
+      "group_id": "b30a92c74c6b58fc1f2812f462935d554869d6a29de52bd12c94bba799716cfd",
+      "id": "alpaca53:09034",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "检查给定日期是否为星期五。\n\n输入：2020年3月6日",
+          "role": "user"
+        },
+        {
+          "content": "是的，2020年3月6日是星期五。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 9034,
+      "source_record_sha256": "276a4f65b23c57cbf6696c530588575c3ef940e397cc6107794d66882218948f"
+    },
+    {
+      "group_id": "a10bd627171b942ab5ea530742f99f3b8d4a7cb3db6d5f5dbb1c55bfe833655a",
+      "id": "alpaca53:22709",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "她提出了问题，生成两个押韵的句子。",
+          "role": "user"
+        },
+        {
+          "content": "她的裙子飘逸在绿草茵，\n映入眼帘多美如画图深。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 22709,
+      "source_record_sha256": "7047bbb72bc723de6fa66b36e10ae320b431e432c250471e69d6257edbccf33a"
+    },
+    {
+      "group_id": "bedc7612ced303156ce939cf356111bfab839ddd3f010f2a10a78b0338ea3fb9",
+      "id": "alpaca53:02657",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "提取以下句子中的所有动词：我的叔叔在终点线前飞奔。",
+          "role": "user"
+        },
+        {
+          "content": "1. 飞奔",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 2657,
+      "source_record_sha256": "4a8261e56ce06aed5837d9553e4f0b56c3584d28e3357ecdb9c72e90ef19ff56"
+    },
+    {
+      "group_id": "d97b93956b971e89c31af33240707f49a31b5b7da8955a94ceaacffe7c63e114",
+      "id": "alpaca53:00095",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "生成一个8个字符的密码。",
+          "role": "user"
+        },
+        {
+          "content": "hjT8$#2q",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 95,
+      "source_record_sha256": "9a52daf835ae45a2f8bd063d842bf383f17766f85c15d82a5f1331acc7ad58c2"
+    },
+    {
+      "group_id": "fc5c25e122e84e74c5d5a243ee5031484cc72b2f96379a1a2c5aa8d2a651995f",
+      "id": "alpaca53:31621",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "计算句子\"I want to go for a walk\"中的单词数。",
+          "role": "user"
+        },
+        {
+          "content": "\"I want to go for a walk\"这句话中包含7个单词。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 31621,
+      "source_record_sha256": "318698137bb8da53c49890e0b6bc4c3397a68733f112ca72dcd4f512c95ba85e"
+    },
+    {
+      "group_id": "91f8b04d321dd9d493d754da906439a6047ac4b3277055e4caf43fa256b70c9f",
+      "id": "alpaca53:11115",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "删除这句话中加粗的单词。\n\n输入：我总是乐意帮助任何人。",
+          "role": "user"
+        },
+        {
+          "content": "The sentence with no words in bold is: 我总是乐意帮助任何人。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 11115,
+      "source_record_sha256": "16f9783874c4fa6f21fbbe836162ea3a18b5f498c58f54426f91d602978853d0"
+    },
+    {
+      "group_id": "257d54184342774ab4c8a59c0e698e344d02747b714ba9a9eab59c9771e465fc",
+      "id": "alpaca53:13081",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "按照长度排序给定的单词。\n\n输入：river, ocean, lake, stream",
+          "role": "user"
+        },
+        {
+          "content": "输出：lake, river, ocean, stre",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 13081,
+      "source_record_sha256": "35d37a531514f988841cdab206f3e6083c27fd1516e010dfd8f4ad97fc31ad0c"
+    },
+    {
+      "group_id": "5de2316f6696109799276ddf42683f6b7e876ec5f88fb8b126733cdcfe29a7dc",
+      "id": "alpaca53:16345",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "参考给定的链接，用一句话解释这个故事的重要性。",
+          "role": "user"
+        },
+        {
+          "content": "您好，麻烦您提供希望参考的链接，这样我才能根据该链接给出相应的解释。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 16345,
+      "source_record_sha256": "f0389d0d19c8d094651cd313a3c0ef19ff4d128bcd9dd0d1fb893a69b46ee6af"
+    },
+    {
+      "group_id": "02e212dbb7362c5d11e6ee53b4c81243178f551a226903d8fd89349ca536e060",
+      "id": "alpaca53:43671",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "选择正确的代词填入这个句子：他和朋友们一起 ____ 冲浪。",
+          "role": "user"
+        },
+        {
+          "content": "他和朋友们一起去冲浪。 \n正确的代词应该填 “去”。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 43671,
+      "source_record_sha256": "3d4c8f8cc74f0f40f942f74a054f46654f7b4e7f4ea8d08d48b66fd4fe126b84"
+    },
+    {
+      "group_id": "2244bd770b0c30bdbec91824119e5fc79669cb3965a4bb980fae2d36d4ab2ebc",
+      "id": "alpaca53:41810",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "将这五个物品归类到一个有意义的类别中。\n\n输入：铅笔、纸、橡皮、尺子、书。",
+          "role": "user"
+        },
+        {
+          "content": "这五个物品都属于文具或学习用品。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 41810,
+      "source_record_sha256": "2f6d266a19ce4258887878c6fcb0a2cb3f1bba7ff4ec6ae7c5111ddcd1c62f44"
+    },
+    {
+      "group_id": "f6c3b3ccca7f08cc811b0f5781f6260e16637f6126112a7c833c5ca98ea05261",
+      "id": "alpaca53:07957",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "确定以下单词的类型：incredible。",
+          "role": "user"
+        },
+        {
+          "content": "单词 “incredible” 是一个形容词。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 7957,
+      "source_record_sha256": "0938ae32d1228acb40153f681db4859430bfb3876b06422396139844bbb6d276"
+    },
+    {
+      "group_id": "47202474d19fc406fa40cba8ce9eacfe298095eedad0e59b13e1371005dca000",
+      "id": "alpaca53:19010",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "把这句话翻译成法语：“我不明白为什么会发生这种事情。”",
+          "role": "user"
+        },
+        {
+          "content": "« Je ne comprends pas pourquoi cela s’est produit. »",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 19010,
+      "source_record_sha256": "0838693206eb123060fe18be4f7f63ef49e083c3d00098eb1cdef51537204a78"
+    },
+    {
+      "group_id": "c5685880c01f4abd71a5c940dd10fff4e89d8acba1d5bc5d788f76d3c75a04bf",
+      "id": "alpaca53:35546",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "编辑以下故事，确保它使用主动语态。\n\n猎人正在森林中追逐熊。",
+          "role": "user"
+        },
+        {
+          "content": "猎人正在追逐森林中的熊。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 35546,
+      "source_record_sha256": "77a8deb4f79c165bc421ee1a4d832b75c4f33fdffae829c79032107461cede09"
+    },
+    {
+      "group_id": "9e5d97e3f294485820adc0fef9dc6b0eb1e27f1a66a09380641e2ee15d4271ac",
+      "id": "alpaca53:31107",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "确定单词“happy”的比较级",
+          "role": "user"
+        },
+        {
+          "content": "单词 “happy” 的比较级是“happier”。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 31107,
+      "source_record_sha256": "961d54bc9f4db96d8ac580bac59760accb735618411b3c1fa4728cbb3de61ffb"
+    },
+    {
+      "group_id": "267d93c60eb48da8340f7ccda358eba1ce45e4eb12dd4371dd64a076cf4e943b",
+      "id": "alpaca53:31186",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "在家工作。将以下句子修改为适用于此情境：每个人都需要在早上8点到达办公室。",
+          "role": "user"
+        },
+        {
+          "content": "每个人都需要在早上8点开始在家工作。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 31186,
+      "source_record_sha256": "4629959f0568105ea79e0ba9f886bb89ca4b7af8872a2953fdceece43fe26ec3"
+    },
+    {
+      "group_id": "9378ec95d43431c6dbb8b0c80d76efcaec6314eb909c731f92c2da0bc3a1e542",
+      "id": "alpaca53:30804",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "写一个描述夏天的俳句。",
+          "role": "user"
+        },
+        {
+          "content": "烈日当空照，\n炎热填身躯，\n夏夜微风送爽。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 30804,
+      "source_record_sha256": "976ad7f2bf3a2892853df4ee5f4695c8878c245e93ac09254d3c4b194962dc2b"
+    },
+    {
+      "group_id": "2b93f450f3ad17c477db9125f7b723441a628307ef60c0e17c0c6306cd640ef0",
+      "id": "alpaca53:01427",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "修正以下语法错误。\n\n他想去商店，买些晚餐的食物。",
+          "role": "user"
+        },
+        {
+          "content": "他想去商店买些晚餐的食物。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 1427,
+      "source_record_sha256": "73755842cc0788e5e03b8e145bdc3a8bb0cf8fe5938d6daebf9cb4e5504223d0"
+    },
+    {
+      "group_id": "295883e2e14f02ad86cea3b2eaa6830c99a31293e6723c8237fe480a0fff18d2",
+      "id": "alpaca53:35302",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "创造一条推文概括这篇文章。",
+          "role": "user"
+        },
+        {
+          "content": "抱歉，我无法完成这个任务，因为您并没有提供文章内容供我概括。请提供一篇文章，然后我就可以为您创作一条推文。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 35302,
+      "source_record_sha256": "2169a25b9812906c689c54c47a671e552272e26344d907f5dd57a29fa6e7276e"
+    },
+    {
+      "group_id": "130206949d03bb62f6171070f7d58d64bd57b92163c518b1782e83633c91b5ec",
+      "id": "alpaca53:14229",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "根据输入提供正确的拼写：ambigious。",
+          "role": "user"
+        },
+        {
+          "content": "Ambiguous.",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 14229,
+      "source_record_sha256": "9ee1f109f23e5de3dc69ce0ce792c8988080eb2cc4967572457e8a0f4a6f4f01"
+    },
+    {
+      "group_id": "d77bb58eb0037783f75269f222ce32ac72471b39fa8d63e4966fa98ee19ee01e",
+      "id": "alpaca53:14347",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "识别文本中的情感。\n\n输入：这家餐厅的玉米饼是我吃过的最好的！",
+          "role": "user"
+        },
+        {
+          "content": "情感分析结果：积极。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 14347,
+      "source_record_sha256": "d5f959dc3ba73cfeefe831385d4f27bc9479a164f89234553309be3a7a0fb5a9"
+    },
+    {
+      "group_id": "73ae527abc4fce7bfb5727f16152866e44119a473a39c6c6d842b45d302ebe63",
+      "id": "alpaca53:48494",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "根据文章生成一个问题，测试用户对文章的理解。",
+          "role": "user"
+        },
+        {
+          "content": "可以请您提供我要为您生成问题的文章的详细信息吗？ 这样我才能开始。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 48494,
+      "source_record_sha256": "178e3f91b13896156674ef3183281c6c77f8e92641d0983d0cbd977b4d863e2a"
+    },
+    {
+      "group_id": "05355f8ea6bf02b687b92be254dbc7066c63e6a8dbe13fa43edba93249a0bff7",
+      "id": "alpaca53:19467",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "按字母顺序排列以下单词：storm, sunny, sun",
+          "role": "user"
+        },
+        {
+          "content": "sun, storm, sunny.",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 19467,
+      "source_record_sha256": "d924eec97f8c273c29508dae841f37930d2a3a3ca434878e395fab174e88de3c"
+    },
+    {
+      "group_id": "56bd2935c856162ef75afc4abc5b4986fb71a4b01295c604aff9b7bc950bd664",
+      "id": "alpaca53:37097",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "用复合形容词改写句子：他买了一辆有坚固框架的自行车。",
+          "role": "user"
+        },
+        {
+          "content": "他买了一辆框架坚固的自行车。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 37097,
+      "source_record_sha256": "ea1af9b8d315079dcedf1340a4c7c8d6870c212835b91fa912e0c0d1cc33b4f8"
+    },
+    {
+      "group_id": "94fc83252d05dcdf077e586816d68f57dd7ff9a5c0a12bc2f69864c30ae04b91",
+      "id": "alpaca53:20754",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "修改给定文本以提高清晰度。\n\n尽管Sarah投入了大量资金，但她并不富有。",
+          "role": "user"
+        },
+        {
+          "content": "尽管Sarah投入了大量的金钱，但她并不是富有的人。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 20754,
+      "source_record_sha256": "45821f55947f13da2eb4408f397e1a2aff44b4ddd41f11274294b071cf09f8bf"
+    },
+    {
+      "group_id": "343d23aef1d92c72925f553a1aa0f77206a713ef46a95754a0513102cb79de6a",
+      "id": "alpaca53:18534",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "生成给定文本中的常见名词列表",
+          "role": "user"
+        },
+        {
+          "content": "好的，这需要使用自然语言处理技术。请提供文本，我将使用我的程序分析它并生成常见名词的列表。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 18534,
+      "source_record_sha256": "499f27688d23088a9b3f41f467db622023b472aabac355855e738712887432dc"
+    },
+    {
+      "group_id": "f298db3adcaa7d8d080f7821aebc1c16408f337cdbbb6b1ac1dbbcac2fa6ebbe",
+      "id": "alpaca53:15628",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "写出名词 \"ox\" 的复数形式。",
+          "role": "user"
+        },
+        {
+          "content": "\"ox\" 的复数形式是 \"oxen\"。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 15628,
+      "source_record_sha256": "8c049b2d190ae29507f462425c127dbe0f898b21707e1281a202153d81cf8018"
+    },
+    {
+      "group_id": "ae31d8bed0afdf0c7a96c1df031b8fe78e96b0a35cb45e8cf13f5139dc572b00",
+      "id": "alpaca53:36939",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "分类这个句子：“我喜欢可爱的卡通”。",
+          "role": "user"
+        },
+        {
+          "content": "这个句子属于“陈述句”，表达了一个人的喜好。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 36939,
+      "source_record_sha256": "cd216b8d5129f52f3bf7f79afe26228334b15a7ccd0b273330dc1ba337926619"
+    },
+    {
+      "group_id": "fe4d1291f6973a9009a8d4353e9104c20fe277ea9f2a5591c466992168a130f4",
+      "id": "alpaca53:11618",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "把这句话分成两个有意义的句子。",
+          "role": "user"
+        },
+        {
+          "content": "请提供您希望我分割的句子，方便我更准确的回答您。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 11618,
+      "source_record_sha256": "0ccd01289220f8234f35b57ca14f25ba755ebc291efcb2e1d446801396308f6a"
+    },
+    {
+      "group_id": "cd2dd9fb0107f49f8a9765a95c67e5844d07affbc72c199963a0a7d5be31b663",
+      "id": "alpaca53:33647",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "把这句话翻译成法语：“生命是一场马拉松，而不是短跑。”",
+          "role": "user"
+        },
+        {
+          "content": "«La vie est un marathon, pas un sprint.»",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 33647,
+      "source_record_sha256": "6cb0c8230898eba60af8e0abbb655c083ac0412cfafd584691f2267b59d25125"
+    },
+    {
+      "group_id": "aacaecdbda1bd8f79ff1ce1cb21926ca5ce43b6e894805356162374e881703ae",
+      "id": "alpaca53:16116",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "生成一部恐怖电影的标题。",
+          "role": "user"
+        },
+        {
+          "content": "\"暗影游戏\" （The Game of Shadows)",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 16116,
+      "source_record_sha256": "818e959eafb7733b86fcd675929e43ee26d7eef52b44dd8ecee1f0b9f236f18c"
+    },
+    {
+      "group_id": "ca40192b2094033c61a86efa47fb81ecb2761ee26e2116b4e03af9616c193976",
+      "id": "alpaca53:27079",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "为以下电子邮件撰写新的主题行。输入：电子邮件正文包含续订订阅的请求。",
+          "role": "user"
+        },
+        {
+          "content": "\"请求续订订阅服务\"",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 27079,
+      "source_record_sha256": "097509e667670bdd449c3303271573e5135c920c49cd85613f4a58fe24f88326"
+    },
+    {
+      "group_id": "77c804aebd123ab055a6b996c9a623d5571ecb689f0804fcf2ebd4c5eaf9e2cd",
+      "id": "alpaca53:34329",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "将这些物品分类。\n\n书，笔，铅笔，计算器，椅子。",
+          "role": "user"
+        },
+        {
+          "content": "书，笔，铅笔和计算器都属于文具或办公用品类，而椅子属于家具类。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 34329,
+      "source_record_sha256": "d1d97ebcbe2c30beb8c35926292c931bd726544f0971482c9375daec5d82f2d5"
+    },
+    {
+      "group_id": "11df3f8221ab40f7c8632102ba82f68aa45d81f3436c787c8995a127f66b7ab4",
+      "id": "alpaca53:10941",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "解释为什么人工神经网络是最常用的深度学习模型。",
+          "role": "user"
+        },
+        {
+          "content": "人工神经网络是最常用的深度学",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 10941,
+      "source_record_sha256": "37169099fdc65c7863c85856fea4bd5acacf6307cf6fb1ed68ccfb0db9f730c2"
+    },
+    {
+      "group_id": "a3c4b3d3f8e5e731dba950ba32a5f94c5cf9849cdf9d3cff83df1bbde020b155",
+      "id": "alpaca53:48651",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "这个句子是一个完整的思想吗？输出真或假。",
+          "role": "user"
+        },
+        {
+          "content": "这个句子是一个完整的思想。 真。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 48651,
+      "source_record_sha256": "746932aff175ae900c857344f1180dd2cc34f1b39c6419c4c472fd78a5e6ade5"
+    },
+    {
+      "group_id": "e271b5103a6f169689388044ab417a16052898d0e7d897d84f5cfb779ea8c140",
+      "id": "alpaca53:33975",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "我不知道我在做错事。",
+          "role": "user"
+        },
+        {
+          "content": "我会尽力为您提供帮助。首先，请您详细地描述您目前所面临的问题，以便我们一起找到解决方案。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 33975,
+      "source_record_sha256": "6b1eff3748d9495eed384a2fb019ecba478aba13bd4ffea5ecebf78a8953c669"
+    },
+    {
+      "group_id": "ba64c4b838e0e4388d0d2d1ef87c605f6ade461b950c01dc13d971c7e4341624",
+      "id": "alpaca53:08435",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "将给定的数字列表从小到大排序。\n\n输入：2、3、5、8、6、4",
+          "role": "user"
+        },
+        {
+          "content": "输出：2、3、4、5、6、8",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 8435,
+      "source_record_sha256": "04427d7e0ee500039045e825dfd3aaa28401f8b88761e0b725fdbff0f5b9c534"
+    },
+    {
+      "group_id": "ceeeda775b89f8ce7f808f514bc1e5abfe019f939563971291ef4b1e9aa8d399",
+      "id": "alpaca53:32770",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "生成一个句子，说明“适应性”的概念。",
+          "role": "user"
+        },
+        {
+          "content": "适应性是指一个体系或个体在面对环境变化时能够通过调整，以适应新的环境并获得最大利益的能力。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 32770,
+      "source_record_sha256": "533a3642abf3568a8b3c571e84286a60a371e1c0fae19faec83928d2955d0c3c"
+    },
+    {
+      "group_id": "93faa58d92b23483ec584442ae255f4978f8e38dc89a9f041927f6da26b53d00",
+      "id": "alpaca53:15716",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "改写这句话，使其更简洁、有说服力：\n我们公司有很多优秀的产品，受到所有客户的欣赏。",
+          "role": "user"
+        },
+        {
+          "content": "我们公司的产品优秀且广受客户欢迎。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 15716,
+      "source_record_sha256": "1d6eafc56f1771874a4f2933d865fd24b657e9694a8578428ffe5982174bc264"
+    },
+    {
+      "group_id": "9a3b838d08c839f2c98e43817c296c1faf7fe108be2473c3be0feb16324d3ff4",
+      "id": "alpaca53:12595",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "找到“收敛”的定义并用一句话写出来。",
+          "role": "user"
+        },
+        {
+          "content": "\"收敛\"是一个数学概念，定义为一个数列或函数在无穷远处趋于一个有限的极限值。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 12595,
+      "source_record_sha256": "4e494ed5e7c676f5e504b5bc91feb3db2944080f7315a8dbf8d74430624ce5e6"
+    },
+    {
+      "group_id": "6abbdffcbd6a04148ba61acdf7bb4dd1c0eb512cf6a079c2db35ec72929131cd",
+      "id": "alpaca53:20966",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "这座房子俯瞰着湖泊。",
+          "role": "user"
+        },
+        {
+          "content": "这句话的意思是这所房子的位置可以俯视下面的湖泊，居住者很可能能享受到优美的湖景。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 20966,
+      "source_record_sha256": "6ad96bd672b4bd2b857ff2541110fddc396524947771b4b131b7985e8eb38f90"
+    },
+    {
+      "group_id": "512185560985c22a4250f47ef48470e2ab4cb0161fc60bc81b630fc9ad8cbc70",
+      "id": "alpaca53:01131",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "计算5和3的乘积。",
+          "role": "user"
+        },
+        {
+          "content": "5乘以3等于15。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 1131,
+      "source_record_sha256": "5405cae9f698db26a8ec60239f8db7c53f23fdba12c15d9fb59576e04456b37d"
+    },
+    {
+      "group_id": "5d5db0c94d8d7efe27d973fe8d55e52039040ba1b9d253697684658fe7896715",
+      "id": "alpaca53:09514",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "为一个达成目标的团队想出一个庆祝性的短语。",
+          "role": "user"
+        },
+        {
+          "content": "\"成功的果实甜美无比，让我们共同庆祝这一壮举!\"",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 9514,
+      "source_record_sha256": "242ba3b3a1e4bc0398bb363eb929dbe3672637e4f7cac7a7ec71c7a95379a49d"
+    },
+    {
+      "group_id": "6d61abf969d9180504f925be1589410923b206b673f5c2fc03ea25acec95560b",
+      "id": "alpaca53:12625",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "按尺寸排列以下物品：\n\n输入：\niPhone\niPad",
+          "role": "user"
+        },
+        {
+          "content": "iPad\niPhone\n\n按尺寸排列，iPad 比 iPhone 大。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 12625,
+      "source_record_sha256": "b16a9520e19d6598f6083a03746a5d036bb866d5a8250683778baa9686df7bb5"
+    },
+    {
+      "group_id": "75befbca07b830c7e59d9f120b50eb6dd3fb39c5086fb0efc92f146d625c7964",
+      "id": "alpaca53:02306",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "小说《白牙》的作者是谁？",
+          "role": "user"
+        },
+        {
+          "content": "小说《白牙》的作者是杰克·伦敦（Jack London）。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 2306,
+      "source_record_sha256": "b97e5b38c365a8170152863d6c4e698ba3d5499e3bb628c5163a782c34a86ee1"
+    },
+    {
+      "group_id": "ed1424365269365bbbcd8841fb534fcc38ab64a8dacdfa69c6f71146768cc1a7",
+      "id": "alpaca53:41266",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "建议电影标题：“年轻女孩寻找家人时，面临内心善恶之战。”",
+          "role": "user"
+        },
+        {
+          "content": "建议电影标题可以为《寻乡之旅：心灵抉择》",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 41266,
+      "source_record_sha256": "b4cef14d1f8ed026bff1f4cec4e7ab71c72ac6a91ab4eb2f8a90e612f5136dad"
+    },
+    {
+      "group_id": "cfc978fbbd757ce11de04983e274a0852d917a429ca2616f75f6af256d80cbc7",
+      "id": "alpaca53:09436",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "给定两个句子，确定哪个是错误的。\n\n输入：\n句子1：苹果是一种水果\n句子2：苹果是一种蔬菜",
+          "role": "user"
+        },
+        {
+          "content": "句子2是错误的。因为苹果是一种水果，不是一种蔬菜。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 9436,
+      "source_record_sha256": "bb18219f396d9e93a615a684f404d0fc13f76a76bf5896243bffb13eb4b77d6d"
+    },
+    {
+      "group_id": "74a45e21f519ff7c112f7eb4aa850537696608453fb19e685764a0d1f4ada36b",
+      "id": "alpaca53:28243",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "确定句子类型：她会弹吉他。",
+          "role": "user"
+        },
+        {
+          "content": "宣告句/陈述句（declarative sentence）。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 28243,
+      "source_record_sha256": "7332f344ef5188953cb0cf37d4082ebe67c0c0c3a18759ea7712dfaf8054cb6e"
+    },
+    {
+      "group_id": "b4ee632f949ef13a12646f08276ed6df69f948de5d74fb562027a711a4810fb9",
+      "id": "alpaca53:04699",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "构造一个简单的句子，包含以下单词：商品，零售。",
+          "role": "user"
+        },
+        {
+          "content": "这家商店的商品零售价格非常优惠。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 4699,
+      "source_record_sha256": "ba11d3cac0a3ad2b67734596b9a38fe4f3c257e1d9900cfcfd4957f30264e7e2"
+    },
+    {
+      "group_id": "2af6d3c6046192800c044e9e90c05e3d264d699d7d25bde2522841abec7eab1e",
+      "id": "alpaca53:18568",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "创建一篇文章的文本摘要。（提供文章链接）",
+          "role": "user"
+        },
+        {
+          "content": "抱歉，但是您没有提供文章链接。如果您提供了文章链接，我才能为您生成该文章的摘要。谢谢。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 18568,
+      "source_record_sha256": "1d9d428ba48bc4859403c383b8df96165e6833357ad10124ad594488badf3c40"
+    },
+    {
+      "group_id": "456c5659e6ed22a0f553c33412d1df04acde2eba1cc934912a9d50147e569936",
+      "id": "alpaca53:11986",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "嗨，想确认任务是否完成。请修改此信息以适应正式工作环境。",
+          "role": "user"
+        },
+        {
+          "content": "您好，我很乐意为您提供帮助。您可以提供更多信息，让我知道您要询问哪个任务的完成状态，以便我能够准确查询并回复您。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 11986,
+      "source_record_sha256": "f4f1432914f507683f33ebd3d3cc2b2ed75528fdf78a134d0f7cdf87efe8418b"
+    },
+    {
+      "group_id": "fc0fd536c3591e960793e878b368ca9ebc9924d323376492f80e885b84412714",
+      "id": "alpaca53:36897",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "为Google新的“注释”技术生成一句话摘要。",
+          "role": "user"
+        },
+        {
+          "content": "Google以其独有的“注释”技术，让您能够更高效、更精准地管理和整理您的信息。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 36897,
+      "source_record_sha256": "5b46e18dcc7c08f965698df1e8db1985b05b5935c3b37dec1fe53be752b2d2bc"
+    },
+    {
+      "group_id": "747226d016afb6413f440cefc483dd0ce6e89f17086dc22388e198a6377ab21e",
+      "id": "alpaca53:11963",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "写一首俳句风格的诗。",
+          "role": "user"
+        },
+        {
+          "content": "秋风吹过，\n落叶纷纷扬扬，\n遍地金黄。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 11963,
+      "source_record_sha256": "bd0b3d44eb11153465461b53b2cf94744f216421ade56cf911eabea96edbac90"
+    },
+    {
+      "group_id": "f5fee69f74e4f28843216e1430e76a28da1ecba82108cdb7159765d13de7f1a6",
+      "id": "alpaca53:08018",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "总结这篇文章：https://example.com/article",
+          "role": "user"
+        },
+        {
+          "content": "对不起，我无法访问外部链接并总结文章。如果您将文章内容复制粘贴到此对话框中，我将尽力为您提供总结。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 8018,
+      "source_record_sha256": "093ea74f119513f828cd46c7af46501c47e25658999adfae86fae58facbed3ac"
+    },
+    {
+      "group_id": "776ac56acb41d156501e94f3eb06648a09ee26a18df2c98b731cf794372c92f3",
+      "id": "alpaca53:08937",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "创建一个过去时态的句子。",
+          "role": "user"
+        },
+        {
+          "content": "昨天我去了超市买食品。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 8937,
+      "source_record_sha256": "2aa74971f247b5e78a69cd299076350a191ae72e9b0f08214b6c259144a30695"
+    },
+    {
+      "group_id": "61a1aac900dce47f9f9a46c2b98cbefb70df6ae03d7e18afc74b092e28c9126e",
+      "id": "alpaca53:12949",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "找出印度的第一任总理。直接输出名字。",
+          "role": "user"
+        },
+        {
+          "content": "贾瓦哈拉尔·尼赫鲁（Jawaharlal Nehru）",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 12949,
+      "source_record_sha256": "4e0375ebecd819b892ece654026619e49f4159ff8f5488cf1aef465b67e77c8f"
+    },
+    {
+      "group_id": "f9b4e9c09ef3d2a92e33fe45ddbba0615ba5e5a10e87b32c1bf9f119768c4c38",
+      "id": "alpaca53:20848",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "计算这条直线的斜率。\n\n输入：y = 2x + 4。",
+          "role": "user"
+        },
+        {
+          "content": "该直线的斜率为 2。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 20848,
+      "source_record_sha256": "ea5406bf1824306d9550f2b0edbd4675f561c70c2cd3a0ff765728690b46acb7"
+    },
+    {
+      "group_id": "3a6b2b4ec0c2a896cbb8a691d9117aafb0ae74ed3f5cfc1d79403313d562c943",
+      "id": "alpaca53:07026",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "这句话是被动语态还是主动语态？",
+          "role": "user"
+        },
+        {
+          "content": "您没给我指出哪句话。如果您告诉我哪句话，我很乐意回答您。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 7026,
+      "source_record_sha256": "2884585aa2e4403ffbc55a4f72a9fdf87245b6b7c59468bc46bbe287d08fdfec"
+    },
+    {
+      "group_id": "9b312c5d5249766fcca6c9fff373a43f3bdb4ad41a20e201f13187aafaf8c9d5",
+      "id": "alpaca53:08717",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "为这篇新闻文章提供一个合适的标题。",
+          "role": "user"
+        },
+        {
+          "content": "为了能够提供一个恰当的标题，我需要您提供这篇新闻文章的内容。请告诉我文章的关键信息和主旨。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 8717,
+      "source_record_sha256": "2f2c6d3579ebcecba721fa5b194b9fada3f437a554a287f94b565153561f57e0"
+    },
+    {
+      "group_id": "4c81aca5fdcb4813cc8e295487a86e89bb116fcf46d050f3d0185896bab9a7a1",
+      "id": "alpaca53:37640",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "判断给定的陈述是否是语法正确的。\n\n输入：太阳从西方升起。",
+          "role": "user"
+        },
+        {
+          "content": "对不起，这句话语法是正确的，但事实不正确。太阳从东方升起，它西落。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 37640,
+      "source_record_sha256": "b9855c75dacacb108d4112702dcba29892b0ecfa444a30cf84f4a5bac0fe6a51"
+    },
+    {
+      "group_id": "8f61135fac9deabcf7d11606386452c6958e487cdcea4914eafb72fe31ae083c",
+      "id": "alpaca53:21464",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "在给定的句子中搜索规则动词和不规则动词的例子。\n\n输入：她在房间里跳来跳去。",
+          "role": "user"
+        },
+        {
+          "content": "根据输入的句子，可以找到一个规则动词，即“跳”。\n不规则动词则未在该句中出现。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 21464,
+      "source_record_sha256": "13a9b2964ebab66e91c73c99877d307eb9676febef8295965b30f723c644dd4e"
+    },
+    {
+      "group_id": "1354db5219e6b950495fe87250844c6cf45b12f814885a17d658abb627cc79c5",
+      "id": "alpaca53:14177",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "输出字符串\"abcde\"的反转：edcba",
+          "role": "user"
+        },
+        {
+          "content": "\"edcba\"",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 14177,
+      "source_record_sha256": "7a86f499a08619c48193b47246f623fb4d0cdce31105f33baa39f3d6773a89f7"
+    },
+    {
+      "group_id": "cff01cf9c5d8e32e82cc54be56f4fb49d3593b739a0f88539d2563c205d9f7fc",
+      "id": "alpaca53:00686",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "给我一个“爱”的同义词。",
+          "role": "user"
+        },
+        {
+          "content": "一些与\"爱\"相关的同义词包括: 喜爱、爱恋、钟情、情意、热爱。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 686,
+      "source_record_sha256": "6175daca9c445e90ace0133fdd35deea31ee4382e8b66adf11a91c6c3e372558"
+    },
+    {
+      "group_id": "af32cc5d526ec672c6081c7b46b8547b9efd5c430a1c07f5680d13f9295203c1",
+      "id": "alpaca53:26335",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "为一个环保组织想出一个创意口号。",
+          "role": "user"
+        },
+        {
+          "content": "\"保护地球，就是守护我们的未来\"",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 26335,
+      "source_record_sha256": "8f7536d21591ef468e00f05601a53d7057bb8a37cfc8858ad1e9e828e085dfff"
+    },
+    {
+      "group_id": "7d6c9d163ed188168f3466c2a10460611f4f0e143e108da0ef297a7451f139f0",
+      "id": "alpaca53:32355",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "确定给定文章的主要观点。\n\n输入：该论文认为，使用基于人工智能的助手可以显著提高客户服务体验。",
+          "role": "user"
+        },
+        {
+          "content": "主要观点：使用基于人工智能的助手可以显著提高客服体验。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 32355,
+      "source_record_sha256": "6b44c89c1d1341baa0ceb9eb9f5b07965c7d7a590f9afbd57faded1ed8e0a7f1"
+    },
+    {
+      "group_id": "e0af0e9debb8c191e6f801664a7cad3f260680d40c8512fb9df2b6a9f92e9f2f",
+      "id": "alpaca53:32684",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "在适当的位置加上逗号。\n\n她去了商店，但没买任何东西。",
+          "role": "user"
+        },
+        {
+          "content": "逗号已经在正确的位置了：“她去了商店，但没买任何东西。”",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 32684,
+      "source_record_sha256": "b0ea233a5ffadd1de17e3dc1354f7284b16d37ea5e5bab1c1151a9ec26c6ab58"
+    },
+    {
+      "group_id": "74c81bbf5a781145856c1d6b9fd447d3d0d7cdfd202e0fa4370871d0216a8f0b",
+      "id": "alpaca53:42040",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "写一个宏观经济口号",
+          "role": "user"
+        },
+        {
+          "content": "\"促进经济增长，保障全民福利，实现可持续发展，共创繁荣未来!\"",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 42040,
+      "source_record_sha256": "bf4cb6d7d677e62be668f72eb4a6846b71ad9127aabc01daa91c4175bfacad3a"
+    },
+    {
+      "group_id": "e63c19fc64a0aa6711e6f0e7469829d058061c7b4c260a9fa80a995b697b3a73",
+      "id": "alpaca53:23926",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "将这个数量转换成升。\n\n42 盎司",
+          "role": "user"
+        },
+        {
+          "content": "42 盎司 等于 1.24271 升。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 23926,
+      "source_record_sha256": "91caf93890239c36f323ecc6f05ccde36946da5ae8f0b1835d313e4bc092a508"
+    },
+    {
+      "group_id": "479ed004607b99c881f2306e38168d72f589f39ada65a15f4ca7c3b8d8f9570b",
+      "id": "alpaca53:48698",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "给定以下诗歌，请提供一个不同的标题。",
+          "role": "user"
+        },
+        {
+          "content": "您并未提供诗歌内容，请提供诗歌内容以便我可以更好地为您提供相关建议。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 48698,
+      "source_record_sha256": "0a88fd975ae7de3cae0bcd7b1506015aa711987c6c9e437d9461952970bdc608"
+    },
+    {
+      "group_id": "bb7ae8a6ee30db4629b5b1229d33668ed1991adc64795c65972695de4b6c86ab",
+      "id": "alpaca53:28006",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "重新标记以下数据框为“性别”和“年龄”列：\n\n输入：\n男性 43\n女性 17",
+          "role": "user"
+        },
+        {
+          "content": "输出：\n\n性别 年龄\n男性  43\n女性  17",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 28006,
+      "source_record_sha256": "3f5338adfecf740abbbf786fb47d429dd83b710ae9cf36823a7dc2ebff23f4bd"
+    },
+    {
+      "group_id": "f98f82ec8e883287726bdd7489b18af11dd4b368e75e4854ce8d9d6413988f3b",
+      "id": "alpaca53:40643",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "写下“弹性”的两个同义词。",
+          "role": "user"
+        },
+        {
+          "content": "两个“弹性”的同义词可以是“柔韧性”和“可塑性”。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 40643,
+      "source_record_sha256": "682a93a0240092eeebd7781bfb8725fe93b874859efadb475a96437281efc47f"
+    },
+    {
+      "group_id": "7f0f2fe7aef83b9ddf4942851336698b68ee3f51c54d3d47b775064410350a46",
+      "id": "alpaca53:09126",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "用两句话尽可能地概括输入的文本。",
+          "role": "user"
+        },
+        {
+          "content": "为了更准确地概括您所提供的文本，我需要您先提供文本内容，然后我将把它概括到两句话中。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 9126,
+      "source_record_sha256": "0a5dc5fda1d0221fbd55110ef50c45227c7534d19d4ddce1528d5861bffe3b9f"
+    },
+    {
+      "group_id": "71c12e675c2f041284df59ebdba6f4e6786fc3d51ea4c3c1e96af91b261f026d",
+      "id": "alpaca53:06970",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "约翰快速跑到商店。",
+          "role": "user"
+        },
+        {
+          "content": "John quickly ran to the store.",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 6970,
+      "source_record_sha256": "1c4b2c7ebd288bd74ccf4d1aaa3cdfa9474f29cd1b43e34b5ff4bc93a326d1e0"
+    },
+    {
+      "group_id": "b95f021e5cc712197d2ce5ec4d765de15ee4d68c7ecb7f6bfe6fa1f6e6848ea8",
+      "id": "alpaca53:16708",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "找出给定句子中的所有专有名词：John, Paul和George乘火车去了伦敦。",
+          "role": "user"
+        },
+        {
+          "content": "专有名词为：John、Paul、George 和 伦敦。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 16708,
+      "source_record_sha256": "c4fec15eb814955026353f12da4eaac2107cbeb2082e23d5845f19641ca36f97"
+    },
+    {
+      "group_id": "b1067f67bbc3b0141bdcdaae37a73281db6b2d465f782424f645e9a622a98b44",
+      "id": "alpaca53:22930",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "将此照片分类为横向或纵向。",
+          "role": "user"
+        },
+        {
+          "content": "抱歉，无法执行您的请求。因为我是一个文本语言模型，我无法看到或处理图片。我无法确定图片是横向还是纵向。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 22930,
+      "source_record_sha256": "9a8cfab01eaefd1125966ada99589959ba867081195f12cf90a88a65bc2c1f7d"
+    },
+    {
+      "group_id": "0b802e62a341a64bdeabab6d69b36d5afa43db2e9895628a15764b5c5334d777",
+      "id": "alpaca53:14709",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "修改以下句子，使其意思相反：\n\n句子：森林砍伐有益于环境。",
+          "role": "user"
+        },
+        {
+          "content": "句子: 森林砍伐对环境有害。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 14709,
+      "source_record_sha256": "e2c1e0289d69fa7af9a735d27d3baba6e3d29855088e15cee4fff48aeae56493"
+    },
+    {
+      "group_id": "460fea3b8b77159898ec2ff06297d04938c6f5a8679db5c7e9e55f0dd336f4e6",
+      "id": "alpaca53:14236",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "猜猜说话者想说什么。",
+          "role": "user"
+        },
+        {
+          "content": "抱歉，我是一个人工智能助手，我无法猜测言语背后的思想和想法。我需要更多的信息和背景才能根据上下文给出回应。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 14236,
+      "source_record_sha256": "eb6f924f0bef19bd46ac4dd75ae6549fc3554703e495b974e63c0bb4228dedc9"
+    },
+    {
+      "group_id": "88d5d6af12072d7b4ffd1575028e8ebc647ad0fd9fdd4bd47d883d070bbca7cb",
+      "id": "alpaca53:39315",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "连词是以下单词组中的哪一组：as，as soon，although。",
+          "role": "user"
+        },
+        {
+          "content": "在以下单词组中，\"as\"，\"as soon\"，\"although\" 都是连词。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 39315,
+      "source_record_sha256": "4ad73213c30092d1006e5c715167211e177be3142eaa1f9ce49b343b31c3346f"
+    },
+    {
+      "group_id": "79d7deac020a771ea6839177e6e2070a91ac28f8fba54f5400ddcbc05add3829",
+      "id": "alpaca53:33219",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "建议一个以“救赎”为主题的短篇小说标题。",
+          "role": "user"
+        },
+        {
+          "content": "《被赦免的罪》",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 33219,
+      "source_record_sha256": "2af6e57724fdcb34a07eb44dd8332e7bf3b7690dd7826391810d43fb973ed417"
+    },
+    {
+      "group_id": "faf574510b7d49ea7036c2a9ced8389d40321c5c233517bce0116b24ad98ee60",
+      "id": "alpaca53:02579",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "列出三个流行的搜索引擎。",
+          "role": "user"
+        },
+        {
+          "content": "1. 谷歌 (Google)\n2. 百度 (Baidu)\n3. 必应 (Bing)",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 2579,
+      "source_record_sha256": "9f6eb9c996661c2145593fb5a7e980800962632a236449c582c6c5a46f1ea0ce"
+    },
+    {
+      "group_id": "bec50d772651f65597cea9538d06374d81f4e21c15c805e4ef3f946ae0b87671",
+      "id": "alpaca53:42693",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "为给定任务命名一个功能要求。\n\n输入：创建一个员工管理的Web应用程序。",
+          "role": "user"
+        },
+        {
+          "content": "功能要求：\"员工信息管理\"",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 42693,
+      "source_record_sha256": "1c11252716ee7cdc560111729d764c7a9c5c0766ac65839518ae23bd73c49f03"
+    },
+    {
+      "group_id": "1d32602e9512b470b92ff196850b8298cb3a7d4bee78e02f4b099b937e819e00",
+      "id": "alpaca53:19009",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "概括这段文字的主要意思：人类活动导致的气候变化是当前世界正在应对的现实。",
+          "role": "user"
+        },
+        {
+          "content": "这段话主要是描述气候变化是当前的现实，是由人类活动造成的，世界正在努力应对。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 19009,
+      "source_record_sha256": "1ca844dcfb339f4e8065a26e065f13add8dcc0d0b230344e4a69aa69a92df7ae"
+    },
+    {
+      "group_id": "5cb8a9c31bf25a448dde74e9ab3728f737d2cca4870e66bc2c423c3a18d8c3b9",
+      "id": "alpaca53:08553",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "在文本末尾添加一个结论句。\n\n爱丽丝已经把她所有的物品都塞进了她的手提箱。",
+          "role": "user"
+        },
+        {
+          "content": "最终，爱丽丝顺利地完成了行李打包。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 8553,
+      "source_record_sha256": "4b99b541624efca6a064f058d131e07a3daa9f14a4c4dc06a824c78b0333fbec"
+    },
+    {
+      "group_id": "0bcee5715ae139ece4bbe0f11bd1c980fc67870d6b773bff5da9739502df7fa6",
+      "id": "alpaca53:47573",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "根据特征，将它们分类。\n\n输入： \n特征： \n- 电影剧本 \n- 诗歌 \n- 新闻文章",
+          "role": "user"
+        },
+        {
+          "content": "分类:\n- 娱乐作品：电影剧本\n- 文学作品：诗歌\n- 新闻媒体：新闻文章.",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 47573,
+      "source_record_sha256": "837b62e4fd7c09863085d3757c9abddc795b6bcedfe1bc9da31b1f59a51d89ed"
+    },
+    {
+      "group_id": "644ca633c62522892da014b0613aeaf6585403676a17e9d3125ab01b30d02c2f",
+      "id": "alpaca53:01212",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "请用自行车和漂浮创建一个主语+动词+宾语的结构。",
+          "role": "user"
+        },
+        {
+          "content": "我骑自行车穿过漂浮的雾气。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 1212,
+      "source_record_sha256": "7b353bab0e564f2be3277bd045c1196d2c63bd6199a5798e223060ecc50e9e06"
+    },
+    {
+      "group_id": "0f87be782d2aa2bc8cc7c6b4336985818d65aa1258407aa6ab51a246f6036e75",
+      "id": "alpaca53:26639",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "Tim成功完成了比赛目标。",
+          "role": "user"
+        },
+        {
+          "content": "太棒了！恭喜Tim完成比赛目标。他一定非常努力并表现出色。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 26639,
+      "source_record_sha256": "970396f29e10e455cb95e2f0ca0aab0df6886289143043e6014371dddd1b6997"
+    },
+    {
+      "group_id": "496bfa8e649c13bd8c92215b3fe0ac015284bc59e17e4039c2d436be9c51395f",
+      "id": "alpaca53:37172",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "将这些动物归类为捕食者/猎物。\n\n输入：猎豹、大象、兔子。",
+          "role": "user"
+        },
+        {
+          "content": "捕食者：猎豹\n猎物：大象，兔子",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 37172,
+      "source_record_sha256": "eff3e3056beae7dc5a5678ba969814cded0be4a69b9bf8030aabcead04005774"
+    },
+    {
+      "group_id": "c8b3b9119c63f8eedd4bfa443b38136fba1a54e87905c278d2819543f3234807",
+      "id": "alpaca53:34808",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "列出两种能飞的动物。",
+          "role": "user"
+        },
+        {
+          "content": "鹰和蝴蝶。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 34808,
+      "source_record_sha256": "3761fe2c75b46f8c192fbb11437428eea18342ce02d3351b6533714d0309f3b4"
+    },
+    {
+      "group_id": "e93ac464d0ddc1e9aa1e8ab00f5a4106e1de62488115645570e26003013d212c",
+      "id": "alpaca53:03964",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "排列这些句子以形成一个连贯的段落。他性格开朗，容易交到很多朋友，总是尽力帮助别人。",
+          "role": "user"
+        },
+        {
+          "content": "他性格开朗，容易交到很多朋友。总是尽力帮助别人。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 3964,
+      "source_record_sha256": "ef5f08cc213ee834290038dd17079a4cf1f3f9de95d627d4b0097164a82e6ce0"
+    },
+    {
+      "group_id": "eaea4ae1cba31e2d52494a31cecb8f4ee471a04c6755b07c5219233da7acd926",
+      "id": "alpaca53:07340",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "波士顿和纽约市之间的距离是多少？",
+          "role": "user"
+        },
+        {
+          "content": "波士顿和纽约市之间的距离大约为215英里（约346公里）。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 7340,
+      "source_record_sha256": "8b93164cb883c955bf46493eed5490207b5a5eed20afaccdb840a6065acbc105"
+    },
+    {
+      "group_id": "f941dd51d1deffe9d8ac8651872f41e4d32dec85b2331dca2c5e3cf33ae5bfa0",
+      "id": "alpaca53:24412",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "将混沌和熵的元素组合成一个句子。",
+          "role": "user"
+        },
+        {
+          "content": "随着混沌的增长，熵的增加使事物变得更加复杂无序。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 24412,
+      "source_record_sha256": "eb206896069bc1558cff8dcb87ca1b079e837a89172fd4c660a792ee890744b7"
+    },
+    {
+      "group_id": "49f9b6ed30b28f2795fda3ffeb042b9a9d98b68bebdbf57bc628b6cfea3ea35d",
+      "id": "alpaca53:18308",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "使用给定的单词生成一个新的在线用户名：CrazyCat。",
+          "role": "user"
+        },
+        {
+          "content": "\"Crazy_Cat_Lover\"",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 18308,
+      "source_record_sha256": "92495a42738f23e750a1c2e0e86d3b170639505418e8d7da5e4f89d2c0188494"
+    },
+    {
+      "group_id": "eb650fff509f48aeb20977606d761018de482a17c40fe6e70ac194c7715b48c4",
+      "id": "alpaca53:33920",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "写一句话介绍自己。",
+          "role": "user"
+        },
+        {
+          "content": "你好，我是一个有益的人工智能助手，致力于为用户提供帮助和支持。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 33920,
+      "source_record_sha256": "2814c0dede4c8feb2de45741f952bb584942a926c28cbd9bb4b6139748d05631"
+    },
+    {
+      "group_id": "4588b3c75275482c7ab11be2cad62c4deeeebc7ffcf120f08fd99bcad65712e0",
+      "id": "alpaca53:28527",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "生成一个唯一的用户名，包含以下字母和数字的组合：X5A2W。",
+          "role": "user"
+        },
+        {
+          "content": "一个唯一的用户名包含X5A2W的组合可能是 \"W2AX5\".",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 28527,
+      "source_record_sha256": "f0d60d357c811bfdc1d7af397f264cec458aa96f0eb5e51964937af7acfb0878"
+    },
+    {
+      "group_id": "038dba456f042dca1dce0a633401a70409df8aed67f6ab6c5189952f709096d1",
+      "id": "alpaca53:22407",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "合成一个包含两个副词和两个形容词的句子。",
+          "role": "user"
+        },
+        {
+          "content": "她总是非常谨慎地、完美地完成所有的工作。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 22407,
+      "source_record_sha256": "f5dd3e5da842faba8f78909e5ea553a0bb2b66aa8a715077460d5c9ce997f676"
+    },
+    {
+      "group_id": "e9070b99edbb7768d1ae9ffbf0e72cd66c78012d5026d7a8e4af1d22708b7d95",
+      "id": "alpaca53:32147",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "将给定的观察结果分类为科学或伪科学。\n\n输入：\n- 顺势疗法\n- 量子物理学",
+          "role": "user"
+        },
+        {
+          "content": "顺势疗法：伪科学\n量子物理学：科学",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 32147,
+      "source_record_sha256": "a9a3e24a212c372e4df12b670afbb284e843c9b00524b28c69c2ca0e44ac5be8"
+    },
+    {
+      "group_id": "d17c6f50983d2e03aa07192a4ac79a2e2ecf75449f1303b25e8b315543e4f3c6",
+      "id": "alpaca53:21725",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "改写以下句子，使用更有力的动词：“她读书。”",
+          "role": "user"
+        },
+        {
+          "content": "\"她专心阅读着一本书。\" or \"她研读着一本书。\"",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 21725,
+      "source_record_sha256": "12abd7c78c92384b176401ad1ab2756c3ba383a551b14c164e7930648ef0a70c"
+    },
+    {
+      "group_id": "82320dfe33b5118c997810ee3b4016cd2b62ed6f118e61f808bcc4834ea7a395",
+      "id": "alpaca53:47162",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "替换下划线短语为同义词。\n\n他失去了他的财物。",
+          "role": "user"
+        },
+        {
+          "content": "他丢失了他的财产。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 47162,
+      "source_record_sha256": "42ffdba94cdf905a521531a10e1c840cbbc8cc9b7f0ecbec02fe11a21a96179a"
+    },
+    {
+      "group_id": "6d0631b4984efe8382c64b38c6b4ed6db36caa2803abcda5c25b6f5233d261e4",
+      "id": "alpaca53:08821",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "改写以下句子，使其含义更加精确。\n\n输入：女孩跳上床。",
+          "role": "user"
+        },
+        {
+          "content": "改写: 那个女孩跳到了床的上面。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 8821,
+      "source_record_sha256": "4c206a5c7b5086cc89b83e82df5f41d5157889f9d7de7d6a4001f07706c43052"
+    },
+    {
+      "group_id": "604b90cc94f5dd04bc259c6fd3c879feaa4e14e5ce6ec3106abc04d99c5565b2",
+      "id": "alpaca53:32523",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "请写出下一个数字：1，2，4，8，16",
+          "role": "user"
+        },
+        {
+          "content": "下一个数字是32. 这是一个等比序列，每一项是前一项的2倍。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 32523,
+      "source_record_sha256": "8c01d63722b698121c7ddd0aad6fb566fd404cabf07d97c807aac9cf0f2101ab"
+    },
+    {
+      "group_id": "506e7f3e7036eecb48bf6ac99418f1a80ffb4634740fa6e5ff7933798e6fb5a7",
+      "id": "alpaca53:21710",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "构造一个以“我的猫”为主语的句子。",
+          "role": "user"
+        },
+        {
+          "content": "我的猫非常喜欢在阳光下打滚。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 21710,
+      "source_record_sha256": "48328341ab3b865ce4ee39632c550a1371df0d85c959de6dccfce5713f5b1a67"
+    },
+    {
+      "group_id": "19bda35abcf190b3560efb8b34ee23bb3e980009adfd303d173256ee886db84d",
+      "id": "alpaca53:04354",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "根据以下描述对服装类型进行分类：V领无袖上衣。",
+          "role": "user"
+        },
+        {
+          "content": "这件服装属于上衣类，它的领型是V领，袖长是无袖。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 4354,
+      "source_record_sha256": "288b5cbc57f35742a8f1dbead441b80dfeaeb47fb6962c1544038ff3f2fea15a"
+    },
+    {
+      "group_id": "3ef16cd98ac0faf3946f5741e00eb0d5027f5a3f5c85e81527e60b9ffa61f918",
+      "id": "alpaca53:19826",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "按整数降序排列以下列表。输出排序后的列表。\n\n输入：\n[5, 2, 9, 4, 6]",
+          "role": "user"
+        },
+        {
+          "content": "输出：\n[9, 6, 5, 4, 2]",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 19826,
+      "source_record_sha256": "a4d4babb424f82ee3a84b2824aacb6a71e42f437a36519ed3c2d46110074c653"
+    },
+    {
+      "group_id": "963d992f9aa25aa174ffd3dee14ee61ab3d876ce6565f9ad429dcc812824bcb1",
+      "id": "alpaca53:18987",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "识别以下诗歌的主题并提供简要分析。\n\n[插入诗歌]",
+          "role": "user"
+        },
+        {
+          "content": "对不起，没有诗歌插入。我无法给出主题和分析。如果提供了诗歌内容，我将很乐意为您分析。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 18987,
+      "source_record_sha256": "715def54cabfa46f99d53bc3e4aabd07d875c570202331ddd9b887c713c36a67"
+    },
+    {
+      "group_id": "d192a6b61a2e0ce2a5e438b5fc04b14857ef3913eca59a6d771402a516097fad",
+      "id": "alpaca53:26434",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "复制以下句子并替换高亮名词。\n\n教授对_____非常兴奋。",
+          "role": "user"
+        },
+        {
+          "content": "教授对[替换内容]非常兴奋。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 26434,
+      "source_record_sha256": "d9e3e579e0364a17c024ddcb123cbe8f91c11a26cd321c7bd6604cc5ee3a27c5"
+    },
+    {
+      "group_id": "ebd68352780cf74fda3eb0be8ff4ac5da4349905380319b621a74416af603a3b",
+      "id": "alpaca53:46865",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "改写给定的句子，避免使用任何含糊的代词。\n\n他们去商店。",
+          "role": "user"
+        },
+        {
+          "content": "那些人去了商店。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 46865,
+      "source_record_sha256": "8c20f9d27f83b8c3a19529894415616bf37cd495efa64576778ca77531c06f93"
+    },
+    {
+      "group_id": "702525199ea5f0780a3967bfb99eca998458deb6b61997e83a847c59634124df",
+      "id": "alpaca53:43062",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "昨天我们有一个晴朗的野餐。",
+          "role": "user"
+        },
+        {
+          "content": "真不错呢！晴朗的天气与野餐是完美的组合。你们在野餐中做了些什么？吃了什么好吃的食物？",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 43062,
+      "source_record_sha256": "a7f281bab109113837c383dc6aba4f9af9835036940930cd202dca7016ae8afb"
+    },
+    {
+      "group_id": "72cc09bfbad348de77b99e1a7be7bc0c5e9256d48d318524583dae2c0e4087c0",
+      "id": "alpaca53:34045",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "用合适的短语替换句子中的下划线短语。\n\n他们非常兴奋地去旅行。",
+          "role": "user"
+        },
+        {
+          "content": "他们兴高采烈地去旅行。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 34045,
+      "source_record_sha256": "b7b4b077867cb418b3296ee0e90436b036b3ba435bb441a05cfb278e5a85b619"
+    },
+    {
+      "group_id": "3a48d3406dadab908d6f9bdb066fd10e9c741e1e92fca2a70de647f8d4807bb7",
+      "id": "alpaca53:38234",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "工作了一整天后，我有点累。请简洁地改写这句话。",
+          "role": "user"
+        },
+        {
+          "content": "\"我工作了一天，现在有点累。\"",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 38234,
+      "source_record_sha256": "763efa5c7ce36ccba97b509fb5b21ff13efe45885d88dd1f9843c96b08c1bfd0"
+    },
+    {
+      "group_id": "70ef6665e78421f272b57849cce4052e4a358e04299335c739bfa39704d72f20",
+      "id": "alpaca53:20902",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "生成一个句子的标签",
+          "role": "user"
+        },
+        {
+          "content": "\"感动, 爱情, 正能量\"",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 20902,
+      "source_record_sha256": "226749f8d80ce3103b872f47f2778b098147e878d7f7120d58a9f7a7809f0756"
+    },
+    {
+      "group_id": "38ce5f8a3031a1b57a80eeff2ad9fce9b0a3f28ea4a73bdba0817c5184dc568a",
+      "id": "alpaca53:30671",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "用“雨”和“太阳”这两个词造一个比喻。",
+          "role": "user"
+        },
+        {
+          "content": "\"她如同太阳般温暖照耀着他，让他逐渐忘记了曾经的那场阴雨绵绵。\"",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 30671,
+      "source_record_sha256": "6eb637e0efe2af08df8cf3a3008ed87123fe6c0669a7ff8d1de86bd76308f858"
+    },
+    {
+      "group_id": "e11eaef9694264947363c9d3620af558afec76ab658bb6bb7aae0fc7dc6e379c",
+      "id": "alpaca53:18771",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "给出同一分类家族中的两个动物例子。",
+          "role": "user"
+        },
+        {
+          "content": "例如，猫科家族中的两个动物有：狮子和老虎。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 18771,
+      "source_record_sha256": "7b2753aae31778a312068cf142c681ac8b8c7b87916a9fd926f9f28f7f4098e0"
+    },
+    {
+      "group_id": "7f4cda0209408326ca85250c2d8cd6a7879a97cf2d8c814356b4e48e061e0500",
+      "id": "alpaca53:04544",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "返回给定颜色的十六进制代码。\n\n输入：Turquoise",
+          "role": "user"
+        },
+        {
+          "content": "输出：#40E0D0\n\n这是蓝绿色的十六进制代码，也称为“青绿色”。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 4544,
+      "source_record_sha256": "0931bb2d2a288442a239955e2962d85b1866f13f6f1b1630cfbd740a1368e460"
+    },
+    {
+      "group_id": "41251e6d69eb816b2eb5499f03ec222e49f67c1b0a7be963a558c42c83ed983b",
+      "id": "alpaca53:41069",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "删除句子中的不必要词语：“actually qualified”。",
+          "role": "user"
+        },
+        {
+          "content": "删除句子中的不必要词语：“qualified”。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 41069,
+      "source_record_sha256": "20db0ce01319e68ba722aef638ab55de68395fbf42161c807325b14f9ce7f047"
+    },
+    {
+      "group_id": "d0ab1b927959557647d1dc0c4a2eab415f2374aa6b954500c3eb9153bc35c6e2",
+      "id": "alpaca53:35674",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "生成两个描述给定名词“树”的形容词。",
+          "role": "user"
+        },
+        {
+          "content": "1. 翠绿的\n2. 参天的",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 35674,
+      "source_record_sha256": "2de13c0ddd6d9f6fd725d4f7c723e41f64b9eece77083bb2586bb0321bc7c0a9"
+    },
+    {
+      "group_id": "895e42d6000db7e8923c843fb87aa9ee3e620ff9e78ea056ef67dd62ad340a66",
+      "id": "alpaca53:37479",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "从以下字符串中删除所有非字母字符。\n\n输入：\"It's time to 52x3 goodbye.\"",
+          "role": "user"
+        },
+        {
+          "content": "输出： \"Its time to x goodbye\"",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 37479,
+      "source_record_sha256": "4d5c99cb3a315f7658c6e6a20ec36f53a965af027477c69f9736895855ca7e87"
+    },
+    {
+      "group_id": "eae326f16870ca3a2d8ebcb254e081dad66210a37055351b7c478647d6cb295b",
+      "id": "alpaca53:32735",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "将以下美国州按从最冷到最热的顺序排列：纽约，佛罗里达，加利福尼亚。",
+          "role": "user"
+        },
+        {
+          "content": "根据这些州的平均年度温度，从最冷到最热排列顺序是：纽约、加利福尼亚、佛罗里达。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 32735,
+      "source_record_sha256": "6caadce25dc486812c7bc7f823379a9a7c2ee7ac745eab92b859044c107baca3"
+    },
+    {
+      "group_id": "ef7aae6a0e3417b8687ce38ed04e48caeac66b54ece52d721b2c37c8794b0800",
+      "id": "alpaca53:06785",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "删除这段话的倒数第二句。",
+          "role": "user"
+        },
+        {
+          "content": "我不能删除你提到的那句话，因为你需要先给我一段文本。只有当我知道哪段文本时，我才能更改其中的内容。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 6785,
+      "source_record_sha256": "b8555829508ea0c40def2906ff5965aee9cac00416efad624c34cbbf43c78476"
+    },
+    {
+      "group_id": "2d087c73a7bf1434baf37020d003dd5f6718102024edddff67a6746888cbd68c",
+      "id": "alpaca53:14410",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "将这句话改写成更积极的措辞：教授的讲座有点无聊。",
+          "role": "user"
+        },
+        {
+          "content": "教授的讲座还有提高的空间，可以让其更有趣味性。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 14410,
+      "source_record_sha256": "f197bf0deb0465c5c01178e58331acc8938656b9130b3faa529e533bb33b5ef4"
+    },
+    {
+      "group_id": "15adf68b7dc9f0e614f5248f3b7e6dc184c6d65093d52a51f558d3c5b63ef132",
+      "id": "alpaca53:30446",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "将数字22,000转换为文字。",
+          "role": "user"
+        },
+        {
+          "content": "二万二千。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 30446,
+      "source_record_sha256": "17ec7b111722b75330ae831c8db65adc5a270e979e39d4bd82c355b8279d0ad3"
+    },
+    {
+      "group_id": "04228972a1558497380c1e5124869c789f544f76a9a961e5b16ba0f1d988eb4d",
+      "id": "alpaca53:02435",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "生成一个缩写来代表以下概念：“使用深度学习算法对给定数据集中的数据点进行分类和区分的过程。”",
+          "role": "user"
+        },
+        {
+          "content": "DLC (Deep Learning Classification)",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 2435,
+      "source_record_sha256": "bf57ec7a3b4f94f1637f6d4304115de46aad415722faf531d1bcfbb174814ec9"
+    },
+    {
+      "group_id": "52a023cf859fc96109b16481cb76c65ff5f32f544803f6b5d89471bc2b06d7fc",
+      "id": "alpaca53:22073",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "为单词“轻松”创建一个明喻。",
+          "role": "user"
+        },
+        {
+          "content": "轻松就像轻飘飘的云朵，漂浮在蔚蓝色的天空中。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 22073,
+      "source_record_sha256": "48f061d567626d9b993b5bc0cd75d88e81170a86779db6c4d338e3b4120ac0f9"
+    },
+    {
+      "group_id": "830a8fb926512cf79799124426f4ec0672d89fb2d947c620a079ee322dd87e28",
+      "id": "alpaca53:16983",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "创造一个能够用来推销新产品的吸引人的口号：防晒霜，防紫外线。",
+          "role": "user"
+        },
+        {
+          "content": "\"晒不伤，紫外线不烦恼，用我们的防晒霜，让您放心晒太阳!\"",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 16983,
+      "source_record_sha256": "af30fadb06d2294dd59ccb08340475297eaa0150f86a1f40e3185e877d4cf62d"
+    },
+    {
+      "group_id": "f21a381aa8a2ef748e9e6fff9d79a66a3b13382a1cf5d01e257879c10312e547",
+      "id": "alpaca53:41276",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "将以下数字时间转换为文字。\n\n输入：\n22:45",
+          "role": "user"
+        },
+        {
+          "content": "输出：\n晚上十点四十五分或晚上十一点差十五分。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 41276,
+      "source_record_sha256": "9e448c652c50e9ae19bd953eeed06b5303f4326e5178e416b6732d530bbc95d8"
+    },
+    {
+      "group_id": "e9f8f3142d81aee2058dcdc759d284b2542e6e4cd9945532e38b932cce4a148f",
+      "id": "alpaca53:41271",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "两国谈判未达成协议，建议一个适当的新闻标题。",
+          "role": "user"
+        },
+        {
+          "content": "\"两国谈判僵持不下：未能达成协议\"",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 41271,
+      "source_record_sha256": "a5c3bcb25434df8e59e519579e7f7e6ed24df89358d0eaa8e8483acdd03f54cd"
+    },
+    {
+      "group_id": "af806924a5f323720cc5e41df30244dd990d00b0390f621b2be7984ee1976726",
+      "id": "alpaca53:19436",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "编辑段落，删除一句话，同时保留主要信息。",
+          "role": "user"
+        },
+        {
+          "content": "好的，请提供您想要我编辑的段落以及希望我删除的具体句子，我会尽力确保删除后仍然保留主要信息。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 19436,
+      "source_record_sha256": "68ce89d41422303985ae7f628d96e0a916e7168ffb5b551d526518c430baea6c"
+    },
+    {
+      "group_id": "c8de2251f00acc373f018568ff0388931b32fc1fc6b834760fb899be24482547",
+      "id": "alpaca53:04645",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "预算分配决策标题化",
+          "role": "user"
+        },
+        {
+          "content": "\"Budget Allocation Decision-Making\"",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 4645,
+      "source_record_sha256": "88a2dd7f6151a304463e91695c887ad4294b3dc6895fa6c7f643df1d401d4811"
+    },
+    {
+      "group_id": "872f38a5cbe78239866ac8953a3a4cb1b0227ac12d1379f7ba78dcf1a8bb1fb2",
+      "id": "alpaca53:46204",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "生成一个新的句子，语法和逻辑上都有意义。",
+          "role": "user"
+        },
+        {
+          "content": "“今天天气晴朗，我们一起去公园散步吧。”",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 46204,
+      "source_record_sha256": "afa9b4d796db237e8e437ab6b7e58105a42a293752cca68faaea39a809da5298"
+    },
+    {
+      "group_id": "c2377a1d7db5af999aa1f7f10ee012a3f13e289230172ebb936cc67e313dcab5",
+      "id": "alpaca53:19484",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "给定以下数字，求它们的和。\n\n输入：22，34，10",
+          "role": "user"
+        },
+        {
+          "content": "数字之和为 66。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 19484,
+      "source_record_sha256": "e819e4e11473f8a4b31da9cbcda17c8bae0f578a251232c3601c573b5f83b0fb"
+    },
+    {
+      "group_id": "58d32de4ef051286c7ee20e09e27fc205c72062132e8ea719b66db6733d61b37",
+      "id": "alpaca53:22041",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "创作一首关于你最喜欢的爱好的俳句。",
+          "role": "user"
+        },
+        {
+          "content": "草丛描绘，\n水墨涂鸦，\n绘画我心。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 22041,
+      "source_record_sha256": "5a3395082d6c249f8d383967e0a5e369ba639bb1e99895690af130d028423749"
+    },
+    {
+      "group_id": "276d09924ba31e55b1401ad466ed431070142b6423b0e453c5dcd2d2c9dc24c9",
+      "id": "alpaca53:11099",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "求10和25的最大公约数。",
+          "role": "user"
+        },
+        {
+          "content": "10 和 25 的最大公约数是 5。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 11099,
+      "source_record_sha256": "46d7779a81f1f9b9a18e383145034d430476a5ec20d4fb1415e3085f3b7aa522"
+    },
+    {
+      "group_id": "f5b03c05da28b2a6e504e0e6b7ef500e817cbc06bd483a2706f89519d3f97bd4",
+      "id": "alpaca53:44120",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "按照段落中的指示，结果是什么？\n\n输入：指示：取一片细鲑鱼，用柠檬和一点盐腌制。",
+          "role": "user"
+        },
+        {
+          "content": "结果是：一片用柠檬和一点盐腌制好的细鲑鱼。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 44120,
+      "source_record_sha256": "916b5b55bf4cebc3661102b2cc8b78bb519be00fbbdcc354106290f8143b41e5"
+    },
+    {
+      "group_id": "e47049833475fbaf6fcee5db2b8632ef0e15395053ab88340cdac7447ce91b25",
+      "id": "alpaca53:14428",
+      "messages": [
+        {
+          "content": "你是一个中文助手，请准确、简洁地回答问题。",
+          "role": "system"
+        },
+        {
+          "content": "让句子更有冲击力：她走了。",
+          "role": "user"
+        },
+        {
+          "content": "她毅然决然地转身离去，留下一片空荡荡的寂静。",
+          "role": "assistant"
+        }
+      ],
+      "source_index": 14428,
+      "source_record_sha256": "5d50ad8d2e98721c4762c30d375a03e7b857f7cfd939e9d5fe9723f0fb541e0a"
+    }
+  ],
+  "old_prefix_statistics": {
+    "train": {
+      "complete_prefix": 152,
+      "first_answer_over_context_or_invalid": 2170,
+      "full_conversation": 520
+    },
+    "validation": {
+      "complete_prefix": 23,
+      "first_answer_over_context_or_invalid": 279,
+      "full_conversation": 62
+    }
+  },
+  "revision": "f39db019a94f8dbea48ab30d2bdc090703284559",
+  "source_records": 48818,
+  "source_sha256": "6fcb98c6d79691d1f9a88ef513335da9124e7fdeef5103343f5d9f9a6e8f4903"
+}

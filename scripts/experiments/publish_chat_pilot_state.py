@@ -15,8 +15,12 @@ def main():  # 大完整状态放Release附件，避免GitHub单文件100MB限�
     parser.add_argument("--publish", action="store_true")  # 代码推送后将草稿转成公开发布。
     parser.add_argument("--lesson", type=int, default=48)  # 48或50等课程使用各自的附件，不覆盖旧Release。
     args = parser.parse_args()  # 默认不提前发布空版本。
-    assert args.lesson in (48, 50), "当前只发布已实现课程48或50"  # 不接受任意目录或标签。
-    tag = f"lesson{args.lesson}-pretrain-pilot"  # 每课独立固定标签。
+    if args.lesson == 53:  # SFT最佳与最后不同，改用有摘要的32MiB分片交付。
+        from publish_sft_parts import main as publish_parts  # 仅本课显式上传时导入。
+        return publish_parts(args.publish)  # 大文件网络中断后可复用成功分片。
+    assert args.lesson in (48, 50, 53), "当前只发布已实现课程48、50或53"  # 不接受任意目录或标签。
+    stage = "sft" if args.lesson == 53 else "pretrain"  # 新阶段使用明确的SFT标签。
+    tag = f"lesson{args.lesson}-{stage}-pilot"  # 每课独立固定标签。
     os.environ["GIT_TERMINAL_PROMPT"], os.environ["GCM_INTERACTIVE"] = "0", "Never"  # 凭据异常时退出，不弹窗口。
     response = subprocess.run(["git", "-c", "credential.interactive=false", "credential", "fill"], input="protocol=https\nhost=github.com\n\n", text=True, capture_output=True, check=True, timeout=30)  # 复用现有仓库授权。
     fields = dict(line.split("=", 1) for line in response.stdout.splitlines() if "=" in line)  # 只在内存中读取凭据。
@@ -32,7 +36,7 @@ def main():  # 大完整状态放Release附件，避免GitHub单文件100MB限�
     releases = api("releases?per_page=100")  # 草稿对当前仓库授权也可见。
     release = next((item for item in releases if item["tag_name"] == tag), None)  # 只恢复本课的固定标签。
     if release is None:  # 首次上传先创建草稿。
-        release = api("releases", "POST", {"tag_name": tag, "target_commitish": "main", "name": f"Lesson {args.lesson}: 30M pretraining full state", "draft": True, "body": "Bounded educational pretraining pilot, not an SFT chat model. Full FP32 model, AdamW, GradScaler, RNG and data cursor for resuming. Source corpus terms and hashes are documented in the lesson training report and course notes. Inference weights and tokenizer remain in the repository."})  # 不夸大模型能力。
+        release = api("releases", "POST", {"tag_name": tag, "target_commitish": "main", "name": f"Lesson {args.lesson}: 30M {stage} full state", "draft": True, "body": f"Bounded educational {stage} pilot; not a claim of usable chat quality. Full FP32 model, AdamW, GradScaler, RNG and data cursor for resuming. Source corpus terms, noncommercial research limitations and hashes are documented in training report and notes. Inference weights and tokenizer remain in repository."})  # 不夸大模型能力。
     report = json.loads((ROOT / f"docs/training_runs/lesson{args.lesson}.json").read_text(encoding="utf-8"))  # 只有完成后的训练产物才上传。
     assert report["status"] == "completed", "训练尚未完成"  # 不发布正在被覆盖的文件。
     assets, seen = [], {}  # 内容相同的best和last仅上传一份。

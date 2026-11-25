@@ -1,0 +1,45 @@
+{
+  "augmentation": "every fourth accepted source gets same-group literal-repeat followup; both assistant turns supervised; not independent new knowledge",
+  "context": 256,
+  "credit": "Shibing Chen; Instruction Tuning with GPT-4 / Baolin Peng and coauthors",
+  "dataset": "shibing624/alpaca-zh",
+  "files": {
+    "train.jsonl": "abace33b8b564929f859766f2e556929f791dc09389f730b8f6672d1382d1503",
+    "validation.jsonl": "b53e601fd63141f21d09e5d9db01ce153a1d31e120a78e7439a97689f23f0d2c"
+  },
+  "formal_sft_ready": true,
+  "format": "chat_sft53_data_v1",
+  "grouping": "numeric-normalized exact prompt templates and exact answers deduplicated before review; semantic paraphrases can remain",
+  "known_pretrain_overlap_check": "normalized prompt and answer exact substrings excluded from actual old pretrain_train text only; not a semantic contamination guarantee; old test contents unopened",
+  "queue_sha256": "7c2d050053aabe41a3c991153ce489db7f3861c4507b72930a6fc12683c2f250",
+  "review_counts": {
+    "accept": 114,
+    "hold": 24,
+    "reject": 22
+  },
+  "reviews_sha256": "0d367cbc34cc17e2e90437eef6ddb29dbf96104f49d0530e8d3d66e0223d5796",
+  "revision": "f39db019a94f8dbea48ab30d2bdc090703284559",
+  "scope": "noncommercial educational research pilot, not a commercially licensed chat model",
+  "seed": 53,
+  "source_card_sha256": "f95abf1c1155928d647634df9e2b0e896eb7835363a1645cf4b0ad40ff262af3",
+  "source_sha256": "6fcb98c6d79691d1f9a88ef513335da9124e7fdeef5103343f5d9f9a6e8f4903",
+  "stats": {
+    "train": {
+      "assistant_targets": 2496,
+      "cjk_conversation_fraction": 1.0,
+      "groups": 91,
+      "multiturn_records": 26,
+      "records": 117
+    },
+    "validation": {
+      "assistant_targets": 573,
+      "cjk_conversation_fraction": 1.0,
+      "groups": 23,
+      "multiturn_records": 3,
+      "records": 26
+    }
+  },
+  "system": "你是一个中文助手，请准确、简洁地回答问题。",
+  "terms": "card metadata says cc-by-4.0 but body explicitly requires CC-BY-NC-4.0 and research-only model use; follow restrictive body; previous pretraining mixed terms also apply",
+  "tokenizer_sha256": "dea04ccce16908be18e12410bf44d94b8d636e097491e40fc6283fba3a8ed24a"
+}
