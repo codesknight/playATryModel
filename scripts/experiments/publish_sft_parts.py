@@ -79,8 +79,12 @@ def main(publish=False):  # 大状态分8MiB片，单片失败不重传所有成
     pool.shutdown(wait=True)  # 全部成功后关闭线程，不留后台任务。
     for artifact in files.values():  # 将有序任务转成有序远端回执。
         artifact["parts"] = [future.result() for future in artifact["parts"]]  # 任一失败不发布不完整版本。
+    if publish and release["draft"]:  # 全部替代片成功后才清理本次草稿遗留的旧大分片。
+        obsolete = {f"{name}.part{index:02d}" for name in files for index in range(1, 12)}  # 只匹配本任务旧32MiB方案的明确附件名。
+        for name in obsolete & existing.keys():  # 不触碰新8MiB片或旧课Release。
+            api(f"releases/assets/{existing[name]['id']}", "DELETE")  # 草稿内本任务生成的过时文件已被完整替代。
     if publish and release["draft"]:  # 代码推送后才公开发布完整附件。
-        release = api(f"releases/{release['id']}", "PATCH", {"draft": False})  # 用户已授权每课交付。
+        release = api(f"releases/{release['id']}", "PATCH", {"draft": False, "body": "Bounded educational Chinese SFT pilot; noncommercial research only, not usable chat quality. Best step100 and last step500 full states are each split into ordered 8MiB parts. Use lesson53_assets.json and restore_sft_parts.py to verify each part and reconstruct the original complete FP32/AdamW/Scaler/RNG/cursor state. Inference weights and source/license notes remain in repository."})  # 用户已授权每课交付，附明确重组方法。
     remote = {item["id"]: item for item in all_assets()}  # 发布后分页刷新全部永久URL。
     for artifact in files.values():  # 不保留草稿临时下载地址。
         for part in artifact["parts"]:  # 所有完整状态都刷新。

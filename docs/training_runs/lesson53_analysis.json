@@ -35,6 +35,26 @@
     }
   },
   "formal_additional_updates_after_budget": 0,
+  "full_training_set_assessment": {
+    "best_train.pt": {
+      "full_train": {
+        "accuracy": 0.922676282051282,
+        "correct": 2303,
+        "loss": 0.7081700838529147,
+        "positions": 2496
+      },
+      "sft_step": 100
+    },
+    "last_train.pt": {
+      "full_train": {
+        "accuracy": 1.0,
+        "correct": 2496,
+        "loss": 0.004387407384526271,
+        "positions": 2496
+      },
+      "sft_step": 500
+    }
+  },
   "judgement": "assistant review of five fixed best-export answers; not independent human evaluation or general accuracy",
   "notes": "Proxy regex is incomplete and does not prove causation; tiny source and limited pretraining are material limitations. Five developer answers are not a benchmark.",
   "overfit_evidence": {

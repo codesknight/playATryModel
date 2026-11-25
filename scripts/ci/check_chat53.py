@@ -41,5 +41,12 @@ assert metrics["positions"] == report["export_ci_subset"]["positions"] and abs(m
 assert len(report["export_samples"]) == 4 and sum(len(case) for case in report["export_samples"]) == 5, "固定开发回答不完整"  # 多轮不能只展示成功的第一轮。
 resume = json.loads((ROOT / "docs/training_runs/lesson53_resume.json").read_text(encoding="utf-8"))  # 完整SFT状态另做实际恢复核验。
 assert resume["formal_checkpoint_step"] == report["completed_steps"] and resume["max_parameter_abs_diff"] <= 1e-6 and resume["adamw_scaler_cursor_equal"] and resume["formal_checkpoint_sha256_unchanged"] == report["artifacts"]["last_train.pt"]["sha256"], "SFT完整恢复失败"  # 核对m、v、t、Scaler及游标。
+assets = json.loads((ROOT / "docs/training_runs/lesson53_assets.json").read_text(encoding="utf-8"))  # 完整最佳和最后状态通过公开Release交付。
+assert assets["draft"] is False and assets["tag"] == "lesson53-sft-pilot", "正式SFT完整状态未发布"  # 不把草稿当公开下载。
+for name in ("best_train.pt", "last_train.pt"):  # 两个不同状态都需要完整分片。
+    artifact = assets["files"][name]  # 包含全文件及有序分片摘要。
+    assert artifact["sha256"] == report["artifacts"][name]["sha256"] and sum(part["bytes"] for part in artifact["parts"]) == artifact["bytes"] == report["artifacts"][name]["bytes"], "完整状态分片不齐"  # 不能丢片或混用最佳与最后。
+    for index, part in enumerate(artifact["parts"], 1):  # 发布编号就是重组顺序。
+        assert part["name"] == f"{name}.part8m{index:03d}" and part["remote_digest"] == "sha256:" + part["sha256"] and "/download/lesson53-sft-pilot/" in part["url"], "分片编号、摘要或永久地址错误"  # CI不重复下载720MB附件。
 print("SFT CPU八会话复算：", metrics)  # 显示明确范围。
 print("来源、审核、组隔离、预算计数、曝光指纹和最佳SFT导出：通过")  # 不从token损失宣称可用聊天。

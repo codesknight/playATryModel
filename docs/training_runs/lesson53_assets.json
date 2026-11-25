@@ -1,0 +1,708 @@
+{
+  "draft": false,
+  "files": {
+    "best_train.pt": {
+      "bytes": 360411643,
+      "parts": [
+        {
+          "asset_id": 791102980,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m001",
+          "remote_digest": "sha256:093fd0e3419f6d28b97d82c5c6fee8967966ff84398930a57a3df23b6dbf0242",
+          "sha256": "093fd0e3419f6d28b97d82c5c6fee8967966ff84398930a57a3df23b6dbf0242",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m001"
+        },
+        {
+          "asset_id": 791103923,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m002",
+          "remote_digest": "sha256:cc3f69e3bb516c69ad6dda549b67735477c5f9c19512c20bd3d795acfb80684d",
+          "sha256": "cc3f69e3bb516c69ad6dda549b67735477c5f9c19512c20bd3d795acfb80684d",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m002"
+        },
+        {
+          "asset_id": 791104201,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m003",
+          "remote_digest": "sha256:1afea3a5035f671f70176a44b6c04999135fb6cfc2bd4507b7a8cc41f65e4b5d",
+          "sha256": "1afea3a5035f671f70176a44b6c04999135fb6cfc2bd4507b7a8cc41f65e4b5d",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m003"
+        },
+        {
+          "asset_id": 791104312,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m004",
+          "remote_digest": "sha256:3a5fc7be08d804ae09c546f1e42f989f55785e61f7bad2e0ad62614e1521556b",
+          "sha256": "3a5fc7be08d804ae09c546f1e42f989f55785e61f7bad2e0ad62614e1521556b",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m004"
+        },
+        {
+          "asset_id": 791104478,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m005",
+          "remote_digest": "sha256:0b2f40047bf855a68c49f2b792644ad5f6a04fb149c6fa3604ed460f595dba59",
+          "sha256": "0b2f40047bf855a68c49f2b792644ad5f6a04fb149c6fa3604ed460f595dba59",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m005"
+        },
+        {
+          "asset_id": 791104500,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m006",
+          "remote_digest": "sha256:04ab004193c15ba99fa8e8b9e655d4c4edceadfa47ff01e3bc5d709c8184f23a",
+          "sha256": "04ab004193c15ba99fa8e8b9e655d4c4edceadfa47ff01e3bc5d709c8184f23a",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m006"
+        },
+        {
+          "asset_id": 791104615,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m007",
+          "remote_digest": "sha256:6e5d03a4dda2589504c4420cecdd2332da3aee9a53c18be93e2a3064ae8140b4",
+          "sha256": "6e5d03a4dda2589504c4420cecdd2332da3aee9a53c18be93e2a3064ae8140b4",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m007"
+        },
+        {
+          "asset_id": 791104754,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m008",
+          "remote_digest": "sha256:7a57caeb3a223aa8bb138980ed80ad64f1c4e5412b5674477b4a4a696102268f",
+          "sha256": "7a57caeb3a223aa8bb138980ed80ad64f1c4e5412b5674477b4a4a696102268f",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m008"
+        },
+        {
+          "asset_id": 791104940,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m009",
+          "remote_digest": "sha256:dafc979a05e1d034f57a8150359c9038e528abf60a9c538bbc774e5f64fcaf67",
+          "sha256": "dafc979a05e1d034f57a8150359c9038e528abf60a9c538bbc774e5f64fcaf67",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m009"
+        },
+        {
+          "asset_id": 791105022,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m010",
+          "remote_digest": "sha256:b246739844e87ba4e783012694ef0f42645a8cfe2ce703044288c98445ff52ca",
+          "sha256": "b246739844e87ba4e783012694ef0f42645a8cfe2ce703044288c98445ff52ca",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m010"
+        },
+        {
+          "asset_id": 791105092,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m011",
+          "remote_digest": "sha256:47ec86ea280d3d34535b0086405efb5ef8f206ba83c15b4749f9b17b90964330",
+          "sha256": "47ec86ea280d3d34535b0086405efb5ef8f206ba83c15b4749f9b17b90964330",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m011"
+        },
+        {
+          "asset_id": 791105161,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m012",
+          "remote_digest": "sha256:fc4b640ee4ca140cc85912852a177ce04de9bf02746fea4f9e85112eafc83885",
+          "sha256": "fc4b640ee4ca140cc85912852a177ce04de9bf02746fea4f9e85112eafc83885",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m012"
+        },
+        {
+          "asset_id": 791105190,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m013",
+          "remote_digest": "sha256:4b044b6e6b463c0b1f09469b10c893aa6e367930141a1ec743429f819e6ab833",
+          "sha256": "4b044b6e6b463c0b1f09469b10c893aa6e367930141a1ec743429f819e6ab833",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m013"
+        },
+        {
+          "asset_id": 791105288,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m014",
+          "remote_digest": "sha256:cf77997027166f663462c66727f4d82bfcc38abee2c8e7cd4575f5f482ba2695",
+          "sha256": "cf77997027166f663462c66727f4d82bfcc38abee2c8e7cd4575f5f482ba2695",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m014"
+        },
+        {
+          "asset_id": 791105361,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m015",
+          "remote_digest": "sha256:6c116927c6b0cfa3408b466f1a3868b5306890f7cb6018937a755c991bb10586",
+          "sha256": "6c116927c6b0cfa3408b466f1a3868b5306890f7cb6018937a755c991bb10586",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m015"
+        },
+        {
+          "asset_id": 791105363,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m016",
+          "remote_digest": "sha256:8443e3bc48d0ae0141e5ed3f41f56aee2209256c7a7d3fb8c6d257ccc2cc974e",
+          "sha256": "8443e3bc48d0ae0141e5ed3f41f56aee2209256c7a7d3fb8c6d257ccc2cc974e",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m016"
+        },
+        {
+          "asset_id": 791105812,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m017",
+          "remote_digest": "sha256:74a1702740146178ff18535f2b33f455c3385e5be973fdc1b70bdb72b467fbf2",
+          "sha256": "74a1702740146178ff18535f2b33f455c3385e5be973fdc1b70bdb72b467fbf2",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m017"
+        },
+        {
+          "asset_id": 791105995,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m018",
+          "remote_digest": "sha256:bfc5bc5698be0390804b4af1c19a5d2980dce4bca675fd5b5770b87c251db277",
+          "sha256": "bfc5bc5698be0390804b4af1c19a5d2980dce4bca675fd5b5770b87c251db277",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m018"
+        },
+        {
+          "asset_id": 791106115,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m019",
+          "remote_digest": "sha256:d1733fc9dbdcfc5dfdd01c0f8b09965b7f449e7316337ede0f55790db893e0ed",
+          "sha256": "d1733fc9dbdcfc5dfdd01c0f8b09965b7f449e7316337ede0f55790db893e0ed",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m019"
+        },
+        {
+          "asset_id": 791106222,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m020",
+          "remote_digest": "sha256:82d99034284c96ee4682df7324471986e846111ccf73d7450fc3c0ee5fad3c90",
+          "sha256": "82d99034284c96ee4682df7324471986e846111ccf73d7450fc3c0ee5fad3c90",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m020"
+        },
+        {
+          "asset_id": 791106295,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m021",
+          "remote_digest": "sha256:0231814382dbc3f7fad5b789d2b98fd191ccd388a0b9572e47ce653194cad5c1",
+          "sha256": "0231814382dbc3f7fad5b789d2b98fd191ccd388a0b9572e47ce653194cad5c1",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m021"
+        },
+        {
+          "asset_id": 791106410,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m022",
+          "remote_digest": "sha256:91ea6a5a5baf7ffe3ca13851ca8bf0f4b1fcd88cb313f33d11a50a21fe82a8b5",
+          "sha256": "91ea6a5a5baf7ffe3ca13851ca8bf0f4b1fcd88cb313f33d11a50a21fe82a8b5",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m022"
+        },
+        {
+          "asset_id": 791106461,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m023",
+          "remote_digest": "sha256:f82f39e83cd4b2651b92419a875fe97bfc57948386ae68cb246ed24fbe9b871e",
+          "sha256": "f82f39e83cd4b2651b92419a875fe97bfc57948386ae68cb246ed24fbe9b871e",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m023"
+        },
+        {
+          "asset_id": 791106480,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m024",
+          "remote_digest": "sha256:eb245c995f9f8fe3cbba2a06b92b3e26547a694ea15ce49a7d49f32c1cf51a2b",
+          "sha256": "eb245c995f9f8fe3cbba2a06b92b3e26547a694ea15ce49a7d49f32c1cf51a2b",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m024"
+        },
+        {
+          "asset_id": 791106603,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m025",
+          "remote_digest": "sha256:291f6af0f957d1f1c68159a684ddcaa08347ce246599aca6706701fe27b3b09d",
+          "sha256": "291f6af0f957d1f1c68159a684ddcaa08347ce246599aca6706701fe27b3b09d",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m025"
+        },
+        {
+          "asset_id": 791106837,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m026",
+          "remote_digest": "sha256:956ceb328c1a655d4a66b00d991c11678ce41923c96f3eacc0b8dce406b40433",
+          "sha256": "956ceb328c1a655d4a66b00d991c11678ce41923c96f3eacc0b8dce406b40433",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m026"
+        },
+        {
+          "asset_id": 791106998,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m027",
+          "remote_digest": "sha256:ab3401f79757000b0778665eda02c8c4406bd3fba5fb9256665143c40006c267",
+          "sha256": "ab3401f79757000b0778665eda02c8c4406bd3fba5fb9256665143c40006c267",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m027"
+        },
+        {
+          "asset_id": 791107159,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m028",
+          "remote_digest": "sha256:b7ca643d1ff3fd7e223fb988a813ce05b75c7f9cb72bd83820b5292445ecc0d9",
+          "sha256": "b7ca643d1ff3fd7e223fb988a813ce05b75c7f9cb72bd83820b5292445ecc0d9",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m028"
+        },
+        {
+          "asset_id": 791107298,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m029",
+          "remote_digest": "sha256:391922ecb183850b472a8d101f184e9a03417e0b0bb9baf1ab5fde59aba836b4",
+          "sha256": "391922ecb183850b472a8d101f184e9a03417e0b0bb9baf1ab5fde59aba836b4",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m029"
+        },
+        {
+          "asset_id": 791107497,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m030",
+          "remote_digest": "sha256:5f8a49ee2cfd39ecc8660e4d567af2b248b4654eda9dd5c67a6962ff7be8afbf",
+          "sha256": "5f8a49ee2cfd39ecc8660e4d567af2b248b4654eda9dd5c67a6962ff7be8afbf",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m030"
+        },
+        {
+          "asset_id": 791107716,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m031",
+          "remote_digest": "sha256:bd6a7021c46acbec1f1cc4ed7f53e50e0814d7d188c851412c23e6d5fbfb560b",
+          "sha256": "bd6a7021c46acbec1f1cc4ed7f53e50e0814d7d188c851412c23e6d5fbfb560b",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m031"
+        },
+        {
+          "asset_id": 791107873,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m032",
+          "remote_digest": "sha256:86f27d14b61bd6cdf4b34dca7ccc66f24ed31a957a30f8e58651965ebaea49ad",
+          "sha256": "86f27d14b61bd6cdf4b34dca7ccc66f24ed31a957a30f8e58651965ebaea49ad",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m032"
+        },
+        {
+          "asset_id": 791107989,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m033",
+          "remote_digest": "sha256:cfca55b875240812b4707311331481d212faa7ff4d9763b19e1c50c55db12d77",
+          "sha256": "cfca55b875240812b4707311331481d212faa7ff4d9763b19e1c50c55db12d77",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m033"
+        },
+        {
+          "asset_id": 791108078,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m034",
+          "remote_digest": "sha256:1819260a0e39812a8c50f69d3c55cc9d9b357a1d88fb306f0ff8949492eb20d7",
+          "sha256": "1819260a0e39812a8c50f69d3c55cc9d9b357a1d88fb306f0ff8949492eb20d7",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m034"
+        },
+        {
+          "asset_id": 791108214,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m035",
+          "remote_digest": "sha256:13e4e59e5182bba7def7cc8be84d95b8706a036bc4dab0fb98ffdd51beed54a6",
+          "sha256": "13e4e59e5182bba7def7cc8be84d95b8706a036bc4dab0fb98ffdd51beed54a6",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m035"
+        },
+        {
+          "asset_id": 791108340,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m036",
+          "remote_digest": "sha256:e6d20d3f0c0f8a20284d78cc087cc6cfc1caf4506743a438ea57c00575631532",
+          "sha256": "e6d20d3f0c0f8a20284d78cc087cc6cfc1caf4506743a438ea57c00575631532",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m036"
+        },
+        {
+          "asset_id": 791108442,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m037",
+          "remote_digest": "sha256:fc10f3346b3496b363f510cbc00d08c9ae8ee1a540f48e4ce76589310b292444",
+          "sha256": "fc10f3346b3496b363f510cbc00d08c9ae8ee1a540f48e4ce76589310b292444",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m037"
+        },
+        {
+          "asset_id": 791108478,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m038",
+          "remote_digest": "sha256:172a902b001f9874c9a55c8f761d831ce31179d3a4bb068533f23072d55e7828",
+          "sha256": "172a902b001f9874c9a55c8f761d831ce31179d3a4bb068533f23072d55e7828",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m038"
+        },
+        {
+          "asset_id": 791108625,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m039",
+          "remote_digest": "sha256:b3cb06b1dce8d660cb5e2b2b01b5c78d5a27eb0e5c0e561fab6f8798988f5453",
+          "sha256": "b3cb06b1dce8d660cb5e2b2b01b5c78d5a27eb0e5c0e561fab6f8798988f5453",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m039"
+        },
+        {
+          "asset_id": 791108663,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m040",
+          "remote_digest": "sha256:1909fe8b83e729badb183ef67bcdd721319fec48384b8615eb0bbda6d2d88fb2",
+          "sha256": "1909fe8b83e729badb183ef67bcdd721319fec48384b8615eb0bbda6d2d88fb2",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m040"
+        },
+        {
+          "asset_id": 791108688,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m041",
+          "remote_digest": "sha256:ad93375a6c1563b7ac7e57e622562331465e742d502bc6d7dfe2350b172c2957",
+          "sha256": "ad93375a6c1563b7ac7e57e622562331465e742d502bc6d7dfe2350b172c2957",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m041"
+        },
+        {
+          "asset_id": 791108771,
+          "bytes": 8388608,
+          "name": "best_train.pt.part8m042",
+          "remote_digest": "sha256:fb74cf1ec6cb808a481308e1b8ef0022eb3eedc2efa1054603cbb1e64e1d834b",
+          "sha256": "fb74cf1ec6cb808a481308e1b8ef0022eb3eedc2efa1054603cbb1e64e1d834b",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m042"
+        },
+        {
+          "asset_id": 791108901,
+          "bytes": 8090107,
+          "name": "best_train.pt.part8m043",
+          "remote_digest": "sha256:d51a92f390007134e3d48a709b4c6a180dcdcd1c8c63eb702bfa783ea940d0bb",
+          "sha256": "d51a92f390007134e3d48a709b4c6a180dcdcd1c8c63eb702bfa783ea940d0bb",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/best_train.pt.part8m043"
+        }
+      ],
+      "sha256": "0ded9c78a0e5a1ad145c75c984bb64fcf99b7469f0dc9d026bca388c421f6538"
+    },
+    "last_train.pt": {
+      "bytes": 360411643,
+      "parts": [
+        {
+          "asset_id": 791095858,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m001",
+          "remote_digest": "sha256:7dfedaa95b830878a59f5ceef31e5c4e442f29477f7feb1000126473ce82f8a4",
+          "sha256": "7dfedaa95b830878a59f5ceef31e5c4e442f29477f7feb1000126473ce82f8a4",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m001"
+        },
+        {
+          "asset_id": 791095854,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m002",
+          "remote_digest": "sha256:f498aa3a3630458447a3f07dc46b3a6dc0c128fe6bcfd09678931ba5ea0b7ae9",
+          "sha256": "f498aa3a3630458447a3f07dc46b3a6dc0c128fe6bcfd09678931ba5ea0b7ae9",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m002"
+        },
+        {
+          "asset_id": 791095861,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m003",
+          "remote_digest": "sha256:3da62033e8d05370e9dd1ce572869771166e827cc6ff6e891863c799d440e312",
+          "sha256": "3da62033e8d05370e9dd1ce572869771166e827cc6ff6e891863c799d440e312",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m003"
+        },
+        {
+          "asset_id": 791096031,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m004",
+          "remote_digest": "sha256:25520c94427bc28304f838d8fb5c4f3ef2111db76a66976c9b5ec6d0df45c502",
+          "sha256": "25520c94427bc28304f838d8fb5c4f3ef2111db76a66976c9b5ec6d0df45c502",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m004"
+        },
+        {
+          "asset_id": 791096057,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m005",
+          "remote_digest": "sha256:3c0a00e051fb8df0fe881fae248d11806c20d07090ac0e692102f9964a68fb74",
+          "sha256": "3c0a00e051fb8df0fe881fae248d11806c20d07090ac0e692102f9964a68fb74",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m005"
+        },
+        {
+          "asset_id": 791096197,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m006",
+          "remote_digest": "sha256:c7d445e2d8b5b05b5a3f760235fe6b5a99f467468f8fa050d6f3330288f79d40",
+          "sha256": "c7d445e2d8b5b05b5a3f760235fe6b5a99f467468f8fa050d6f3330288f79d40",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m006"
+        },
+        {
+          "asset_id": 791096653,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m007",
+          "remote_digest": "sha256:30c8c236d76f42dbdb55d129e408efef59bf912503503d6220ed1d48e63e7175",
+          "sha256": "30c8c236d76f42dbdb55d129e408efef59bf912503503d6220ed1d48e63e7175",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m007"
+        },
+        {
+          "asset_id": 791096729,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m008",
+          "remote_digest": "sha256:89a67da5f527b1bff3ec3f4992cf0af77d9322205e2171f4c89686711f7b7201",
+          "sha256": "89a67da5f527b1bff3ec3f4992cf0af77d9322205e2171f4c89686711f7b7201",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m008"
+        },
+        {
+          "asset_id": 791096859,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m009",
+          "remote_digest": "sha256:5fd89a9c0a720c88b4567e874c53f47e00a6882d70d4d2ee5f771d04d7f24caa",
+          "sha256": "5fd89a9c0a720c88b4567e874c53f47e00a6882d70d4d2ee5f771d04d7f24caa",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m009"
+        },
+        {
+          "asset_id": 791096985,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m010",
+          "remote_digest": "sha256:3bdf2f8416a372d7d5e3d054aa949104ecfb17e2736f87dc4639b054ee0ddce2",
+          "sha256": "3bdf2f8416a372d7d5e3d054aa949104ecfb17e2736f87dc4639b054ee0ddce2",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m010"
+        },
+        {
+          "asset_id": 791097042,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m011",
+          "remote_digest": "sha256:4418c583c263224c3a1fc1776f0f020eef5960ec87b2e3f8317560ecc2df0f65",
+          "sha256": "4418c583c263224c3a1fc1776f0f020eef5960ec87b2e3f8317560ecc2df0f65",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m011"
+        },
+        {
+          "asset_id": 791097247,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m012",
+          "remote_digest": "sha256:ec80ea2de33db2f8feb20fd4c779a7d53aa51bbeabaf3ccf7291a1fd1fa365cf",
+          "sha256": "ec80ea2de33db2f8feb20fd4c779a7d53aa51bbeabaf3ccf7291a1fd1fa365cf",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m012"
+        },
+        {
+          "asset_id": 791097336,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m013",
+          "remote_digest": "sha256:2ab4f8842a83086519bee9db748081df24738977adc0617c08506219a9993e29",
+          "sha256": "2ab4f8842a83086519bee9db748081df24738977adc0617c08506219a9993e29",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m013"
+        },
+        {
+          "asset_id": 791097357,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m014",
+          "remote_digest": "sha256:2064baeb11b002d32d1b3644e6832017701e5695d34689a9670f088a2c82ef54",
+          "sha256": "2064baeb11b002d32d1b3644e6832017701e5695d34689a9670f088a2c82ef54",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m014"
+        },
+        {
+          "asset_id": 791097431,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m015",
+          "remote_digest": "sha256:22e4c53c025f4a325929171bb67cfc2c978a499fbd124e741d18f2ffa189a548",
+          "sha256": "22e4c53c025f4a325929171bb67cfc2c978a499fbd124e741d18f2ffa189a548",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m015"
+        },
+        {
+          "asset_id": 791097505,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m016",
+          "remote_digest": "sha256:06976cb1c78227d98b182d6dc60132a169f907daed68cf70f0669457238056ce",
+          "sha256": "06976cb1c78227d98b182d6dc60132a169f907daed68cf70f0669457238056ce",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m016"
+        },
+        {
+          "asset_id": 791097568,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m017",
+          "remote_digest": "sha256:fc0420695d1c0d404a4b3ae48490486d95cf5a19ba6f60b781ab7069cfb8bfbf",
+          "sha256": "fc0420695d1c0d404a4b3ae48490486d95cf5a19ba6f60b781ab7069cfb8bfbf",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m017"
+        },
+        {
+          "asset_id": 791097792,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m018",
+          "remote_digest": "sha256:89a1406b42e6d3eaf6c172189401ec4ea92ededaa246cb34536731461ab3fe65",
+          "sha256": "89a1406b42e6d3eaf6c172189401ec4ea92ededaa246cb34536731461ab3fe65",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m018"
+        },
+        {
+          "asset_id": 791098096,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m019",
+          "remote_digest": "sha256:6c959a85276579fa661e7be02ae7768695ce226110e340634433a7d072bbcfc3",
+          "sha256": "6c959a85276579fa661e7be02ae7768695ce226110e340634433a7d072bbcfc3",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m019"
+        },
+        {
+          "asset_id": 791098259,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m020",
+          "remote_digest": "sha256:29fb4623cac7613a74e95ea9b44fb9d12d01b4e8c1c052bd428969de6fc0185c",
+          "sha256": "29fb4623cac7613a74e95ea9b44fb9d12d01b4e8c1c052bd428969de6fc0185c",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m020"
+        },
+        {
+          "asset_id": 791098658,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m021",
+          "remote_digest": "sha256:58740113e815b92c6756985ff23f2a5b47c90e936524a242539a4ecbb06a1188",
+          "sha256": "58740113e815b92c6756985ff23f2a5b47c90e936524a242539a4ecbb06a1188",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m021"
+        },
+        {
+          "asset_id": 791099908,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m022",
+          "remote_digest": "sha256:2cceeb81fc6997c521d494e73aaa40065e9ab5b04e7009e82d87ad713a5742e4",
+          "sha256": "2cceeb81fc6997c521d494e73aaa40065e9ab5b04e7009e82d87ad713a5742e4",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m022"
+        },
+        {
+          "asset_id": 791100535,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m023",
+          "remote_digest": "sha256:667a5ee61f7b672b7cbeffc2f1259012521cb04615a1ed7f1194bab268d68751",
+          "sha256": "667a5ee61f7b672b7cbeffc2f1259012521cb04615a1ed7f1194bab268d68751",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m023"
+        },
+        {
+          "asset_id": 791100617,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m024",
+          "remote_digest": "sha256:82af731c38856390ac79beeff96b3175d43d43a690215be40df18f6eebb9b50f",
+          "sha256": "82af731c38856390ac79beeff96b3175d43d43a690215be40df18f6eebb9b50f",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m024"
+        },
+        {
+          "asset_id": 791100628,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m025",
+          "remote_digest": "sha256:d8d61ecaba44c6eaafebfeb94fffa16ad48d899af36874655a333deff078ddfe",
+          "sha256": "d8d61ecaba44c6eaafebfeb94fffa16ad48d899af36874655a333deff078ddfe",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m025"
+        },
+        {
+          "asset_id": 791100697,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m026",
+          "remote_digest": "sha256:c01cfefcca6b96fa5a2f18c881b917bb0dd87f0bb17455cad505e35d7dddaae7",
+          "sha256": "c01cfefcca6b96fa5a2f18c881b917bb0dd87f0bb17455cad505e35d7dddaae7",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m026"
+        },
+        {
+          "asset_id": 791100875,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m027",
+          "remote_digest": "sha256:79c102e6f0523ecddb5584c01ebd229160df9fcfed935ea7f465e7bca287ac40",
+          "sha256": "79c102e6f0523ecddb5584c01ebd229160df9fcfed935ea7f465e7bca287ac40",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m027"
+        },
+        {
+          "asset_id": 791101648,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m028",
+          "remote_digest": "sha256:1c9d45403abf373c70a61ba614f148257fd806bf4c42aa6d31d03bcfecf77250",
+          "sha256": "1c9d45403abf373c70a61ba614f148257fd806bf4c42aa6d31d03bcfecf77250",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m028"
+        },
+        {
+          "asset_id": 791101846,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m029",
+          "remote_digest": "sha256:a8a25ba8f11c6c9d468215ce3b2e8e10c3332d80c01e0e95212c77b297918650",
+          "sha256": "a8a25ba8f11c6c9d468215ce3b2e8e10c3332d80c01e0e95212c77b297918650",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m029"
+        },
+        {
+          "asset_id": 791101850,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m030",
+          "remote_digest": "sha256:07d006b27cc5a24b24b186f2beb718d1e4c905c191ff68ac40f0160afd308f4b",
+          "sha256": "07d006b27cc5a24b24b186f2beb718d1e4c905c191ff68ac40f0160afd308f4b",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m030"
+        },
+        {
+          "asset_id": 791102074,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m031",
+          "remote_digest": "sha256:5177346321ee90285e25107a88ff8733c646db91005cb22fa47d9955de662acc",
+          "sha256": "5177346321ee90285e25107a88ff8733c646db91005cb22fa47d9955de662acc",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m031"
+        },
+        {
+          "asset_id": 791102093,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m032",
+          "remote_digest": "sha256:79b69b4f89f5820cd3b3bb18bd272a40c206393f30dea12e01d4bfced191f478",
+          "sha256": "79b69b4f89f5820cd3b3bb18bd272a40c206393f30dea12e01d4bfced191f478",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m032"
+        },
+        {
+          "asset_id": 791102136,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m033",
+          "remote_digest": "sha256:65e4a1da2a79f4b9107b73187ffd6f422e7351e4415f3c1ec42b59070e5b415a",
+          "sha256": "65e4a1da2a79f4b9107b73187ffd6f422e7351e4415f3c1ec42b59070e5b415a",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m033"
+        },
+        {
+          "asset_id": 791102180,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m034",
+          "remote_digest": "sha256:051f3aaa2a9bdccff43fd69fbde6338a816ee9fc16f908ca58ad3f65e7f5ae22",
+          "sha256": "051f3aaa2a9bdccff43fd69fbde6338a816ee9fc16f908ca58ad3f65e7f5ae22",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m034"
+        },
+        {
+          "asset_id": 791102240,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m035",
+          "remote_digest": "sha256:20d053a061e7f0b1ba5789d41caa7507642f06b203557016bcebcc8f4cc81342",
+          "sha256": "20d053a061e7f0b1ba5789d41caa7507642f06b203557016bcebcc8f4cc81342",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m035"
+        },
+        {
+          "asset_id": 791102378,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m036",
+          "remote_digest": "sha256:cb244fa63a531f7e618cd61a9993ba451fb48c68d8b6cb053ba44738c3bd6fdc",
+          "sha256": "cb244fa63a531f7e618cd61a9993ba451fb48c68d8b6cb053ba44738c3bd6fdc",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m036"
+        },
+        {
+          "asset_id": 791102459,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m037",
+          "remote_digest": "sha256:6459967452dd30ed1b9c5d57c5e607b582199b746226c88fe61bf4cd651d2c53",
+          "sha256": "6459967452dd30ed1b9c5d57c5e607b582199b746226c88fe61bf4cd651d2c53",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m037"
+        },
+        {
+          "asset_id": 791102524,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m038",
+          "remote_digest": "sha256:95379c4e4f9532ae845c121eb64cfdb628efad5a8eb27b25618f2306d344630d",
+          "sha256": "95379c4e4f9532ae845c121eb64cfdb628efad5a8eb27b25618f2306d344630d",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m038"
+        },
+        {
+          "asset_id": 791102630,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m039",
+          "remote_digest": "sha256:c4e044f4cb4fcf98961418687d6aee6168ac0b652bdec39fbc928e4ebfcef7ce",
+          "sha256": "c4e044f4cb4fcf98961418687d6aee6168ac0b652bdec39fbc928e4ebfcef7ce",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m039"
+        },
+        {
+          "asset_id": 791102681,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m040",
+          "remote_digest": "sha256:59f3f523813918661a71b90091060df92725b9a8aa46493b78e70fb02861e3d6",
+          "sha256": "59f3f523813918661a71b90091060df92725b9a8aa46493b78e70fb02861e3d6",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m040"
+        },
+        {
+          "asset_id": 791102762,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m041",
+          "remote_digest": "sha256:251ac2582f66da5c5ebaed5f0d4a1894193583d71802868caf0ca08b6a9fa50a",
+          "sha256": "251ac2582f66da5c5ebaed5f0d4a1894193583d71802868caf0ca08b6a9fa50a",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m041"
+        },
+        {
+          "asset_id": 791102840,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m042",
+          "remote_digest": "sha256:a8d6e3773c2149afec5e4b33ad11825534d26041b6f1199ac6e382bd7be95992",
+          "sha256": "a8d6e3773c2149afec5e4b33ad11825534d26041b6f1199ac6e382bd7be95992",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m042"
+        },
+        {
+          "asset_id": 791102965,
+          "bytes": 8090107,
+          "name": "last_train.pt.part8m043",
+          "remote_digest": "sha256:627a709e04704f45ef664219b0f091dc89c757f0d183af7c110b2bf5c792776f",
+          "sha256": "627a709e04704f45ef664219b0f091dc89c757f0d183af7c110b2bf5c792776f",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/last_train.pt.part8m043"
+        }
+      ],
+      "sha256": "fa745452d59cadbf5a56d6eb6171dec4c45dcf3d5ed264550ca5d4681ffb35c6"
+    }
+  },
+  "format": "chat_sft53_release_parts_v1",
+  "tag": "lesson53-sft-pilot",
+  "url": "https://github.com/codesknight/playATryModel/releases/tag/lesson53-sft-pilot"
+}

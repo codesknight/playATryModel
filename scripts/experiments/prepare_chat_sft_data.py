@@ -134,10 +134,12 @@ def main():  # 默认离线核对队列，不启动训练。
     parser.add_argument("--freeze", action="store_true")  # 审核存在后才允许冻结正式数据。
     args = parser.parse_args()  # 读取本次操作。
     if args.download:  # 固定两个来源文件，总上限40MiB。
+        remaining = 40 * 1024 * 1024  # 两个文件共享总预算，而非各自40MiB。
         for name in ("README.md", "alpaca_gpt4_data_zh.json"):  # 保留使用声明及完整源数据。
             with urllib.request.urlopen(BASE + name, timeout=60) as response:  # 请求固定提交。
-                data = response.read(40 * 1024 * 1024 + 1)  # 有界读取，不无限下载。
-            assert len(data) <= 40 * 1024 * 1024, "下载超过预算"  # 超预算不写入。
+                data = response.read(remaining + 1)  # 只读取剩余下载预算。
+            assert len(data) <= remaining, "下载超过预算"  # 超预算不写入。
+            remaining -= len(data)  # 下一文件继续使用剩余总预算。
             persist("raw/" + name, data)  # 原字节快照不转换换行。
     queue = candidates()  # 重建技术候选和旧完整轮次统计。
     persist("queue_v2.json", dump(queue))  # 扩审另建版本，不覆盖旧112条队列。

@@ -1,0 +1,16 @@
+{
+  "best_train.pt": {
+    "bytes": 360411643,
+    "sha256": "0ded9c78a0e5a1ad145c75c984bb64fcf99b7469f0dc9d026bca388c421f6538"
+  },
+  "last_train.pt": {
+    "bytes": 360411643,
+    "sha256": "fa745452d59cadbf5a56d6eb6171dec4c45dcf3d5ed264550ca5d4681ffb35c6"
+  },
+  "public_download_probe": {
+    "bytes": 8388608,
+    "name": "best_train.pt.part8m001",
+    "sha256": "093fd0e3419f6d28b97d82c5c6fee8967966ff84398930a57a3df23b6dbf0242",
+    "verified": true
+  }
+}
