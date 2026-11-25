@@ -84,7 +84,7 @@ model/lesson53/chat_fp16.pt为第100步最佳推理文件，60079061字节。bes
 
 check_sft_resume.py在副本上做两条相同下一步分支：直接恢复，与临时保存重载后恢复。全部参数最大差0，AdamW/Scaler/游标一致，正式最后状态SHA不变。两次核验更新不计入正式500步。正式报告、恢复证据和失败分析分别为lesson53.json、lesson53_resume.json、lesson53_analysis.json。
 
-推理文件放Git；完整最佳与最后状态分别通过[第五十三课Release](https://github.com/codesknight/playATryModel/releases/tag/lesson53-sft-pilot)交付。整文件网络上传曾中断，改为每片32MiB的有序分片，逐片保存远端SHA与全文件SHA；下载后使用restore_sft_parts.py重组，得到原360411643字节状态。发布状态以lesson53_assets.json为准。旧课权重均保留，不把SFT推理文件用于要求完整优化器历史的恢复。
+推理文件放Git；完整最佳与最后状态分别通过[第五十三课Release](https://github.com/codesknight/playATryModel/releases/tag/lesson53-sft-pilot)交付。整文件网络上传曾中断，改为每片8MiB的有序分片，逐片保存远端SHA与全文件SHA；下载后使用restore_sft_parts.py重组，得到原360411643字节状态。发布状态以lesson53_assets.json为准。旧课权重均保留，不把SFT推理文件用于要求完整优化器历史的恢复。
 
 如果另一台电脑需要完整最佳状态，可运行下面命令；会显式下载最佳文件的分片，核对每片再重组，不启动训练，也拒绝覆盖已有输出：
 

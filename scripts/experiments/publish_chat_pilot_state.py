@@ -15,7 +15,7 @@ def main():  # 大完整状态放Release附件，避免GitHub单文件100MB限�
     parser.add_argument("--publish", action="store_true")  # 代码推送后将草稿转成公开发布。
     parser.add_argument("--lesson", type=int, default=48)  # 48或50等课程使用各自的附件，不覆盖旧Release。
     args = parser.parse_args()  # 默认不提前发布空版本。
-    if args.lesson == 53:  # SFT最佳与最后不同，改用有摘要的32MiB分片交付。
+    if args.lesson == 53:  # SFT最佳与最后不同，改用有摘要的8MiB分片交付。
         from publish_sft_parts import main as publish_parts  # 仅本课显式上传时导入。
         return publish_parts(args.publish)  # 大文件网络中断后可复用成功分片。
     assert args.lesson in (48, 50, 53), "当前只发布已实现课程48、50或53"  # 不接受任意目录或标签。
@@ -64,7 +64,7 @@ def main():  # 大完整状态放Release附件，避免GitHub单文件100MB限�
                     assert perf_counter() - started < 900, "附件上传超过15分钟，请稍后重试"  # 不无限占用网络。
                     data = handle.read(size)  # handle仅在下方with作用域使用。
                     sent += len(data)  # 本地已交给HTTP连接的字节量。
-                    if sent - printed >= 32 * 1024 * 1024:  # 长上传定期显示进度，不打印密钥或上传URL。
+                    if sent - printed >= 8 * 1024 * 1024:  # 长上传定期显示进度，不打印密钥或上传URL。
                         print(name, "已发送MiB：", sent // (1024 * 1024), flush=True)  # 不把尚未响应的进度当作完成。
                         printed = sent  # 下一次进度起点。
                     return data  # 空字节表示文件结束。

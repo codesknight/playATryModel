@@ -6,8 +6,9 @@ import urllib.request  # 仅显式要求时下载公开附件。
 from prepare_chat_corpus import ROOT, sha  # 项目路径与单片摘要。
 
 
-def reconstruct(name, directory, output, download=False):  # 不加载模型、不执行训练。
-    assets = json.loads((ROOT / "docs/training_runs/lesson53_assets.json").read_text(encoding="utf-8"))  # 已验证远端摘要。
+def reconstruct(name, directory, output, download=False, manifest_path=None):  # 不加载模型、不执行训练。
+    manifest_path = manifest_path or ROOT / "docs/training_runs/lesson53_assets.json"  # 离线核验可传入临时本地清单。
+    assets = json.loads(manifest_path.read_text(encoding="utf-8"))  # 公开下载默认使用正式远端回执。
     artifact = assets["files"][name]  # 仅两个明确完整状态之一。
     assert not output.exists(), "输出已存在，拒绝覆盖完整检查点"  # 避免破坏正式最后进度。
     directory.mkdir(parents=True, exist_ok=True)  # 明确缓存目录。
@@ -16,7 +17,7 @@ def reconstruct(name, directory, output, download=False):  # 不加载模型、�
         path = directory / part["name"]  # 手工下载或先前缓存的分片。
         if not path.exists() and download:  # 只有显式参数才连接网络。
             assert not assets["draft"] and part["url"].startswith("https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/"), "不是本课公开附件"  # 不向未知来源下载。
-            with urllib.request.urlopen(part["url"], timeout=120) as response:  # 单片最多32MiB。
+            with urllib.request.urlopen(part["url"], timeout=120) as response:  # 单片最多8MiB。
                 data = response.read(part["bytes"] + 1)  # 不无限下载。
             assert len(data) == part["bytes"] and sha(data) == part["sha256"], "下载分片摘要错误"  # 核验后才缓存。
             path.write_bytes(data)  # 保留可复用片。
@@ -24,7 +25,7 @@ def reconstruct(name, directory, output, download=False):  # 不加载模型、�
     output.parent.mkdir(parents=True, exist_ok=True)  # 不移动或删除任何旧状态。
     with output.open("xb") as handle:  # 明确拒绝覆盖现有文件。
         for part in artifact["parts"]:  # 二进制顺序拼回原字节。
-            data = (directory / part["name"]).read_bytes()  # 单片读取上限32MiB。
+            data = (directory / part["name"]).read_bytes()  # 单片读取上限8MiB。
             handle.write(data)  # 不做文本换行转换。
             digest.update(data)  # 完整文件再次校验。
             size += len(data)  # 记录总大小。
