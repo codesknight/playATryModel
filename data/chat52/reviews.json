@@ -1,0 +1,216 @@
+{
+  "format": "sft_review52_decisions_v1",
+  "policy": "Complete conversation decisions; no silent answer edits; hold means unverified, not proven false; same quality criteria for train and validation; no test read; sample is stratified by source block, not a population quality estimate.",
+  "queue_sha256": "66896a53c3aa5082de1e251d3b9b8e8fc4c7efd71c71ffbbd334ee9559c39dbf",
+  "reviewer": "assistant manual full-message review",
+  "reviews": [
+    {
+      "decision": "hold",
+      "id": "sft:00:00141",
+      "reason": "回答引用具体ISO标准支撑跨文化AI伦理，未独立核实相关性；不把流畅表达当事实依据。",
+      "reason_code": "unverified_citation",
+      "split": "train",
+      "text_sha256": "ec678d553f51eb42936c18080cc09618922c03bc660ffdb885428ee3ff9be0e0"
+    },
+    {
+      "decision": "reject",
+      "id": "sft:00:00193",
+      "reason": "多轮以真实天气、同伴讨论及个人学习经历回应，缺少角色扮演前提。",
+      "reason_code": "invented_personal_experience",
+      "split": "train",
+      "text_sha256": "08443d0b72d2ac25318467a21f1c32b8c272f1e5039edfe44636b37a0fc2a2e0"
+    },
+    {
+      "decision": "hold",
+      "id": "sft:00:00049",
+      "reason": "将智能、意识和情感的关系直接表述为确定结论，需补充限定与内容复核。",
+      "reason_code": "overstated_contested_claim",
+      "split": "train",
+      "text_sha256": "5dfdc95a0374a93360645123436c0e52e8c371d441e1be304c367dad2cef2899"
+    },
+    {
+      "decision": "hold",
+      "id": "sft:00:00209",
+      "reason": "哲学断言及助手吃饭偏好的表达需调整；本课不悄悄改答案后接纳。",
+      "reason_code": "needs_revision",
+      "split": "train",
+      "text_sha256": "fae71a1e2cc9dd64a3aa9715c93757bad8afd959e7c6b07858e72e65f7a573d2"
+    },
+    {
+      "decision": "accept",
+      "id": "sft:01:00389",
+      "reason": "从PV=nRT除以V得到P=nRT/V，适用于物理体积V>0；公式与解释一致。",
+      "reason_code": "checked_algebra",
+      "split": "train",
+      "text_sha256": "87d46107b7f8ca8cec6bd7923f07c8f8636b74be9f594a81c0ffba904b14aca4"
+    },
+    {
+      "decision": "hold",
+      "id": "sft:01:00080",
+      "reason": "历史死亡人数等外部统计本课未逐项核实，不把未核实当作错误，也不批准训练。",
+      "reason_code": "unverified_external_facts",
+      "split": "train",
+      "text_sha256": "3d975d56d3d59894388b685c8d86ad01b5750ae7eda693bbe8212a50047130e8"
+    },
+    {
+      "decision": "reject",
+      "id": "sft:01:00218",
+      "reason": "输出标题将As和If首字母大写，后续解释却称as和if未大写，答案内部矛盾。",
+      "reason_code": "internal_contradiction",
+      "split": "train",
+      "text_sha256": "25d1fbc956f44c6bbed9a4d327cd955be97babbae0d4805b439a32e782a2ff9a"
+    },
+    {
+      "decision": "accept",
+      "id": "sft:01:00380",
+      "reason": "将键盘连接条件表达为英文条件句，条件与真假分支对应原表达式。",
+      "reason_code": "checked_instruction",
+      "split": "train",
+      "text_sha256": "9c8fd2cd9f322de9c79fb791428b6476e8bdb11a22218420372769ef1bd24372"
+    },
+    {
+      "decision": "reject",
+      "id": "sft:02:00134",
+      "reason": "题面残缺，回答强行指定数字规律并输出未说明的下划线格式，不能唯一支持结论。",
+      "reason_code": "unsupported_pattern",
+      "split": "train",
+      "text_sha256": "c42467be67812264ec783fbf2ef784a8265df5c0336a99d53136d4e1dc5774e2"
+    },
+    {
+      "decision": "hold",
+      "id": "sft:02:00485",
+      "reason": "人物介绍依赖外部事实，未独立核对本次回答，不直接批准。",
+      "reason_code": "unverified_external_facts",
+      "split": "train",
+      "text_sha256": "afec082b0ccfb779191597199a97a1ccacc44300f7e56c6d4e75314f474675d5"
+    },
+    {
+      "decision": "accept",
+      "id": "sft:03:00127",
+      "reason": "SELECT *配合WHERE条件符合题意；示例id=1定位单行需id唯一，否则可能返回多行，适用条件需明确。",
+      "reason_code": "checked_sql",
+      "split": "train",
+      "text_sha256": "4cec332925aa2e098f10bfa437ebeb49268b842f9f6e277c54c6791db21cf332"
+    },
+    {
+      "decision": "reject",
+      "id": "sft:03:00049",
+      "reason": "原文没有说明借出的书与桌上书标题相同，回答擅自补入相同标题的推断。",
+      "reason_code": "unsupported_inference",
+      "split": "train",
+      "text_sha256": "0e755d58035a0f5fe961c7a156cf873b6fa6e0e09a9cfd82432c23f1f80b4e52"
+    },
+    {
+      "decision": "accept",
+      "id": "sft:04:00075",
+      "reason": "24个球中蓝色12、红色6，橙色24-12-6=6；逐行检查程序仅做赋值、算术和打印，结果6。",
+      "reason_code": "checked_arithmetic_and_code",
+      "split": "train",
+      "text_sha256": "33df15beec1aac205e79d3d174c4aed1119b3387b4cb57b665b6f90a54a97796"
+    },
+    {
+      "decision": "hold",
+      "id": "sft:04:00409",
+      "reason": "binary difference equation术语及其二项定义未核实，不用可能混淆的专业术语作监督答案。",
+      "reason_code": "unverified_technical_term",
+      "split": "train",
+      "text_sha256": "c0a5e96f91269df5018590849ebe9e0b739644a9d967718b4e970219bc153ec8"
+    },
+    {
+      "decision": "reject",
+      "id": "sft:06:00197",
+      "reason": "输入混入L且语义不清，回答自行猜字并造出仍不通顺句子，未完成可靠重排。",
+      "reason_code": "corrupted_task",
+      "split": "train",
+      "text_sha256": "24d2259a17bb1875117c351c2b2db4594ee93f17c46ac170acdfec0a5cea3726"
+    },
+    {
+      "decision": "reject",
+      "id": "sft:06:00253",
+      "reason": "题面缺少要改写的祈使句，回答没有先澄清而生成无关的鼓励性条件句。",
+      "reason_code": "missing_input",
+      "split": "train",
+      "text_sha256": "d3f5b562be0386c6700a4223b11c243b7943e2e73bde95dd9184a346d216d54d"
+    },
+    {
+      "decision": "reject",
+      "id": "sft:06:00500",
+      "reason": "题面未给出对话，回答生成混杂破损词串且声称给出有意义的帮助场景。",
+      "reason_code": "incoherent_answer",
+      "split": "train",
+      "text_sha256": "fada2d191b6217b9ee5a5eb0bae7aef88ceaff103a13a4f9ba163322a3c71acc"
+    },
+    {
+      "decision": "reject",
+      "id": "sft:06:00349",
+      "reason": "缺少穷款的上下文却先给出确定定义，后续又猜游戏或金融含义，缺乏可验证依据。",
+      "reason_code": "unsupported_definition",
+      "split": "train",
+      "text_sha256": "622285f07133ab744c89aa8d97f63ee4d96bc8151eeda4fc7326b2a636e6f1dc"
+    },
+    {
+      "decision": "reject",
+      "id": "sft:00:00031",
+      "reason": "同一用户练习语言问题连续重复，多轮答案基本重复，信息增量低，不作本课验证样例。",
+      "reason_code": "low_information_repetition",
+      "split": "validation",
+      "text_sha256": "72d3c8b23cae56fb82f1fc30cbfc1828cc50cbe747ff27295e1a70d65634d3a6"
+    },
+    {
+      "decision": "reject",
+      "id": "sft:00:00130",
+      "reason": "助手叙述近期与朋友聊天、看电影和读书的真实经历，未设角色扮演场景。",
+      "reason_code": "invented_personal_experience",
+      "split": "validation",
+      "text_sha256": "cd66c9ebf8a3f5f9926e6618781e1eed168230ef3412838df91c2ec28602e535"
+    },
+    {
+      "decision": "hold",
+      "id": "sft:01:00413",
+      "reason": "问题含义不清，回答先断言品牌及茶类，需外部核实或改为澄清；本课不批准。",
+      "reason_code": "unsupported_brand_claims",
+      "split": "validation",
+      "text_sha256": "e11824901d9808ccf6528294fd94d7eb554beb57b5452d636aa159eef655299e"
+    },
+    {
+      "decision": "accept",
+      "id": "sft:01:00463",
+      "reason": "针对假设对话给出耐心倾听及暂停的可能回应，符合场景，无需虚构现实经历。",
+      "reason_code": "checked_scenario_response",
+      "split": "validation",
+      "text_sha256": "a72f4f5c023946bc5090fd2b7963803c7e73ea4656bad9cf69e05cfecea33603"
+    },
+    {
+      "decision": "reject",
+      "id": "sft:02:00215",
+      "reason": "原句不通顺，回答把personal GMAT beat臆解为负责考场温度的人员或机构。",
+      "reason_code": "unsupported_interpretation",
+      "split": "validation",
+      "text_sha256": "798403c6d4fe91422880623845c9d137d773dcc2e3c6c4a22153c9eb985e84ac"
+    },
+    {
+      "decision": "accept",
+      "id": "sft:02:00176",
+      "reason": "对含糊的篮球GLM及数字解析问题先询问模型变量和具体错误，没有强造答案。",
+      "reason_code": "checked_clarification",
+      "split": "validation",
+      "text_sha256": "16a613ff2d9f3ca4a3dec473247928036590881d610a753ea221e011b9202da8"
+    },
+    {
+      "decision": "hold",
+      "id": "sft:06:00383",
+      "reason": "演讲类别及两种表述对应关系未给出依据，本课无法确认题目预期答案。",
+      "reason_code": "unverified_classification",
+      "split": "validation",
+      "text_sha256": "ec555450f5da48070970e04ccdf1da748faa07f37060439ff80514aae3aac757"
+    },
+    {
+      "decision": "hold",
+      "id": "sft:06:00241",
+      "reason": "涉及具体药物用途，未按可靠原始说明逐项核实，排除本课训练及验证；此记录不提供用药建议。",
+      "reason_code": "unverified_high_stakes_content",
+      "split": "validation",
+      "text_sha256": "7b35cbdd154d627f6c2d5f8acfb8ab2894702eff3c2d48904ce083aa5307ffa7"
+    }
+  ]
+}

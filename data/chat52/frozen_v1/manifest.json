@@ -1,0 +1,82 @@
+{
+  "blockers": [
+    "train: insufficient reviewed conversations",
+    "train: insufficient Chinese coverage",
+    "validation: insufficient reviewed conversations",
+    "validation: insufficient Chinese coverage"
+  ],
+  "files": {
+    "train.jsonl": {
+      "bytes": 3338,
+      "sha256": "0cc5ccc27ed88ab3f5dc697f242c6919af37c6b06709331ebed9df8f578ca11f"
+    },
+    "validation.jsonl": {
+      "bytes": 1654,
+      "sha256": "88612a6d34bef4e62c3f03df3a91dc048cd28b2609584a04d57d9d40c40e5583"
+    }
+  },
+  "formal_sft_ready": false,
+  "format": "sft_review52_frozen_v1",
+  "inventory": {
+    "train": {
+      "eligible_for_review": 520,
+      "over_context": 2322,
+      "total": 2842
+    },
+    "validation": {
+      "eligible_for_review": 62,
+      "over_context": 302,
+      "total": 364
+    }
+  },
+  "limitations": "source-block quota sample of short full conversations, not a representative quality estimate; CJK ratio is a proxy; inherited grouping is heuristic; accepted sample is not a sufficient chat benchmark",
+  "model_updates": 0,
+  "policy": {
+    "cjk_character_ratio_threshold": 0.2,
+    "min_cjk_conversation_fraction": 0.5,
+    "min_train_conversations": 64,
+    "min_validation_conversations": 16
+  },
+  "queue_sha256": "66896a53c3aa5082de1e251d3b9b8e8fc4c7efd71c71ffbbd334ee9559c39dbf",
+  "reviews_sha256": "ceb7ad95797a68b55129f5dafd5f38897fc850d34b4ac6e2a3d0b4ce2479863e",
+  "sources": {
+    "train": {
+      "path": "data/chat48/sft_train.jsonl",
+      "sha256": "3fe60a08e77ba7022e94458ad718b55753f439eb0d7c30b9573903e78069b670"
+    },
+    "validation": {
+      "path": "data/chat48/sft_validation.jsonl",
+      "sha256": "15f05a1c1a38fb8e6638f3cc01645beffcc28c3a6fc4b0a3548757a7cfe44d32"
+    }
+  },
+  "statistics": {
+    "train": {
+      "accepted_conversations": 4,
+      "assistant_targets": 735,
+      "cjk_conversation_fraction": 0.0,
+      "cjk_conversations": 0,
+      "decisions": {
+        "accept": 4,
+        "hold": 6,
+        "reject": 8
+      },
+      "groups": 4,
+      "reviewed": 18
+    },
+    "validation": {
+      "accepted_conversations": 2,
+      "assistant_targets": 338,
+      "cjk_conversation_fraction": 0.0,
+      "cjk_conversations": 0,
+      "decisions": {
+        "accept": 2,
+        "hold": 3,
+        "reject": 3
+      },
+      "groups": 2,
+      "reviewed": 8
+    }
+  },
+  "test_content_opened": false,
+  "tokenizer_sha256": "dea04ccce16908be18e12410bf44d94b8d636e097491e40fc6283fba3a8ed24a"
+}
