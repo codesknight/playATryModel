@@ -1,0 +1,44 @@
+{
+  "format": "sft_probe51_audit_v1",
+  "reviews": [
+    {
+      "decision": "accept_probe",
+      "id": "sft:00:00047",
+      "reason": "逐条核对两轮回答与问题相关，无虚构现实活动；措辞泛化、精准能力自述未验证，仅用于接线诊断，不作高质量聊天样例背书。",
+      "text_sha256": "6f6ef6b2b4996e15349c281701a6c130bf249a7c6a26e278add640a6de5c7e06"
+    },
+    {
+      "decision": "accept_probe",
+      "id": "sft:00:00057",
+      "reason": "逐条核对两轮概括性回答基本相关；未声称实时浏览。文化概括较宽泛，回答质量有限，只批准接线诊断。",
+      "text_sha256": "f666590dc810d274fee7137427a6e86711f04eb7fcd272d823bf8ef1c136bc6f"
+    },
+    {
+      "decision": "reject",
+      "id": "sft:00:00000",
+      "reason": "两轮回答重复，第二轮未回答时间倒流问题。",
+      "text_sha256": "048399e731948f41e1974443c846c8ebfa61132d2158576a5464d9602ac789a4"
+    },
+    {
+      "decision": "reject",
+      "id": "sft:00:00068",
+      "reason": "把观看电影及视频的个人经历当成助手真实经历。",
+      "text_sha256": "9e31c8d8e42efa7da757d234f79969c46fd9292bc054f0ec95ad7c2d7b657411"
+    },
+    {
+      "decision": "reject",
+      "id": "sft:06:00001",
+      "reason": "把非元音字母作为非英语判断条件，事实与逻辑错误。",
+      "text_sha256": "c76af65a0bdcfbaffccd34f40fa1615c7629832aa322f38f2d1e4ab0096a0673"
+    },
+    {
+      "decision": "reject",
+      "id": "sft:06:00021",
+      "reason": "药物分类及用途存在明显事实错误，拒绝用于训练。",
+      "text_sha256": "6fdb3d66df5c256c47c356b8815bcc08bcce17761707cae84726ef3515b7c220"
+    }
+  ],
+  "scope": "manual convenience sample, not representative; two complete training conversations only; no validation/test selection",
+  "source_path": "data/chat48/sft_train.jsonl",
+  "source_sha256": "3fe60a08e77ba7022e94458ad718b55753f439eb0d7c30b9573903e78069b670"
+}

@@ -58,3 +58,5 @@ python scripts/example/generate.py --model model/my_rnn.npz --prompt "你的开�
 当前实操：[第四十九课：有效目标加权的梯度累积](lesson49_gradient_accumulation.md)，直接对应30M训练的八微批一次更新。
 
 当前实操：[第五十课：30M完整状态续训](lesson50_resume_pretraining.md)。已代跑从1020到2020步，学习者先用30_inspect_resume_state.py只读比较来源与结果。
+
+当前实操：[第五十一课：正式BPE聊天批次与一次SFT接线检查](lesson51_sft_batch.md)。两条经审训练对话，249个助手目标；独立副本真实单步，不覆盖预训练最佳状态。

@@ -1,0 +1,36 @@
+{
+  "audit_sha256": "716eb85dcc94734a157e5ef0792f1d42e705b6353764b19e993ec7e86c034831",
+  "batch_shape": [
+    2,
+    197
+  ],
+  "compute_seconds": 7.718994300113991,
+  "device": "cuda",
+  "embedding_max_parameter_change": 1.004338264465332e-05,
+  "format": "sft_wiring51_v1",
+  "gradient_norm_before_clip": 5.8508806228637695,
+  "learning_rate": 1e-05,
+  "loss_after": 6.090263366699219,
+  "loss_before": 6.214678764343262,
+  "masked_logit_gradient_max": 0.0,
+  "max_compute_seconds": 120,
+  "max_updates": 1,
+  "optimizer": "new_stage_AdamW",
+  "optimizer_steps": [
+    1
+  ],
+  "positions": 249,
+  "precision": "float32_no_amp",
+  "pretrain_step_unchanged": 2020,
+  "probe_updates": 1,
+  "rows": [
+    "sft:00:00047",
+    "sft:00:00057"
+  ],
+  "source": "model/lesson50/last_train.pt",
+  "source_sha256": "5584686c81b65bf1e7996719c107ca1482c5fc503a95fd75ef2239377080f8ae",
+  "stage": "disposable_one_step_probe_not_chat_acceptance",
+  "tokenizer_sha256": "dea04ccce16908be18e12410bf44d94b8d636e097491e40fc6283fba3a8ed24a",
+  "user_embedding_activation_gradient_norm": 0.13006070256233215,
+  "weights_saved": false
+}

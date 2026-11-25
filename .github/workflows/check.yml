@@ -101,3 +101,5 @@ jobs: # 定义需要执行的任务。
           python scripts/ci/check_chat48.py # 核对预算、因果梯度和明确八窗范围的CPU指标。
           python scripts/ci/check_chat50.py # 核对完整状态续训、跨轮游标和独立新导出。
           python scripts/learn/29_gradient_accumulation.py # 短CPU实验，核对梯度与一次参数更新等价，不改已保存模型。
+          python scripts/learn/31_sft_batch.py # 只读检查正式BPE、多轮助手标签和填充。
+          python scripts/ci/check_chat51.py # CPU核对掩码数学及一次GPU诊断报告，不追加30M训练。
