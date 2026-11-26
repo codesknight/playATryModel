@@ -6,10 +6,13 @@ import urllib.parse  # 安全编码附件名。
 import urllib.request  # 与GitHub官方API通信。
 from concurrent.futures import ThreadPoolExecutor, as_completed  # 独立分片最多三条连接并发，出错及时取消排队任务。
 from prepare_chat_corpus import ROOT, sha, dump  # 固定文件摘要及JSON格式。
-REPO, TAG = "codesknight/playATryModel", "lesson53-sft-pilot"  # 只操作已授权的本课仓库版本。
+REPO = "codesknight/playATryModel"  # 只操作已授权的仓库。
 
 
-def main(publish=False):  # 大状态分8MiB片，单片失败不重传所有成功片。
+def main(publish=False, lesson=53):  # 大状态分8MiB片，单片失败不重传所有成功片。
+    assert lesson in (53, 54), "分片交付仅支持已实现课程"  # 不接受任意目录。
+    tag = "lesson53-sft-pilot" if lesson == 53 else "lesson54-pretrain-mix-pilot"  # 新语言阶段不覆盖SFT版本。
+    stage = "Chinese SFT" if lesson == 53 else "mixed Chinese language pretraining"  # 如实标明阶段。
     os.environ["GIT_TERMINAL_PROMPT"], os.environ["GCM_INTERACTIVE"] = "0", "Never"  # 不弹凭据窗口。
     result = subprocess.run(["git", "-c", "credential.interactive=false", "credential", "fill"], input="protocol=https\nhost=github.com\n\n", text=True, capture_output=True, check=True, timeout=30)  # 复用本仓库已有授权。
     fields = dict(line.split("=", 1) for line in result.stdout.splitlines() if "=" in line)  # 不打印或保存凭据。
@@ -20,10 +23,10 @@ def main(publish=False):  # 大状态分8MiB片，单片失败不重传所有成
             data = response.read()  # 小JSON回复。
         return json.loads(data) if data else None  # DELETE可能没有正文。
     releases = api("releases?per_page=100")  # 草稿也可见，支持断点重跑上传。
-    release = next((r for r in releases if r["tag_name"] == TAG), None)  # 不操作旧课Release。
+    release = next((r for r in releases if r["tag_name"] == tag), None)  # 不操作其他课Release。
     if release is None:  # 首次创建草稿。
-        release = api("releases", "POST", {"tag_name": TAG, "target_commitish": "main", "name": "Lesson53 bounded Chinese SFT full state", "draft": True, "body": "Educational noncommercial research SFT pilot, not usable chat quality. Full best and last FP32/AdamW/Scaler/RNG/cursor states split into 8MiB parts. See lesson53_assets.json and restore_sft_parts.py for verified reconstruction. Source restrictions and hashes remain in course notes."})  # 不夸大模型能力。
-    report = json.loads((ROOT / "docs/training_runs/lesson53.json").read_text(encoding="utf-8"))  # 只上传已完成正式训练文件。
+        release = api("releases", "POST", {"tag_name": tag, "target_commitish": "main", "name": f"Lesson{lesson}: bounded {stage} full state", "draft": True, "body": f"Educational noncommercial research {stage} pilot, not usable chat quality. Complete best and last states use verified 8MiB parts. See lesson{lesson}_assets.json, source restrictions and course notes."})  # 不夸大模型能力。
+    report = json.loads((ROOT / f"docs/training_runs/lesson{lesson}.json").read_text(encoding="utf-8"))  # 只上传已完成训练文件。
     assert report["status"] == "completed", "正式SFT未完成"  # 不上传仍在变化的文件。
     def all_assets():  # 分片超过API默认30项时必须分页。
         collected, page = [], 1  # 不漏掉后面的成功片。
@@ -37,7 +40,7 @@ def main(publish=False):  # 大状态分8MiB片，单片失败不重传所有成
     for name in ("last_train.pt", "best_train.pt"):  # 清理本课失败的整文件上传占位，不删除成功附件。
         if name in existing and existing[name].get("state") != "uploaded":  # 网络重置可能留下starter。
             api(f"releases/assets/{existing[name]['id']}", "DELETE")  # 仅清理本课两个明确文件的失败对象。
-    directory = ROOT / "model/lesson53/parts"  # 分片仅本地缓存，不放Git。
+    directory = ROOT / f"model/lesson{lesson}/parts"  # 分片仅本地缓存，不放Git。
     directory.mkdir(exist_ok=True)  # 原完整状态保留。
     def upload_part(part_name, part_path, part_hash, size):  # 每片独立，可并发且可恢复。
         current = existing.get(part_name)  # 成功片直接核验并复用。
@@ -54,10 +57,15 @@ def main(publish=False):  # 大状态分8MiB片，单片失败不重传所有成
         print("已核验分片：", part_name, flush=True)  # 并发完成顺序不代表重组顺序。
         return {"name": part_name, "bytes": size, "sha256": part_hash, "asset_id": current["id"], "url": current["browser_download_url"], "remote_digest": current["digest"]}  # 最后按编号顺序归档。
     pool = ThreadPoolExecutor(max_workers=3)  # 限制并发与内存，不无限启动线程。
-    files = {}  # 记录每个逻辑断点的全文件摘要和有序分片。
+    files, identical = {}, {}  # 记录有序分片，同内容最佳/最后不重复上传。
     for name in ("last_train.pt", "best_train.pt"):  # 两者不同，不能复用错误的别名。
         path, artifact = directory.parent / name, report["artifacts"][name]  # 只接受本课正式文件。
         assert path.stat().st_size == artifact["bytes"] and sha(path.read_bytes()) == artifact["sha256"], "本地完整文件改变"  # 上传前核对全文件。
+        if artifact["sha256"] in identical:  # 最佳恰好为最后时复用同一完整内容。
+            same_as = identical[artifact["sha256"]]  # 明确记录逻辑别名。
+            files[name] = {**artifact, "same_as": same_as, "parts": files[same_as]["parts"]}  # 不把不同摘要文件误作别名。
+            continue  # 节省一份约360MB上传。
+        identical[artifact["sha256"]] = name  # 后续只有内容完全相同时可复用。
         parts = []  # 顺序即重组顺序。
         with path.open("rb") as handle:  # 流式拆分不复制整个文件到内存。
             while chunk := handle.read(8 * 1024 * 1024):  # 单个附件最多8MiB。
@@ -84,17 +92,19 @@ def main(publish=False):  # 大状态分8MiB片，单片失败不重传所有成
         for name in obsolete & existing.keys():  # 不触碰新8MiB片或旧课Release。
             api(f"releases/assets/{existing[name]['id']}", "DELETE")  # 草稿内本任务生成的过时文件已被完整替代。
     if publish and release["draft"]:  # 代码推送后才公开发布完整附件。
-        release = api(f"releases/{release['id']}", "PATCH", {"draft": False, "body": "Bounded educational Chinese SFT pilot; noncommercial research only, not usable chat quality. Best step100 and last step500 full states are each split into ordered 8MiB parts. Use lesson53_assets.json and restore_sft_parts.py to verify each part and reconstruct the original complete FP32/AdamW/Scaler/RNG/cursor state. Inference weights and source/license notes remain in repository."})  # 用户已授权每课交付，附明确重组方法。
+        release = api(f"releases/{release['id']}", "PATCH", {"draft": False, "body": f"Bounded educational {stage}; noncommercial research only, no usable chat-quality claim. Best step{report['best_step']}, last step{report['completed_steps']}. Complete FP32/AdamW/Scaler/RNG/cursor states use ordered 8MiB parts; identical content shares parts. Use lesson{lesson}_assets.json and restore_sft_parts.py --lesson {lesson} for verified reconstruction. Source terms and inference weights remain in repository."})  # 用户已授权每课交付，附明确重组方法。
     remote = {item["id"]: item for item in all_assets()}  # 发布后分页刷新全部永久URL。
     for artifact in files.values():  # 不保留草稿临时下载地址。
         for part in artifact["parts"]:  # 所有完整状态都刷新。
             part["url"] = remote[part["asset_id"]]["browser_download_url"]  # 公开标签地址。
-    record = {"format": "chat_sft53_release_parts_v1", "tag": TAG, "url": f"https://github.com/{REPO}/releases/tag/{TAG}", "draft": release["draft"], "files": files}  # 完整重组所需清单。
-    (ROOT / "docs/training_runs/lesson53_assets.json").write_bytes(dump(record))  # 保存全部远端摘要。
+    record = {"format": "chat_model_release_parts_v1", "tag": tag, "url": f"https://github.com/{REPO}/releases/tag/{tag}", "draft": release["draft"], "files": files}  # 完整重组所需清单。
+    (ROOT / f"docs/training_runs/lesson{lesson}_assets.json").write_bytes(dump(record))  # 保存全部远端摘要。
     print("完整状态分片就绪；draft：", release["draft"], flush=True)  # 未公开时不假称可下载。
 
 
 if __name__ == "__main__":  # 导入不会访问凭据。
     parser = argparse.ArgumentParser()  # 显式发布选项。
     parser.add_argument("--publish", action="store_true")  # 默认只上传草稿。
-    main(parser.parse_args().publish)  # 网络失败可重跑，不重传成功分片。
+    parser.add_argument("--lesson", type=int, choices=(53, 54), default=53)  # 每课独立目录与公开标签。
+    args = parser.parse_args()  # 明确本次交付课程。
+    main(args.publish, args.lesson)  # 网络失败可重跑，不重传成功分片。

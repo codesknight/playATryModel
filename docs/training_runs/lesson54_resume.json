@@ -1,0 +1,7 @@
+{
+  "formal_checkpoint_sha256_unchanged": "35445aa07a4ff17afeea60a5154f842637c1a8ca58f5eb9923359d8ddce53180",
+  "formal_checkpoint_step": 3020,
+  "max_parameter_abs_diff": 0.0,
+  "optimizer_scaler_cursors_equal": true,
+  "verification_copy_updates": 2
+}

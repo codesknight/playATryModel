@@ -15,9 +15,9 @@ def main():  # 大完整状态放Release附件，避免GitHub单文件100MB限�
     parser.add_argument("--publish", action="store_true")  # 代码推送后将草稿转成公开发布。
     parser.add_argument("--lesson", type=int, default=48)  # 48或50等课程使用各自的附件，不覆盖旧Release。
     args = parser.parse_args()  # 默认不提前发布空版本。
-    if args.lesson == 53:  # SFT最佳与最后不同，改用有摘要的8MiB分片交付。
+    if args.lesson in (53, 54):  # 新课程使用有摘要的8MiB分片交付。
         from publish_sft_parts import main as publish_parts  # 仅本课显式上传时导入。
-        return publish_parts(args.publish)  # 大文件网络中断后可复用成功分片。
+        return publish_parts(args.publish, args.lesson)  # 大文件网络中断后可复用成功分片。
     assert args.lesson in (48, 50, 53), "当前只发布已实现课程48、50或53"  # 不接受任意目录或标签。
     stage = "sft" if args.lesson == 53 else "pretrain"  # 新阶段使用明确的SFT标签。
     tag = f"lesson{args.lesson}-{stage}-pilot"  # 每课独立固定标签。

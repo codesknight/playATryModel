@@ -87,5 +87,19 @@
     "inference_bytes": 60079061,
     "stage": "bounded_formal_sft_pilot_not_usable_chat",
     "full_state_delivery": "GitHub Release lesson53-sft-pilot; verified 8MiB parts"
+  },
+  "actual_30m_language54": {
+    "report": "docs/training_runs/lesson54.json",
+    "source_pretrain_updates": 2020,
+    "additional_pretrain_updates": 1000,
+    "completed_pretrain_updates": 3020,
+    "phase_seen_positions": 2047573,
+    "stage_seconds": 503.77418459998444,
+    "best_weighted_language_score": 3.896785608122908,
+    "new_task_rows": 800,
+    "new_task_families": 10,
+    "new_tasks_sft_trained": false,
+    "inference_bytes": 60078933,
+    "full_state_delivery": "GitHub Release lesson54-pretrain-mix-pilot; 8MiB verified parts, best=last alias"
   }
 }

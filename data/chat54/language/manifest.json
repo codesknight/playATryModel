@@ -1,0 +1,93 @@
+{
+  "context": 256,
+  "files": {
+    "novels_train.npy": "67808a87a3f763f6bb21835672823bc6a3a197907e95f1398796881daf2228c9",
+    "novels_validation_x.npy": "8298be1036ffb1d563d6e64f13552ff74a08f1a0a9a199cbb40bca3e61c2b28a",
+    "novels_validation_y.npy": "26bf71dc57adf3bb0fe4aceac6a8d4081fd70b0a67e9b89bfd322ac5e8acec56",
+    "original_train.npy": "36a4301d29cac8ac883dae70e17daf0ee4a1d05f002aba4f1d5e16f4342e56d1",
+    "original_validation_x.npy": "d331a3231436fb9941dfc77e17a856a888f9ff876f501d0e511edca132da7b34",
+    "original_validation_y.npy": "104fe89c17c43126178567b1aa3dd333e3fead2a9e00a8ad417885391e735dc6",
+    "stories_train.npy": "403e27dc4ed1ad8c7df9d7935d6a512aa56b748432d80f7ba82b5539a2f6790c",
+    "stories_validation_x.npy": "c0d768de953bafc927bb8a88402a7fcfab843f245320a17955e4d02133d324b0",
+    "stories_validation_y.npy": "97bd9056cff172786fc16f404a83b7c8afa1841408c448f8e5605906e95e7fa2"
+  },
+  "filtering": "training documents sharing sampled normalized64-character fragments with any validation are removed; encoding/control-character checks; not semantic dedup or factual review",
+  "format": "mixed_language54_v1",
+  "review_scope": "fiction sources inherited; 8 training excerpts sampled, not full factual review; stories GPT3.5 synthetic, CC-BY-4.0 as source card; novels user-supplied classical text",
+  "schedule": [
+    "original",
+    "stories",
+    "original",
+    "stories",
+    "original",
+    "novels",
+    "original",
+    "stories"
+  ],
+  "sources": {
+    "novels_train": {
+      "path": "data/splits/train.jsonl",
+      "sha256": "0cee762b4832c3a1c37c84c245ca912c51a1c22fa8df4c37e811ec735e390a69"
+    },
+    "novels_validation": {
+      "path": "data/splits/validation.jsonl",
+      "sha256": "6c2b342b2964d65d780f8a487285855dfaff4502bf3bb8fbf7bba1896e46e0fe"
+    },
+    "original_train": {
+      "path": "data/chat48/pretrain_train.jsonl",
+      "sha256": "085c52e7165aa5f9ffa1503b13157620707fa7f0d382f2bae906c40c569d8fc6"
+    },
+    "original_validation": {
+      "path": "data/chat48/pretrain_validation.jsonl",
+      "sha256": "3cd389a05015e9f9f756c1bb7abb59db90a8c651fd6e3088af2f1383da46a690"
+    },
+    "stories_train": {
+      "path": "data/transformer45/train.jsonl",
+      "sha256": "9c685c19c934ea91af0ca5ae8fa2cbdb72c0e7d51652338affe91c1cb309727c"
+    },
+    "stories_validation": {
+      "path": "data/transformer45/validation.jsonl",
+      "sha256": "cbbee10286258c5bf2c2e4c34867ae98e767b2a36717cee54a63d6ff5cc2b39f"
+    }
+  },
+  "stats": {
+    "novels": {
+      "train_characters": 2456586,
+      "train_documents": 368,
+      "train_tokens": 2635671,
+      "train_windows": 10296,
+      "validation_characters": 317717,
+      "validation_documents": 46,
+      "validation_positions": 339739,
+      "validation_windows": 1351
+    },
+    "original": {
+      "train_characters": 4782788,
+      "train_documents": 9576,
+      "train_tokens": 3034409,
+      "train_windows": 11854,
+      "validation_characters": 611677,
+      "validation_documents": 1192,
+      "validation_positions": 388180,
+      "validation_windows": 2120
+    },
+    "stories": {
+      "train_characters": 746116,
+      "train_documents": 1801,
+      "train_tokens": 740615,
+      "train_windows": 2894,
+      "validation_characters": 93460,
+      "validation_documents": 231,
+      "validation_positions": 92563,
+      "validation_windows": 468
+    }
+  },
+  "test_contents_opened": false,
+  "tokenizer_sha256": "dea04ccce16908be18e12410bf44d94b8d636e097491e40fc6283fba3a8ed24a",
+  "traditional_simplified": "original scripts retained, no conversion",
+  "validation_weights": {
+    "novels": 0.125,
+    "original": 0.5,
+    "stories": 0.375
+  }
+}

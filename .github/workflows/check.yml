@@ -107,3 +107,5 @@ jobs: # 定义需要执行的任务。
           python scripts/ci/check_chat52.py # 拒绝漏审、重复及过期审核，不训练模型。
           python scripts/learn/33_inspect_sft_run.py # 只读查看正式SFT数据、预算及最佳权重。
           python scripts/ci/check_chat53.py # CPU核对来源及八条验证会话，不重复训练。
+          python scripts/learn/34_inspect_language_mix.py # 只读核对新增语言训练和800条可验证任务。
+          python scripts/ci/check_chat54.py # 检查错误标签拒绝、三域曝光和每域四窗CPU验证。

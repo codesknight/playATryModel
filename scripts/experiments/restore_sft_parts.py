@@ -16,7 +16,7 @@ def reconstruct(name, directory, output, download=False, manifest_path=None):  #
     for part in artifact["parts"]:  # 按清单顺序先核验全部分片。
         path = directory / part["name"]  # 手工下载或先前缓存的分片。
         if not path.exists() and download:  # 只有显式参数才连接网络。
-            assert not assets["draft"] and part["url"].startswith("https://github.com/codesknight/playATryModel/releases/download/lesson53-sft-pilot/"), "不是本课公开附件"  # 不向未知来源下载。
+            assert assets["tag"] in ("lesson53-sft-pilot", "lesson54-pretrain-mix-pilot") and not assets["draft"] and part["url"].startswith("https://github.com/codesknight/playATryModel/releases/download/" + assets["tag"] + "/"), "不是本课公开附件"  # 不向未知来源下载。
             with urllib.request.urlopen(part["url"], timeout=120) as response:  # 单片最多8MiB。
                 data = response.read(part["bytes"] + 1)  # 不无限下载。
             assert len(data) == part["bytes"] and sha(data) == part["sha256"], "下载分片摘要错误"  # 核验后才缓存。
@@ -35,9 +35,11 @@ def reconstruct(name, directory, output, download=False, manifest_path=None):  #
 
 if __name__ == "__main__":  # 导入可供本地离线重组测试。
     parser = argparse.ArgumentParser()  # 指定缓存、目标文件及是否下载。
-    parser.add_argument("--checkpoint", choices=("best_train.pt", "last_train.pt"), default="best_train.pt")  # 默认取最佳100步。
-    parser.add_argument("--directory", type=Path, default=ROOT / "model/lesson53/parts")  # 缓存可重复使用。
+    parser.add_argument("--checkpoint", choices=("best_train.pt", "last_train.pt"), default="best_train.pt")  # 默认取对应课最佳完整状态。
+    parser.add_argument("--lesson", type=int, choices=(53, 54), default=53)  # 默认仍为第五十三课。
+    parser.add_argument("--directory", type=Path)  # 默认按课程选缓存，可显式覆盖。
     parser.add_argument("--output", type=Path, required=True)  # 必须显式决定新文件保存位置。
     parser.add_argument("--download", action="store_true")  # 默认离线，不偷偷下载数百MB。
     args = parser.parse_args()  # 明确本次仅重组文件。
-    print(reconstruct(args.checkpoint, args.directory, args.output, args.download))  # 完整核验后才报告成功。
+    directory = args.directory or ROOT / f"model/lesson{args.lesson}/parts"  # 各课下载缓存互不混淆。
+    print(reconstruct(args.checkpoint, directory, args.output, args.download, ROOT / f"docs/training_runs/lesson{args.lesson}_assets.json"))  # 完整核验后才报告成功。

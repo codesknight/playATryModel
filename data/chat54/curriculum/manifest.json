@@ -1,0 +1,48 @@
+{
+  "authorship": "assistant-authored Chinese templates and deterministic generators",
+  "files": {
+    "train.jsonl": "8952a3162dab7ee09ffa834efa5575fb5e78faf681f44ece024db75860125f07",
+    "validation.jsonl": "afdb4caf96f59451b9ccae5bb660abfc677ecbb293b6b5c620b77bb36f954215"
+  },
+  "format": "verified_curriculum54_v1",
+  "review_scope": "all ten templates reviewed; every label verified by invariants; no claim of 800 independent manual reviews",
+  "same_templates_in_both_splits": true,
+  "seed_generation": 654,
+  "seed_group_split": 754,
+  "stats": {
+    "train": {
+      "families": {
+        "add": 59,
+        "ascending": 68,
+        "count": 63,
+        "descending": 68,
+        "gcd": 62,
+        "minmax": 65,
+        "multiply": 64,
+        "reverse": 66,
+        "subtract": 61,
+        "unique": 63
+      },
+      "groups": 636,
+      "rows": 639
+    },
+    "validation": {
+      "families": {
+        "add": 21,
+        "ascending": 12,
+        "count": 17,
+        "descending": 12,
+        "gcd": 18,
+        "minmax": 15,
+        "multiply": 16,
+        "reverse": 14,
+        "subtract": 19,
+        "unique": 17
+      },
+      "groups": 159,
+      "rows": 161
+    }
+  },
+  "used_for_sft_in_lesson54": false,
+  "validation_scope": "new payloads within known task templates; not general chat test"
+}

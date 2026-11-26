@@ -79,3 +79,9 @@ model/lesson50/*
 !model/lesson53/
 model/lesson53/*
 !model/lesson53/chat_fp16.pt
+
+data/chat54/language/*.npy
+data/chat54/language_v2/*.npy
+!model/lesson54/
+model/lesson54/*
+!model/lesson54/base_fp16.pt

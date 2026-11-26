@@ -1,0 +1,120 @@
+{
+  "approved_language_manifest_sha256": "ba803a4385c87f14bbd70d9c48a2e50dc1e05572185eb28620290915c00bf667",
+  "curriculum_not_individual_human_review": true,
+  "curriculum_templates": [
+    {
+      "decision": "accept_deterministic_template",
+      "family": "add",
+      "scope": "Chinese instruction, payload type, answer format and independent invariant checker reviewed; every generated label subsequently checked"
+    },
+    {
+      "decision": "accept_deterministic_template",
+      "family": "subtract",
+      "scope": "Chinese instruction, payload type, answer format and independent invariant checker reviewed; every generated label subsequently checked"
+    },
+    {
+      "decision": "accept_deterministic_template",
+      "family": "multiply",
+      "scope": "Chinese instruction, payload type, answer format and independent invariant checker reviewed; every generated label subsequently checked"
+    },
+    {
+      "decision": "accept_deterministic_template",
+      "family": "gcd",
+      "scope": "Chinese instruction, payload type, answer format and independent invariant checker reviewed; every generated label subsequently checked"
+    },
+    {
+      "decision": "accept_deterministic_template",
+      "family": "ascending",
+      "scope": "Chinese instruction, payload type, answer format and independent invariant checker reviewed; every generated label subsequently checked"
+    },
+    {
+      "decision": "accept_deterministic_template",
+      "family": "descending",
+      "scope": "Chinese instruction, payload type, answer format and independent invariant checker reviewed; every generated label subsequently checked"
+    },
+    {
+      "decision": "accept_deterministic_template",
+      "family": "reverse",
+      "scope": "Chinese instruction, payload type, answer format and independent invariant checker reviewed; every generated label subsequently checked"
+    },
+    {
+      "decision": "accept_deterministic_template",
+      "family": "count",
+      "scope": "Chinese instruction, payload type, answer format and independent invariant checker reviewed; every generated label subsequently checked"
+    },
+    {
+      "decision": "accept_deterministic_template",
+      "family": "unique",
+      "scope": "Chinese instruction, payload type, answer format and independent invariant checker reviewed; every generated label subsequently checked"
+    },
+    {
+      "decision": "accept_deterministic_template",
+      "family": "minmax",
+      "scope": "Chinese instruction, payload type, answer format and independent invariant checker reviewed; every generated label subsequently checked"
+    }
+  ],
+  "language_decisions": [
+    {
+      "decision": "accept_excerpt_for_fiction_language_with_limitations",
+      "domain": "stories",
+      "id": "tiny_stories:00718",
+      "reason": "片段为虚构成长故事，文本可读；不把鼓励性叙事当作事实结论。",
+      "source_text_sha256": "af3d09625af4bd05e4efb3b142f312da3a170c5712dcb2145e13c79a5d19063c"
+    },
+    {
+      "decision": "accept_excerpt_for_fiction_language_with_limitations",
+      "domain": "stories",
+      "id": "tiny_stories:00564",
+      "reason": "片段为虚构家族日记故事，首尾可读；仅批准文学语言用途。",
+      "source_text_sha256": "3c985ac4a9c3898d01707bde2554c473d263547b585b0796e5f52f38b9f01e43"
+    },
+    {
+      "decision": "accept_excerpt_for_fiction_language_with_limitations",
+      "domain": "stories",
+      "id": "tiny_stories:00976",
+      "reason": "片段含虚构心灵沟通能力；按奇幻叙事理解，不作真实能力说明。",
+      "source_text_sha256": "be36d745bcd975d79cb453aafeb119c70c18277afe626210d8e28ff05006a08a"
+    },
+    {
+      "decision": "accept_excerpt_for_fiction_language_with_limitations",
+      "domain": "stories",
+      "id": "tiny_stories:01208",
+      "reason": "片段为虚构职业教育创业故事，语言可读；不作为技术或就业效果证据。",
+      "source_text_sha256": "64127a498ba391aba352cc670609067aa6f096d1cd3cb3bc7626b172d6ad53a8"
+    },
+    {
+      "decision": "accept_excerpt_for_fiction_language_with_limitations",
+      "domain": "novels",
+      "id": "三国演义:067",
+      "reason": "四书章节首尾片段可读，保留文学叙事语域，不将小说情节当作已核实历史或专业建议。",
+      "source_text_sha256": "f92d8c00d9252697cefc3c7ed440c076aa0cba7704e455e0f13391f03225712e"
+    },
+    {
+      "decision": "accept_excerpt_for_fiction_language_with_limitations",
+      "domain": "novels",
+      "id": "水浒全传:011",
+      "reason": "四书章节首尾片段可读，保留文学叙事语域，不将小说情节当作已核实历史或专业建议。",
+      "source_text_sha256": "57ecd57023db1920a73ba7f9429323bf971a5c720ce5eed1c3bec48c3081d09f"
+    },
+    {
+      "decision": "accept_excerpt_for_fiction_language_with_limitations",
+      "domain": "novels",
+      "id": "红楼梦:042",
+      "reason": "四书章节首尾片段可读，保留文学叙事语域，不将小说情节当作已核实历史或专业建议。",
+      "source_text_sha256": "9ac13e0e63398cb4cfaab3e9c6f64463f50c0cb742bdd9ac1403a6994d489042"
+    },
+    {
+      "decision": "accept_excerpt_for_fiction_language_with_limitations",
+      "domain": "novels",
+      "id": "西游记:095",
+      "reason": "四书章节首尾片段可读，保留文学叙事语域，不将小说情节当作已核实历史或专业建议。",
+      "source_text_sha256": "36e53110ab0bef5dd5dfb867aeadfbc45a509ede9631a9a6e3ed435cf52f5c28"
+    }
+  ],
+  "prototype_findings": [
+    "v1 story00003 mixed therapy with curses; other initial stories involved diagnoses; uniform topic exclusion introduced before model updates",
+    "v2 story00469 malformed opening and Word count footer; explicitly excluded and trailing generation metadata removed in v3; previous excerpts retained"
+  ],
+  "reviewer": "assistant excerpt and template review, not independent human or expert review",
+  "scope": "8 fixed excerpts only, not full corpus factual review"
+}

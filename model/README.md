@@ -176,3 +176,4 @@ Adam额外m/v状态数组占5757784字节，本次历史t=200，区别于模型�
 
 `lesson50/pretrain_fp16.pt`独立保存累计2020更新的预训练最佳模型，完整验证4.430704，大小60079189字节。来源是第四十八课1020步的完整状态，保留AdamW、Scaler与游标；未进行SFT。新的完整best/last状态均为360411579字节，内容相同，Release标签lesson50-pretrain-pilot中复用一个附件。实际发布状态与SHA以docs/training_runs/lesson50_assets.json为准。使用旧生成器时显式指定--model model/lesson50/pretrain_fp16.pt；不能拿FP16推理文件代替完整续训状态。
 第五十三课正式中文SFT：lesson53/chat_fp16.pt为第100步最佳推理文件，60079061字节；last_train.pt为第500步、best_train.pt为第100步，各360411643字节且内容不同，完整状态放lesson53-sft-pilot Release。实际聊天用scripts/experiments/chat_sft.py，原预训练2020步文件保持独立。首段500步已完成，出现过拟合和明显误答，尚无可用聊天验收结论；数据与模型限非商业教学研究，详见课程来源声明。
+第五十四课语言分支：lesson54/base_fp16.pt实际60078933字节，累计预训练3020步，尚未对扩大任务做新SFT。完整best/last均360411963字节且SHA相同，lesson54-pretrain-mix-pilot Release复用同一组8MiB分片；使用restore_sft_parts.py --lesson 54重组。第53课聊天分支和所有旧权重保持独立，不将新的基础模型冒充新的聊天模型。

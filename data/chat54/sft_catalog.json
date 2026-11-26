@@ -1,0 +1,47 @@
+{
+  "additional_source": null,
+  "components": {
+    "train": [
+      {
+        "groups": 91,
+        "kind": "general",
+        "path": "data/chat53/frozen_v1/train.jsonl",
+        "rows": 117,
+        "sha256": "abace33b8b564929f859766f2e556929f791dc09389f730b8f6672d1382d1503"
+      },
+      {
+        "groups": 636,
+        "kind": "verified_tasks",
+        "path": "data/chat54/curriculum/train.jsonl",
+        "rows": 639,
+        "sha256": "8952a3162dab7ee09ffa834efa5575fb5e78faf681f44ece024db75860125f07"
+      }
+    ],
+    "validation": [
+      {
+        "groups": 23,
+        "kind": "general",
+        "path": "data/chat53/frozen_v1/validation.jsonl",
+        "rows": 26,
+        "sha256": "b53e601fd63141f21d09e5d9db01ce153a1d31e120a78e7439a97689f23f0d2c"
+      },
+      {
+        "groups": 159,
+        "kind": "verified_tasks",
+        "path": "data/chat54/curriculum/validation.jsonl",
+        "rows": 161,
+        "sha256": "afdb4caf96f59451b9ccae5bb660abfc677ecbb293b6b5c620b77bb36f954215"
+      }
+    ]
+  },
+  "format": "expanded_sft54_catalog_v1",
+  "overlap_check": "normalized exact first user prompt only; preserves all parent splits and groups; semantic/commutative-equivalent cross-source overlap not guaranteed absent",
+  "review_scope": "legacy source53 explicit assistant reviews plus new ten authored templates and every algorithmic label checked; not 800 independent human reviews",
+  "suggested_future_sampling": {
+    "general": 0.5,
+    "verified_tasks": 0.5,
+    "within_verified_tasks": "balance ten families rather than uniform-over-all-rows dominating general dialogue"
+  },
+  "used_for_sft_this_stage": false,
+  "validation_scope": "known templates new ordered payloads; not a final test of general chat"
+}
