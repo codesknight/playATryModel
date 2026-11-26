@@ -125,6 +125,14 @@ check_language54_resume.py比较直接恢复与临时保存重载后相同下一
 
 完整报告lesson54.json、恢复证据lesson54_resume.json、生成分析lesson54_analysis.json和分片元数据lesson54_assets.json分开保存。约60MB推理文件放Git，完整状态通过[第五十四课Release](https://github.com/codesknight/playATryModel/releases/tag/lesson54-pretrain-mix-pilot)交付，公开与远端摘要状态以元数据为准。
 
+交付核验：Release已公开，一组43个8MiB上限分片，远端摘要逐片匹配；best与last同内容，明确记录same_as别名。按正式清单在本地重组完整360411963字节状态并核对SHA，还实际下载公开第一片核对成功。没有声称重新下载了全部完整状态。记录见lesson54_delivery.json。
+
+另一台电脑需要完整训练状态时可使用：
+
+```powershell
+& 'D:\apps\anaconda3\envs\vllm-qwen\python.exe' scripts/experiments/restore_sft_parts.py --lesson 54 --checkpoint best_train.pt --output model/lesson54/restored_best_train.pt --download # 显式下载约360MB，核对分片及完整摘要，不执行训练。
+```
+
 ## 学习者实操
 
 ```powershell

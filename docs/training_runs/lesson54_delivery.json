@@ -1,0 +1,15 @@
+{
+  "last_identical_sha256": true,
+  "public_download_probe": {
+    "bytes": 8388608,
+    "name": "last_train.pt.part8m001",
+    "sha256": "8514444580e6a7cf450228ebb970cfdb581e31b98e5eb870b67315d009ca8474",
+    "verified": true
+  },
+  "reconstructed_best": {
+    "bytes": 360411963,
+    "sha256": "35445aa07a4ff17afeea60a5154f842637c1a8ca58f5eb9923359d8ddce53180"
+  },
+  "scope": "one complete local reconstruction plus public first-part probe; not a full remote re-download",
+  "unique_remote_parts": 43
+}

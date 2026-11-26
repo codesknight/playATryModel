@@ -76,4 +76,12 @@ for domain in DOMAINS:  # 每域四窗，明确不是全量CPU验证。
     print("CPU四窗：", domain, metric)  # 显示真实范围。
 resume = json.loads((ROOT / "docs/training_runs/lesson54_resume.json").read_text(encoding="utf-8"))  # 完整状态实际保存重载后的下一步证据。
 assert resume["formal_checkpoint_step"] == report["completed_steps"] and resume["max_parameter_abs_diff"] <= 1e-6 and resume["optimizer_scaler_cursors_equal"], "三域完整恢复不一致"  # 两次核验副本不算正式新增更新。
+assets = json.loads((ROOT / "docs/training_runs/lesson54_assets.json").read_text(encoding="utf-8"))  # 公开完整训练状态回执。
+assert not assets["draft"] and assets["tag"] == "lesson54-pretrain-mix-pilot", "混合训练完整状态未公开"  # 不将草稿当交付完成。
+for name in ("best_train.pt", "last_train.pt"):  # 同摘要允许明确的内容别名。
+    artifact = assets["files"][name]  # 记录原始全文件摘要和有序片。
+    canonical = artifact.get("same_as", name)  # 最佳与最后完全相同时可复用最后片。
+    assert artifact["sha256"] == report["artifacts"][name]["sha256"] == assets["files"][canonical]["sha256"] and sum(p["bytes"] for p in artifact["parts"]) == artifact["bytes"], "完整状态别名或分片缺失"  # 不能将不同内容强行作别名。
+    for index, part in enumerate(artifact["parts"], 1):  # 发布顺序即重组顺序。
+        assert part["name"] == f"{canonical}.part8m{index:03d}" and part["remote_digest"] == "sha256:" + part["sha256"] and "/download/lesson54-pretrain-mix-pilot/" in part["url"], "完整分片编号、摘要或地址错误"  # CI不重复下载360MB。
 print("800任务标签及反例、组隔离、三域曝光/验证、导出与完整恢复检查：通过")  # 不在CI重新训练。

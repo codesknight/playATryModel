@@ -1,0 +1,709 @@
+{
+  "draft": false,
+  "files": {
+    "best_train.pt": {
+      "bytes": 360411963,
+      "parts": [
+        {
+          "asset_id": 794944832,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m001",
+          "remote_digest": "sha256:8514444580e6a7cf450228ebb970cfdb581e31b98e5eb870b67315d009ca8474",
+          "sha256": "8514444580e6a7cf450228ebb970cfdb581e31b98e5eb870b67315d009ca8474",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m001"
+        },
+        {
+          "asset_id": 794944825,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m002",
+          "remote_digest": "sha256:91df33fc9fbdabe0deb9da2e5a9fdc452078c5f204e25f3e2ee6f77f488ee443",
+          "sha256": "91df33fc9fbdabe0deb9da2e5a9fdc452078c5f204e25f3e2ee6f77f488ee443",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m002"
+        },
+        {
+          "asset_id": 794944828,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m003",
+          "remote_digest": "sha256:69e77c92cc71e2633e563eb378868db76b42c2f9422482fda77f0cd469e4d223",
+          "sha256": "69e77c92cc71e2633e563eb378868db76b42c2f9422482fda77f0cd469e4d223",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m003"
+        },
+        {
+          "asset_id": 794945056,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m004",
+          "remote_digest": "sha256:4686506de7f4b333669b7dac414c64b72c9cd5845369091135a5e6934e05c086",
+          "sha256": "4686506de7f4b333669b7dac414c64b72c9cd5845369091135a5e6934e05c086",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m004"
+        },
+        {
+          "asset_id": 794945100,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m005",
+          "remote_digest": "sha256:0d6e1d9545a406b1fc4093866f8de9a3d763c9fdefa6404b47f0a54c2b59b7be",
+          "sha256": "0d6e1d9545a406b1fc4093866f8de9a3d763c9fdefa6404b47f0a54c2b59b7be",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m005"
+        },
+        {
+          "asset_id": 794945215,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m006",
+          "remote_digest": "sha256:07ffaa69fda2126fe2d2e150ec3863ff6d1e6840b879f635cfe5b508ce263853",
+          "sha256": "07ffaa69fda2126fe2d2e150ec3863ff6d1e6840b879f635cfe5b508ce263853",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m006"
+        },
+        {
+          "asset_id": 794945255,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m007",
+          "remote_digest": "sha256:e6d3200e43a90c0df784f31f40be4291ce6d05febc9b4ca1ecba8384b89193f8",
+          "sha256": "e6d3200e43a90c0df784f31f40be4291ce6d05febc9b4ca1ecba8384b89193f8",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m007"
+        },
+        {
+          "asset_id": 794945450,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m008",
+          "remote_digest": "sha256:be9d5506de5d25ad31db0b9d226e682dd8ba3f33b135510c848cdbaabb43606a",
+          "sha256": "be9d5506de5d25ad31db0b9d226e682dd8ba3f33b135510c848cdbaabb43606a",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m008"
+        },
+        {
+          "asset_id": 794945502,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m009",
+          "remote_digest": "sha256:8e50fbd91bb092105741bcb4c7c480f16981a11f7b672d70f88d000314d097ba",
+          "sha256": "8e50fbd91bb092105741bcb4c7c480f16981a11f7b672d70f88d000314d097ba",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m009"
+        },
+        {
+          "asset_id": 794945570,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m010",
+          "remote_digest": "sha256:0dd9ed1fc78f29d5b8444a5a66d0155ba9ade694dce8fb36bb2869559bd6eb23",
+          "sha256": "0dd9ed1fc78f29d5b8444a5a66d0155ba9ade694dce8fb36bb2869559bd6eb23",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m010"
+        },
+        {
+          "asset_id": 794945658,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m011",
+          "remote_digest": "sha256:99dc4a87fd4c40b420240ae8a4c754bb5e9984f268b7814d010d2a36f4729b42",
+          "sha256": "99dc4a87fd4c40b420240ae8a4c754bb5e9984f268b7814d010d2a36f4729b42",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m011"
+        },
+        {
+          "asset_id": 794945750,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m012",
+          "remote_digest": "sha256:9f625846aa80f5bad1dcfe1baa8a317cd950d90b5e0a1be531ff6aae869a60b4",
+          "sha256": "9f625846aa80f5bad1dcfe1baa8a317cd950d90b5e0a1be531ff6aae869a60b4",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m012"
+        },
+        {
+          "asset_id": 794946777,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m013",
+          "remote_digest": "sha256:9ab2ad42c985bad77bb484220c7fb6fc52a67b9723cf3bbddb3b982d3103ab96",
+          "sha256": "9ab2ad42c985bad77bb484220c7fb6fc52a67b9723cf3bbddb3b982d3103ab96",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m013"
+        },
+        {
+          "asset_id": 794946867,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m014",
+          "remote_digest": "sha256:ea8844244e85bd4dc99295fd029c1fd9feebc0732f2e5ab18ea78cb668b03821",
+          "sha256": "ea8844244e85bd4dc99295fd029c1fd9feebc0732f2e5ab18ea78cb668b03821",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m014"
+        },
+        {
+          "asset_id": 794946885,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m015",
+          "remote_digest": "sha256:70e10650a0295c896870f325ba3a765417c4c1fc92f20e6c6767846bf7c13f31",
+          "sha256": "70e10650a0295c896870f325ba3a765417c4c1fc92f20e6c6767846bf7c13f31",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m015"
+        },
+        {
+          "asset_id": 794946887,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m016",
+          "remote_digest": "sha256:6c0516a01aa5086d783ecc62d57ed9ec45cbae2d4af69254f4534f266c48eea3",
+          "sha256": "6c0516a01aa5086d783ecc62d57ed9ec45cbae2d4af69254f4534f266c48eea3",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m016"
+        },
+        {
+          "asset_id": 794947081,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m017",
+          "remote_digest": "sha256:2cfa17ef8c570847a0b86652b653b97015ecb2be9b4edbe3d8f9bbb7abe28c5d",
+          "sha256": "2cfa17ef8c570847a0b86652b653b97015ecb2be9b4edbe3d8f9bbb7abe28c5d",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m017"
+        },
+        {
+          "asset_id": 794947084,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m018",
+          "remote_digest": "sha256:96e779533a02070ddaba8e293f89e460d1174b485860d0c7d6f1619bdedddd8e",
+          "sha256": "96e779533a02070ddaba8e293f89e460d1174b485860d0c7d6f1619bdedddd8e",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m018"
+        },
+        {
+          "asset_id": 794947349,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m019",
+          "remote_digest": "sha256:7c8ff611783f62d555889034171ec9177c3fb72769b940407e5ab16071e4c8e7",
+          "sha256": "7c8ff611783f62d555889034171ec9177c3fb72769b940407e5ab16071e4c8e7",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m019"
+        },
+        {
+          "asset_id": 794947494,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m020",
+          "remote_digest": "sha256:e731309c69157786b472d377ee167fbb0dbc383cbcd0e342f70380cbf36f6007",
+          "sha256": "e731309c69157786b472d377ee167fbb0dbc383cbcd0e342f70380cbf36f6007",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m020"
+        },
+        {
+          "asset_id": 794947656,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m021",
+          "remote_digest": "sha256:4a19de96eeacf41a6db523024af8e8bf2f2dbf6b1b3a7c33afe669e9bd90b8fb",
+          "sha256": "4a19de96eeacf41a6db523024af8e8bf2f2dbf6b1b3a7c33afe669e9bd90b8fb",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m021"
+        },
+        {
+          "asset_id": 794947666,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m022",
+          "remote_digest": "sha256:50f329cb7a162f44568a87bf3316aafd81af9b2ac6c1afbdd176a059707d530d",
+          "sha256": "50f329cb7a162f44568a87bf3316aafd81af9b2ac6c1afbdd176a059707d530d",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m022"
+        },
+        {
+          "asset_id": 794947744,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m023",
+          "remote_digest": "sha256:43e5373505113f6885b43fd8627e239847018e2e1c8f060fb6d0d542109670fc",
+          "sha256": "43e5373505113f6885b43fd8627e239847018e2e1c8f060fb6d0d542109670fc",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m023"
+        },
+        {
+          "asset_id": 794947805,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m024",
+          "remote_digest": "sha256:0822d842c43c6d010b83aba97fa795ee0af2aa22abf3844ec2481fc2767afe30",
+          "sha256": "0822d842c43c6d010b83aba97fa795ee0af2aa22abf3844ec2481fc2767afe30",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m024"
+        },
+        {
+          "asset_id": 794947815,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m025",
+          "remote_digest": "sha256:241307f2eb2b4cb77d032d20c715556e8f2a5fa05e91c822dca4e78b56af9a99",
+          "sha256": "241307f2eb2b4cb77d032d20c715556e8f2a5fa05e91c822dca4e78b56af9a99",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m025"
+        },
+        {
+          "asset_id": 794947857,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m026",
+          "remote_digest": "sha256:b9954e4e63df18a2b6c4b1ff0a24fbd91633b715e46fc3c2124b735676ff5cd8",
+          "sha256": "b9954e4e63df18a2b6c4b1ff0a24fbd91633b715e46fc3c2124b735676ff5cd8",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m026"
+        },
+        {
+          "asset_id": 794947882,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m027",
+          "remote_digest": "sha256:c0a8a5edd6e6a21df09557043838123a844ee44e521bb30e0975ee143a24845c",
+          "sha256": "c0a8a5edd6e6a21df09557043838123a844ee44e521bb30e0975ee143a24845c",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m027"
+        },
+        {
+          "asset_id": 794947923,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m028",
+          "remote_digest": "sha256:4ba385bdc0d30df089cd8501254fb8b682ba800314809cee91fb82e881f58de7",
+          "sha256": "4ba385bdc0d30df089cd8501254fb8b682ba800314809cee91fb82e881f58de7",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m028"
+        },
+        {
+          "asset_id": 794948009,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m029",
+          "remote_digest": "sha256:5801453f6e129911e354c83d8b3e465e2523122c54fc0b9e0bfbe40e9ae91872",
+          "sha256": "5801453f6e129911e354c83d8b3e465e2523122c54fc0b9e0bfbe40e9ae91872",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m029"
+        },
+        {
+          "asset_id": 794948049,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m030",
+          "remote_digest": "sha256:6ce07ccc4dc29d0dc96ec0603aecc43930b02d7d8495cc9d5391a0288881c04b",
+          "sha256": "6ce07ccc4dc29d0dc96ec0603aecc43930b02d7d8495cc9d5391a0288881c04b",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m030"
+        },
+        {
+          "asset_id": 794948065,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m031",
+          "remote_digest": "sha256:fc983bab978cfad4b1b597b86fcd806b41470206fea53e3035a7e1179a1b1eb1",
+          "sha256": "fc983bab978cfad4b1b597b86fcd806b41470206fea53e3035a7e1179a1b1eb1",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m031"
+        },
+        {
+          "asset_id": 794948155,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m032",
+          "remote_digest": "sha256:6c993d22a61fd1c8fc065ff1c3b3a2284a63792645ce38ea5f6eebb1eedde18b",
+          "sha256": "6c993d22a61fd1c8fc065ff1c3b3a2284a63792645ce38ea5f6eebb1eedde18b",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m032"
+        },
+        {
+          "asset_id": 794948292,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m033",
+          "remote_digest": "sha256:8741c4b442f340999377120856b45aa73ff0a7e43bead8ecfafbea765fc19b37",
+          "sha256": "8741c4b442f340999377120856b45aa73ff0a7e43bead8ecfafbea765fc19b37",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m033"
+        },
+        {
+          "asset_id": 794948448,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m034",
+          "remote_digest": "sha256:6fc5e3a16cc236be21b7feef9c279565f650625f4d0a0e2e2be3302386cb6dbc",
+          "sha256": "6fc5e3a16cc236be21b7feef9c279565f650625f4d0a0e2e2be3302386cb6dbc",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m034"
+        },
+        {
+          "asset_id": 794948607,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m035",
+          "remote_digest": "sha256:a063115e30e109f59469ffff6781211bb66186c14c7d58120fb2511695c35dbe",
+          "sha256": "a063115e30e109f59469ffff6781211bb66186c14c7d58120fb2511695c35dbe",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m035"
+        },
+        {
+          "asset_id": 794948686,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m036",
+          "remote_digest": "sha256:9b07bef387ebc6838080dbf14e442565d4ee4495b21236952e851948c14276b6",
+          "sha256": "9b07bef387ebc6838080dbf14e442565d4ee4495b21236952e851948c14276b6",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m036"
+        },
+        {
+          "asset_id": 794948781,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m037",
+          "remote_digest": "sha256:de285f4a9454b5dc1537a10efc2aed5810ac20e611aeb16f3e2b4cfc4e346192",
+          "sha256": "de285f4a9454b5dc1537a10efc2aed5810ac20e611aeb16f3e2b4cfc4e346192",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m037"
+        },
+        {
+          "asset_id": 794948949,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m038",
+          "remote_digest": "sha256:c49260d277c6fec3e2ee31f3c8b27543c980ff162ddafc1bb958c7132372904f",
+          "sha256": "c49260d277c6fec3e2ee31f3c8b27543c980ff162ddafc1bb958c7132372904f",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m038"
+        },
+        {
+          "asset_id": 794949096,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m039",
+          "remote_digest": "sha256:5165c9cb93b538b98ff9b6ee53969ee142a6684824c06ede60f9850cfaa8bd84",
+          "sha256": "5165c9cb93b538b98ff9b6ee53969ee142a6684824c06ede60f9850cfaa8bd84",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m039"
+        },
+        {
+          "asset_id": 794949182,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m040",
+          "remote_digest": "sha256:c5e5f9e63e885eeb1b6aaeddb2a9e192f5f0790d0ebfd3776e58a7ef3548cb78",
+          "sha256": "c5e5f9e63e885eeb1b6aaeddb2a9e192f5f0790d0ebfd3776e58a7ef3548cb78",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m040"
+        },
+        {
+          "asset_id": 794949270,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m041",
+          "remote_digest": "sha256:5b6f10429c9dab252779a438fb10955a1aaafffd3ce0717419a70098783b8b44",
+          "sha256": "5b6f10429c9dab252779a438fb10955a1aaafffd3ce0717419a70098783b8b44",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m041"
+        },
+        {
+          "asset_id": 794949277,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m042",
+          "remote_digest": "sha256:0ba3e0e82d171f0da727bd28228f4c02e37428b5a521d88af5f7200440e535d8",
+          "sha256": "0ba3e0e82d171f0da727bd28228f4c02e37428b5a521d88af5f7200440e535d8",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m042"
+        },
+        {
+          "asset_id": 794949400,
+          "bytes": 8090427,
+          "name": "last_train.pt.part8m043",
+          "remote_digest": "sha256:2a01cb94723eadb6edb2e444e5fa3d83427f02ae85d3102a71834c5834590076",
+          "sha256": "2a01cb94723eadb6edb2e444e5fa3d83427f02ae85d3102a71834c5834590076",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m043"
+        }
+      ],
+      "same_as": "last_train.pt",
+      "sha256": "35445aa07a4ff17afeea60a5154f842637c1a8ca58f5eb9923359d8ddce53180"
+    },
+    "last_train.pt": {
+      "bytes": 360411963,
+      "parts": [
+        {
+          "asset_id": 794944832,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m001",
+          "remote_digest": "sha256:8514444580e6a7cf450228ebb970cfdb581e31b98e5eb870b67315d009ca8474",
+          "sha256": "8514444580e6a7cf450228ebb970cfdb581e31b98e5eb870b67315d009ca8474",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m001"
+        },
+        {
+          "asset_id": 794944825,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m002",
+          "remote_digest": "sha256:91df33fc9fbdabe0deb9da2e5a9fdc452078c5f204e25f3e2ee6f77f488ee443",
+          "sha256": "91df33fc9fbdabe0deb9da2e5a9fdc452078c5f204e25f3e2ee6f77f488ee443",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m002"
+        },
+        {
+          "asset_id": 794944828,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m003",
+          "remote_digest": "sha256:69e77c92cc71e2633e563eb378868db76b42c2f9422482fda77f0cd469e4d223",
+          "sha256": "69e77c92cc71e2633e563eb378868db76b42c2f9422482fda77f0cd469e4d223",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m003"
+        },
+        {
+          "asset_id": 794945056,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m004",
+          "remote_digest": "sha256:4686506de7f4b333669b7dac414c64b72c9cd5845369091135a5e6934e05c086",
+          "sha256": "4686506de7f4b333669b7dac414c64b72c9cd5845369091135a5e6934e05c086",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m004"
+        },
+        {
+          "asset_id": 794945100,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m005",
+          "remote_digest": "sha256:0d6e1d9545a406b1fc4093866f8de9a3d763c9fdefa6404b47f0a54c2b59b7be",
+          "sha256": "0d6e1d9545a406b1fc4093866f8de9a3d763c9fdefa6404b47f0a54c2b59b7be",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m005"
+        },
+        {
+          "asset_id": 794945215,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m006",
+          "remote_digest": "sha256:07ffaa69fda2126fe2d2e150ec3863ff6d1e6840b879f635cfe5b508ce263853",
+          "sha256": "07ffaa69fda2126fe2d2e150ec3863ff6d1e6840b879f635cfe5b508ce263853",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m006"
+        },
+        {
+          "asset_id": 794945255,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m007",
+          "remote_digest": "sha256:e6d3200e43a90c0df784f31f40be4291ce6d05febc9b4ca1ecba8384b89193f8",
+          "sha256": "e6d3200e43a90c0df784f31f40be4291ce6d05febc9b4ca1ecba8384b89193f8",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m007"
+        },
+        {
+          "asset_id": 794945450,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m008",
+          "remote_digest": "sha256:be9d5506de5d25ad31db0b9d226e682dd8ba3f33b135510c848cdbaabb43606a",
+          "sha256": "be9d5506de5d25ad31db0b9d226e682dd8ba3f33b135510c848cdbaabb43606a",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m008"
+        },
+        {
+          "asset_id": 794945502,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m009",
+          "remote_digest": "sha256:8e50fbd91bb092105741bcb4c7c480f16981a11f7b672d70f88d000314d097ba",
+          "sha256": "8e50fbd91bb092105741bcb4c7c480f16981a11f7b672d70f88d000314d097ba",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m009"
+        },
+        {
+          "asset_id": 794945570,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m010",
+          "remote_digest": "sha256:0dd9ed1fc78f29d5b8444a5a66d0155ba9ade694dce8fb36bb2869559bd6eb23",
+          "sha256": "0dd9ed1fc78f29d5b8444a5a66d0155ba9ade694dce8fb36bb2869559bd6eb23",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m010"
+        },
+        {
+          "asset_id": 794945658,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m011",
+          "remote_digest": "sha256:99dc4a87fd4c40b420240ae8a4c754bb5e9984f268b7814d010d2a36f4729b42",
+          "sha256": "99dc4a87fd4c40b420240ae8a4c754bb5e9984f268b7814d010d2a36f4729b42",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m011"
+        },
+        {
+          "asset_id": 794945750,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m012",
+          "remote_digest": "sha256:9f625846aa80f5bad1dcfe1baa8a317cd950d90b5e0a1be531ff6aae869a60b4",
+          "sha256": "9f625846aa80f5bad1dcfe1baa8a317cd950d90b5e0a1be531ff6aae869a60b4",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m012"
+        },
+        {
+          "asset_id": 794946777,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m013",
+          "remote_digest": "sha256:9ab2ad42c985bad77bb484220c7fb6fc52a67b9723cf3bbddb3b982d3103ab96",
+          "sha256": "9ab2ad42c985bad77bb484220c7fb6fc52a67b9723cf3bbddb3b982d3103ab96",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m013"
+        },
+        {
+          "asset_id": 794946867,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m014",
+          "remote_digest": "sha256:ea8844244e85bd4dc99295fd029c1fd9feebc0732f2e5ab18ea78cb668b03821",
+          "sha256": "ea8844244e85bd4dc99295fd029c1fd9feebc0732f2e5ab18ea78cb668b03821",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m014"
+        },
+        {
+          "asset_id": 794946885,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m015",
+          "remote_digest": "sha256:70e10650a0295c896870f325ba3a765417c4c1fc92f20e6c6767846bf7c13f31",
+          "sha256": "70e10650a0295c896870f325ba3a765417c4c1fc92f20e6c6767846bf7c13f31",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m015"
+        },
+        {
+          "asset_id": 794946887,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m016",
+          "remote_digest": "sha256:6c0516a01aa5086d783ecc62d57ed9ec45cbae2d4af69254f4534f266c48eea3",
+          "sha256": "6c0516a01aa5086d783ecc62d57ed9ec45cbae2d4af69254f4534f266c48eea3",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m016"
+        },
+        {
+          "asset_id": 794947081,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m017",
+          "remote_digest": "sha256:2cfa17ef8c570847a0b86652b653b97015ecb2be9b4edbe3d8f9bbb7abe28c5d",
+          "sha256": "2cfa17ef8c570847a0b86652b653b97015ecb2be9b4edbe3d8f9bbb7abe28c5d",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m017"
+        },
+        {
+          "asset_id": 794947084,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m018",
+          "remote_digest": "sha256:96e779533a02070ddaba8e293f89e460d1174b485860d0c7d6f1619bdedddd8e",
+          "sha256": "96e779533a02070ddaba8e293f89e460d1174b485860d0c7d6f1619bdedddd8e",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m018"
+        },
+        {
+          "asset_id": 794947349,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m019",
+          "remote_digest": "sha256:7c8ff611783f62d555889034171ec9177c3fb72769b940407e5ab16071e4c8e7",
+          "sha256": "7c8ff611783f62d555889034171ec9177c3fb72769b940407e5ab16071e4c8e7",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m019"
+        },
+        {
+          "asset_id": 794947494,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m020",
+          "remote_digest": "sha256:e731309c69157786b472d377ee167fbb0dbc383cbcd0e342f70380cbf36f6007",
+          "sha256": "e731309c69157786b472d377ee167fbb0dbc383cbcd0e342f70380cbf36f6007",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m020"
+        },
+        {
+          "asset_id": 794947656,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m021",
+          "remote_digest": "sha256:4a19de96eeacf41a6db523024af8e8bf2f2dbf6b1b3a7c33afe669e9bd90b8fb",
+          "sha256": "4a19de96eeacf41a6db523024af8e8bf2f2dbf6b1b3a7c33afe669e9bd90b8fb",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m021"
+        },
+        {
+          "asset_id": 794947666,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m022",
+          "remote_digest": "sha256:50f329cb7a162f44568a87bf3316aafd81af9b2ac6c1afbdd176a059707d530d",
+          "sha256": "50f329cb7a162f44568a87bf3316aafd81af9b2ac6c1afbdd176a059707d530d",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m022"
+        },
+        {
+          "asset_id": 794947744,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m023",
+          "remote_digest": "sha256:43e5373505113f6885b43fd8627e239847018e2e1c8f060fb6d0d542109670fc",
+          "sha256": "43e5373505113f6885b43fd8627e239847018e2e1c8f060fb6d0d542109670fc",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m023"
+        },
+        {
+          "asset_id": 794947805,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m024",
+          "remote_digest": "sha256:0822d842c43c6d010b83aba97fa795ee0af2aa22abf3844ec2481fc2767afe30",
+          "sha256": "0822d842c43c6d010b83aba97fa795ee0af2aa22abf3844ec2481fc2767afe30",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m024"
+        },
+        {
+          "asset_id": 794947815,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m025",
+          "remote_digest": "sha256:241307f2eb2b4cb77d032d20c715556e8f2a5fa05e91c822dca4e78b56af9a99",
+          "sha256": "241307f2eb2b4cb77d032d20c715556e8f2a5fa05e91c822dca4e78b56af9a99",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m025"
+        },
+        {
+          "asset_id": 794947857,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m026",
+          "remote_digest": "sha256:b9954e4e63df18a2b6c4b1ff0a24fbd91633b715e46fc3c2124b735676ff5cd8",
+          "sha256": "b9954e4e63df18a2b6c4b1ff0a24fbd91633b715e46fc3c2124b735676ff5cd8",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m026"
+        },
+        {
+          "asset_id": 794947882,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m027",
+          "remote_digest": "sha256:c0a8a5edd6e6a21df09557043838123a844ee44e521bb30e0975ee143a24845c",
+          "sha256": "c0a8a5edd6e6a21df09557043838123a844ee44e521bb30e0975ee143a24845c",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m027"
+        },
+        {
+          "asset_id": 794947923,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m028",
+          "remote_digest": "sha256:4ba385bdc0d30df089cd8501254fb8b682ba800314809cee91fb82e881f58de7",
+          "sha256": "4ba385bdc0d30df089cd8501254fb8b682ba800314809cee91fb82e881f58de7",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m028"
+        },
+        {
+          "asset_id": 794948009,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m029",
+          "remote_digest": "sha256:5801453f6e129911e354c83d8b3e465e2523122c54fc0b9e0bfbe40e9ae91872",
+          "sha256": "5801453f6e129911e354c83d8b3e465e2523122c54fc0b9e0bfbe40e9ae91872",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m029"
+        },
+        {
+          "asset_id": 794948049,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m030",
+          "remote_digest": "sha256:6ce07ccc4dc29d0dc96ec0603aecc43930b02d7d8495cc9d5391a0288881c04b",
+          "sha256": "6ce07ccc4dc29d0dc96ec0603aecc43930b02d7d8495cc9d5391a0288881c04b",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m030"
+        },
+        {
+          "asset_id": 794948065,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m031",
+          "remote_digest": "sha256:fc983bab978cfad4b1b597b86fcd806b41470206fea53e3035a7e1179a1b1eb1",
+          "sha256": "fc983bab978cfad4b1b597b86fcd806b41470206fea53e3035a7e1179a1b1eb1",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m031"
+        },
+        {
+          "asset_id": 794948155,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m032",
+          "remote_digest": "sha256:6c993d22a61fd1c8fc065ff1c3b3a2284a63792645ce38ea5f6eebb1eedde18b",
+          "sha256": "6c993d22a61fd1c8fc065ff1c3b3a2284a63792645ce38ea5f6eebb1eedde18b",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m032"
+        },
+        {
+          "asset_id": 794948292,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m033",
+          "remote_digest": "sha256:8741c4b442f340999377120856b45aa73ff0a7e43bead8ecfafbea765fc19b37",
+          "sha256": "8741c4b442f340999377120856b45aa73ff0a7e43bead8ecfafbea765fc19b37",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m033"
+        },
+        {
+          "asset_id": 794948448,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m034",
+          "remote_digest": "sha256:6fc5e3a16cc236be21b7feef9c279565f650625f4d0a0e2e2be3302386cb6dbc",
+          "sha256": "6fc5e3a16cc236be21b7feef9c279565f650625f4d0a0e2e2be3302386cb6dbc",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m034"
+        },
+        {
+          "asset_id": 794948607,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m035",
+          "remote_digest": "sha256:a063115e30e109f59469ffff6781211bb66186c14c7d58120fb2511695c35dbe",
+          "sha256": "a063115e30e109f59469ffff6781211bb66186c14c7d58120fb2511695c35dbe",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m035"
+        },
+        {
+          "asset_id": 794948686,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m036",
+          "remote_digest": "sha256:9b07bef387ebc6838080dbf14e442565d4ee4495b21236952e851948c14276b6",
+          "sha256": "9b07bef387ebc6838080dbf14e442565d4ee4495b21236952e851948c14276b6",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m036"
+        },
+        {
+          "asset_id": 794948781,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m037",
+          "remote_digest": "sha256:de285f4a9454b5dc1537a10efc2aed5810ac20e611aeb16f3e2b4cfc4e346192",
+          "sha256": "de285f4a9454b5dc1537a10efc2aed5810ac20e611aeb16f3e2b4cfc4e346192",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m037"
+        },
+        {
+          "asset_id": 794948949,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m038",
+          "remote_digest": "sha256:c49260d277c6fec3e2ee31f3c8b27543c980ff162ddafc1bb958c7132372904f",
+          "sha256": "c49260d277c6fec3e2ee31f3c8b27543c980ff162ddafc1bb958c7132372904f",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m038"
+        },
+        {
+          "asset_id": 794949096,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m039",
+          "remote_digest": "sha256:5165c9cb93b538b98ff9b6ee53969ee142a6684824c06ede60f9850cfaa8bd84",
+          "sha256": "5165c9cb93b538b98ff9b6ee53969ee142a6684824c06ede60f9850cfaa8bd84",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m039"
+        },
+        {
+          "asset_id": 794949182,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m040",
+          "remote_digest": "sha256:c5e5f9e63e885eeb1b6aaeddb2a9e192f5f0790d0ebfd3776e58a7ef3548cb78",
+          "sha256": "c5e5f9e63e885eeb1b6aaeddb2a9e192f5f0790d0ebfd3776e58a7ef3548cb78",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m040"
+        },
+        {
+          "asset_id": 794949270,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m041",
+          "remote_digest": "sha256:5b6f10429c9dab252779a438fb10955a1aaafffd3ce0717419a70098783b8b44",
+          "sha256": "5b6f10429c9dab252779a438fb10955a1aaafffd3ce0717419a70098783b8b44",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m041"
+        },
+        {
+          "asset_id": 794949277,
+          "bytes": 8388608,
+          "name": "last_train.pt.part8m042",
+          "remote_digest": "sha256:0ba3e0e82d171f0da727bd28228f4c02e37428b5a521d88af5f7200440e535d8",
+          "sha256": "0ba3e0e82d171f0da727bd28228f4c02e37428b5a521d88af5f7200440e535d8",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m042"
+        },
+        {
+          "asset_id": 794949400,
+          "bytes": 8090427,
+          "name": "last_train.pt.part8m043",
+          "remote_digest": "sha256:2a01cb94723eadb6edb2e444e5fa3d83427f02ae85d3102a71834c5834590076",
+          "sha256": "2a01cb94723eadb6edb2e444e5fa3d83427f02ae85d3102a71834c5834590076",
+          "url": "https://github.com/codesknight/playATryModel/releases/download/lesson54-pretrain-mix-pilot/last_train.pt.part8m043"
+        }
+      ],
+      "sha256": "35445aa07a4ff17afeea60a5154f842637c1a8ca58f5eb9923359d8ddce53180"
+    }
+  },
+  "format": "chat_model_release_parts_v1",
+  "tag": "lesson54-pretrain-mix-pilot",
+  "url": "https://github.com/codesknight/playATryModel/releases/tag/lesson54-pretrain-mix-pilot"
+}
